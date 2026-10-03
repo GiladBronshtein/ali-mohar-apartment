@@ -1,0 +1,7 @@
+node_modules/
+source/out/
+source/logs/
+source/local.html
+source/lm_local.html
+source/lm/work*/
+__pycache__/

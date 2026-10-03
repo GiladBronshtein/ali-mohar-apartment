@@ -1,0 +1,83 @@
+# הדירה בעלי מוהר: הדמיה תלת-ממדית
+
+**האתר:** https://giladbronshtein.github.io/ali-mohar-apartment/
+
+הדמיה תלת-ממדית של הדירה בעלי מוהר 6, רעננה (קומה 2). המודל נבנה לפי תוכנית המכר, תוכניות החשמל, האינסטלציה והמיזוג של הקבלן, ותמונות מהשטח. הוא רץ כולו בדפדפן ואין לו שרת או בק-אנד. זה אתר סטטי שמוגש מ-GitHub Pages.
+
+## מה יש באתר
+
+- הליכה חופשית בכל הדירה: גרירה מסובבת את המבט, חצים או גלגלת זזים, בטלפון צביטה ושתי אצבעות.
+- 33 זוויות מוכנות בלוח הבקרה: סלון ומטבח, חדרים, זוויות נוספות ומבט ציפור.
+- מצב יום וערב, מידות, תקרה, דלתות סגורות ווילונות.
+- 17 תמונות שרונדרו ב-Blender Cycles, בכפתור "תמונות באיכות מלאה". חלק מהן צולמו לפני התיקונים האחרונים, ראו "מגבלות".
+
+## מבנה הריפו
+
+| תיקייה | מה יש בה |
+|---|---|
+| `/` (שורש) | האתר שמתפרסם: `index.html`, אייקונים, `site.webmanifest`, `og.jpg` (תמונת שיתוף), `404.html`, `robots.txt` |
+| `vendor/` | three.js 0.160, three-mesh-bvh ו-three-gpu-pathtracer: רק הקבצים שהעמוד טוען, בלי תלות ב-CDN |
+| `renders/` | תמונות Cycles, ו-`status.json` שאומר לגלריה אילו תמונות קיימות |
+| `source/` | המקור של הכול: `salon.html` (קוד ההדמיה) וכל כלי הבנייה, הרינדור והבדיקה |
+| `audit/` | בדיקה בלתי תלויה של המודל מול כל מספר בתוכניות (`report.md`) והתמונות שמשמשות כראיה |
+| `materials/plans/` | תוכנית המכר (PDF), קטעים מהתוכניות הטכניות (`technical/`) ורסטרים של התוכנית (`derived/`) |
+| `materials/photos/` | כל התמונות וצילומי המסך שהועלו במהלך העבודה, לפי סדר ההעלאה |
+
+## איך מעדכנים את האתר
+
+כל השינויים נעשים ב-`source/salon.html`. אחר כך:
+
+```bash
+cd source
+python3 build_site.py        # בונה מחדש את ../index.html, ../site.webmanifest ו-../404.html
+cd ..
+git add -A && git commit -m "..." && git push
+```
+
+GitHub Pages מתעדכן תוך כדקה אחרי ה-push.
+
+הרצה מקומית (צריך שרת, כי מודולים של JavaScript לא נטענים מ-`file://`):
+
+```bash
+python3 -m http.server 8000
+# ואז: http://localhost:8000/
+```
+
+## רינדור מחדש של התמונות (Blender Cycles)
+
+הסקריפטים ב-`source/` מניחים שמריצים אותם מתוך `source/`, עם Python ו-Blender כמודול (`pip install bpy`, נבדק על 5.2) ו-Node.
+
+```bash
+cd source
+npm install                                # three + playwright
+npx playwright install chromium            # אם אין כרום מקומי; ב-exportglb.mjs מוגדר נתיב לכרום, עדכנו אותו
+python3 -m http.server 8765 &              # exportglb.mjs טוען את ההדמיה מהשרת הזה
+node exportglb.mjs                         # מייצא את המודל ל-apartment.glb ואת הזוויות ל-views.json
+python3 cycles_render.py kitchen day 48 1440 900 out/kitchen.png 2.7   # זווית, day/eve/lit, דגימות, רוחב, גובה, קובץ, חשיפה
+bash render_all.sh                         # כל הזוויות, עם המשך מאיפה שנעצר (logs/progress.txt)
+```
+
+תמונה לוקחת כ-8 דקות על 2 ליבות מעבד, ופחות מדקה על מחשב עם כרטיס מסך. אחרי רינדור, מעתיקים את ה-JPG ל-`../renders/` ומוסיפים את השם ל-`renders/status.json` ולרשימת `RENDERS` ב-`salon.html`.
+
+## בדיקות
+
+- `roomdims.py`: מודד את המידה הפנימית של כל חדר מהקירות במודל ומשווה למידות בתוכנית המכר. היום כל החדרים מתאימים בסטייה של עד חצי ס״מ.
+- `clearance_audit.py`: בודק מעברים, פתיחת דלתות ומגירות מול רהיטים.
+- `sitetest.mjs`: טוען את האתר בכרום בגודל מחשב ובגודל טלפון, ובודק שגיאות, אייקונים ושכל 17 התמונות נטענות.
+- `audit/report.md`: השוואה של כל מספר שכתוב בתוכניות מול המודל.
+
+## מגבלות ידועות
+
+- **גבהים:** גובה התקרה (2.60 מ׳), גובה אדני החלונות וגובה לוח החשמל לא כתובים באף תוכנית, ולכן הם הערכה.
+- **סביבה:** הנוף נבנה לפי התמונות מהמרפסת. המיקומים והמרחקים משוערים, בסטייה של כמה מטרים.
+- **תמונות Cycles:** חלק מהתמונות רונדרו לפני התיקונים האחרונים. במקלחת ההורים, במרפסת ובנוף הן מראות את המצב הקודם.
+- **תאורה:** בהדמיה החיה התאורה מקורבת. ניסיון לחשב תאורה מראש (lightmaps, `source/lm/`) יצא כהה ומוכתם על 2 ליבות, ולכן הוא כבוי. מפעילים אותו עם `?baked=1` אחרי חישוב באיכות גבוהה.
+- **שרוולי הממ״ד:** לפי תוכנית המיזוג, השרוולים נמוכים בכ-5 ס״מ מהנמכת הגבס במסדרון, אם התקרה באמת 2.60. כדאי לבדוק עם הקבלן.
+
+## רישיונות
+
+three.js, three-mesh-bvh ו-three-gpu-pathtracer הם ברישיון MIT, וקבצי הרישיון נמצאים ב-`vendor/`. התוכניות והתמונות שייכות לבעלי הדירה ולקבלן.
+
+---
+
+*English summary:* static three.js walkthrough of an apartment at Ali Mohar 6, Raanana, built from the sales plan and the contractor's MEP drawings. No backend: GitHub Pages serves the repo root. Edit `source/salon.html`, run `python3 source/build_site.py` from `source/`, commit and push. Offline renders come from `source/cycles_render.py` (Blender 5.2 as a Python module).
