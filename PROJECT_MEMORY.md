@@ -21,6 +21,7 @@ session; remove entries that are no longer true.
 
 | Date | Event |
 |---|---|
+| 2026-10-04 | Second re-check, five parallel reports in `audit/recheck2/` (summary `APPLIED.md`). Corridor and living-strip drop 25 to 35 cm (AC sheet "h=35cm (netto)", Latin written mirrored, misread before), TV bridge now 2.19 to the drop; entry wall by the kitchen; 13 electrical items (socket heights 1.80/1.10/1.40/2.20, bed heads, bath heaters, entry plate); niche louvres 80% open, water heater z, kids' WC axis 44, niche drain riser. Interior: GTAO retune and transparent meshes off the AO pass, hollow tub, recessed niches, steel sink, gooseneck faucet, eve hotspots, slat grain, skirting, condenser, hob, handles. Environment from the balcony photos: tower moved SE, block rings, lit windows in eve, lot cut to z 9..22 with retaining wall and driveway, street parking, red pavers, street lights, school details, north plot. `roomdims` +0, `clearance_audit` 0, `sitetest` no issues. |
 | 2026-10-04 | Wave pendant moved from the mamad to the living room, 60 cm in front of the storage wall and parallel to it (diffuser bottom about 2.06, estimate); the four cables now drop straight out of a canopy as long as the bar. Mamad back to its fan and spots. Then centred between the AC bulkhead and the south wall, and the ceiling LED grazer over the arch picture removed (owner). `clearance_audit` 0, `roomdims` +0, `sitetest` no issues. |
 | 2026-10-04 | Owners' current furniture and lamps, from their photos (sizes estimated): living sofa as dark leather with flip-up headrests and chrome legs, shaggy rug with a diamond lattice (`T.berber`), rotating slab coffee table; balcony sofa on a slim aluminium frame with loose cushions, teak-top table; egg chair rebuilt as an open rattan teardrop on a C-stand. Lamps: frames pendant over the island (replaces the two cones), wave pendant (moved later the same day), flush three-frame light over the coffee table, black cylinder downlights in the corridor and entry (replace 5 recessed spots); three warm point lights moved under them. Footprints unchanged: `clearance_audit` 0, `roomdims` +0, `sitetest` no issues. |
 | 2026-10-04 | Tree cards hidden from the GTAO pass: its override material ignores alphaTest, so each card drew a dark rectangle on walls behind it and a light box around far trees (desktop HQ only). |
@@ -76,6 +77,12 @@ writes 90x15 only for the two living grilles; rooms 1 and 2 get a combined 80x20
 
 ## Open issues
 
+- **Open from the second re-check** (`audit/recheck2/APPLIED.md`): soil colour (photos show orange hamra, the model
+  keeps the neutral colour until the owner confirms); passage width (120 scaled on both MEP sheets, 98 in the model);
+  master split position; kids' bath pipe box corner; boxed "א 25" marks; condenser 137x55 outline; cisterns.
+- **Renders stale (second re-check):** every exterior render (`view`, `balcony`, `balcony2`, bird views) predates
+  the new tower, blocks and street; `tvwall`, `sofa`, `entry` predate the 35 cm drop; `bath`, `shower`, `kitchen`
+  predate the tub, niche, sink and hob changes.
 - **Open from the 2026-10-04 re-check** (details in `audit/recheck/APPLIED.md`): column 2 location (plumbing and
   sales sheets disagree); electrical panel x (electrical sheet 3.01..3.40, sales plan 3.33..3.78, model follows the
   sales plan); niche condenser outline 132x55 on the AC sheet vs a 89x34 unit (outline may be a platform); water heater
@@ -87,8 +94,8 @@ writes 90x15 only for the two living grilles; rooms 1 and 2 get a combined 80x20
   renders also predate the realism pass (photo sky, PBR sets, glTF plants). `exportglb.mjs` serves `source/`, where
   there is no `assets/`, so a re-render would still use the procedural materials unless the export is pointed at
   the repo root.
-- **Exterior:** trees, ground and cars improved 2026-10-04; buildings are still boxes with poster facades, and the
-  bird-view shell is plain grey.
+- **Exterior:** layout follows the balcony photos (second re-check); buildings are still boxes with canvas facades,
+  and the bird-view shell is plain grey.
 - **No CC0 furniture found** for sanitaryware or a matching sofa on Poly Haven; those stay procedural.
 - **Renders stale again:** none of the 17 show the tree cards, ground sets, cars or the new soil colour, nor the
   2026-10-04 blueprint fixes (`bath-day` tub and basin, `shower-day` drain and basin, `entry-day`/`kitchen` living
@@ -110,8 +117,6 @@ writes 90x15 only for the two living grilles; rooms 1 and 2 get a combined 80x20
   URL explicitly.
 - **Sandbox wording** remains in comments ("web3d-realism-performance skill" in `lm/bake.py` and `salon.html`), and
   `audit/report.md` references files not in the repo (`audit2/`, `measure.py`, `dims.json`).
-- **Mamad sleeves:** per the AC plan they sit about 5 cm below the corridor drop ceiling if the ceiling is 2.60.
-  Ask the contractor.
 - **Room 3 as the mamad** is flagged in the panel notes as needing verification.
 - `bpy` (Blender as a Python module) is installed locally for Cycles renders and lightmap bakes.
 
