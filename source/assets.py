@@ -38,3 +38,11 @@ for tid in ['tree_small_02', 'jacaranda_tree', 'island_tree_02']:
     atlas = Image.new('RGBA', (sum(i.width for i in ims), ims[0].height)); atlas.paste(ims[0], (0, 0)); atlas.paste(ims[1], (ims[0].width, 0))
     os.makedirs(f'{OUT}/trees', exist_ok=True); tmp = f'{OUT}/trees/{tid}.png'; atlas.save(tmp)
     subprocess.run(['cwebp', '-quiet', '-q', '82', '-alpha_q', '90', tmp, '-o', f'{OUT}/trees/{tid}.webp'], check=True); os.remove(tmp)
+
+# realism pass 5: CC0 sets staged by out/real5/assets/_tools (ambientCG and Poly Haven WebP). Only the maps the viewer uses,
+# resized so the extra download stays small: (id, maps, size)
+for sid, maps, size in [('Metal009', ['nor', 'rough'], 512), ('Leather026', ['nor', 'rough'], 512), ('Marble021', ['nor', 'rough'], 1024),
+                        ('interlocking_concrete_pavers', ['diff', 'nor', 'rough'], 512)]:
+    for m in maps:
+        im = Image.open(f'out/real5/assets/tex/{sid}/{m}.webp').convert('RGB')
+        webp(im.resize((size, size * im.height // im.width), Image.LANCZOS), f'{OUT}/tex/{sid}/{m}.webp', {'diff': 82, 'nor': 88, 'rough': 80}[m])

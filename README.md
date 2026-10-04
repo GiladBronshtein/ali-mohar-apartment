@@ -87,7 +87,7 @@ bash render_all.sh                         # כל הזוויות, עם המשך 
 
 ## רישיונות
 
-three.js, three-mesh-bvh ו-three-gpu-pathtracer הם ברישיון MIT, וקבצי הרישיון נמצאים ב-`vendor/`. הקבצים ב-`assets/` הם מ-Poly Haven (https://polyhaven.com) ברישיון CC0. התוכניות והתמונות שייכות לבעלי הדירה ולקבלן.
+three.js, three-mesh-bvh ו-three-gpu-pathtracer הם ברישיון MIT, וקבצי הרישיון נמצאים ב-`vendor/`. הקבצים ב-`assets/` הם מ-Poly Haven (https://polyhaven.com) ומ-ambientCG (https://ambientcg.com, הטקסטורות `Metal009`, `Leather026` ו-`Marble021`), כולם ברישיון CC0. התוכניות והתמונות שייכות לבעלי הדירה ולקבלן.
 
 ---
 

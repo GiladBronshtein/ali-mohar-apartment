@@ -601,19 +601,21 @@ function pbrDetail(m, rough, bump, invert = false) {
 // Photo PBR sets (assets/tex, Poly Haven CC0) replace the derived maps when present. Full-colour sets are tinted to the mean of the
 // procedural texture they replace, so the palette stays as designed; detail-only sets keep the material's own colour and add the
 // photo's normal and roughness. World UVs are written at merge time in metres / userData.uv, so repeat = userData.uv / coverage.
-function meanLin(img) {
+function meanLin(img, srgb = true) {
   const c = document.createElement('canvas'); c.width = c.height = 16; const g = c.getContext('2d'); g.drawImage(img, 0, 0, 16, 16);
-  const d = g.getImageData(0, 0, 16, 16).data, s = [0, 0, 0], lin = v => v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4);
+  const d = g.getImageData(0, 0, 16, 16).data, s = [0, 0, 0], lin = v => !srgb ? v : v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4);
   for (let i = 0; i < d.length; i += 4) for (let k = 0; k < 3; k++) s[k] += lin(d[i + k] / 255);
   return s.map(v => v / 256);
 }
-async function photoPBR(mats, id, metres, { color = false, normal = 1 } = {}) {
+// rough: rescale the map so its mean lands on this value (glossy sets: steel, quartz, leather)
+async function photoPBR(mats, id, metres, { color = false, normal = 1, rough: target = 0 } = {}) {
   const [diff, nor, rough] = await Promise.all([color ? assetTex(`tex/${id}/diff.webp`) : null, assetTex(`tex/${id}/nor.webp`, false), assetTex(`tex/${id}/rough.webp`, false)]);
   if (!nor || !rough || (color && !diff)) return;
+  const k = target ? target / meanLin(rough.image, false)[0] : 1;
   for (const m of mats) {
     const r = (m.userData.uv || 1) / metres, fit = t => { t = t.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(r, r); t.needsUpdate = true; return t; };
     if (color) { const a = m.map ? meanLin(m.map.image) : [m.color.r, m.color.g, m.color.b], b = meanLin(diff.image); m.color.setRGB(a[0] / b[0], a[1] / b[1], a[2] / b[2]); m.map = fit(diff); }
-    m.normalMap = fit(nor); m.normalScale.setScalar(normal); m.roughnessMap = fit(rough); m.roughness = 1; m.bumpMap = null; m.needsUpdate = true;
+    m.normalMap = fit(nor); m.normalScale.setScalar(normal); m.roughnessMap = fit(rough); m.roughness = k; m.bumpMap = null; m.needsUpdate = true;
   }
   dirty = 1;
 }
@@ -624,6 +626,8 @@ const photoReady = Promise.all([   // the baked-light materials are clones: LM.l
   photoPBR([mat.wall], 'white_stucco', 2.0, { normal: .35 }),
   photoPBR([mat.stucco], 'white_stucco', 1.5, { normal: .5 }),   // exterior plaster on our shell (finish is an estimate)
   photoPBR([mat.sofaGrey, mat.oat, mat.oatDark, mat.charcoal, mat.blackFab], 'caban', .27),
+  photoPBR([mat.steel], 'Metal009', .5, { normal: .2, rough: mat.steel.roughness }),   // brushed lines (ambientCG CC0)
+  photoPBR([mat.quartz], 'Marble021', 1.6, { normal: .15, rough: .2 }),   // quartz keeps its own colour, photo gloss only
   photoPBR([mat.linen, mat.linenGrey, mat.olive, mat.rust, mat.dusty, mat.mustard, mat.sageFab, mat.clay], 'rough_linen', .27)]);
 
 // =====================================================================
@@ -1186,7 +1190,7 @@ withShift(.55, .40, () => {
 // legs, a wide arm with the recliner switch at the west end and an open end on the return. Long run with its back to the kitchen,
 // return on the east with its back to the balcony; footprint unchanged
 rug(3.35, 5.75, .95, 2.95, mat.berber);                                         // 240 x 200 grey Berber, front legs of the sofa on it
-const sf = phys(M('#2f2a28', .46), { roughness: .55, clearcoat: .25, clearcoatRoughness: .45, sheen: .3, sheenColor: '#5a4d45', sheenRoughness: .5 }), sl = (x1, x2, z1, z2, y1, y2, r = .05) => B(x1, x2, z1, z2, y1, y2, sf, { round: r });
+const sf = phys(M('#2f2a28', .46), { roughness: .55, clearcoat: .25, clearcoatRoughness: .45, sheen: .3, sheenColor: '#5a4d45', sheenRoughness: .5 }); photoPBR([sf], 'Leather026', .4, { normal: .4, rough: .55 }); const sl = (x1, x2, z1, z2, y1, y2, r = .05) => B(x1, x2, z1, z2, y1, y2, sf, { round: r });
 [[3.52, 2.69], [3.52, 3.47], [4.75, 3.47], [5.97, 3.47], [5.97, 2.10], [5.97, 1.33], [5.17, 1.33], [5.17, 2.66], [4.40, 2.69]]
   .forEach(([x, z]) => B(x - .018, x + .018, z - .03, z + .03, 0, .12, mat.steel, { cast: false }));
 sl(3.46, 6.04, 2.61, 3.54, .12, .40, .04); sl(5.11, 6.04, 1.26, 2.60, .12, .40, .04);         // body, 12 cm clear of the floor
@@ -1892,6 +1896,7 @@ const soilTex = canvasTex(512, 512, (g, w, h) => { const r = rnd(94); g.fillStyl
 const mPaver = TM(paverTex, .9, 3.0), mPaverRed = TM(paverT('#b08a7c', [172, 134, 120]), .9, 3.0), mPaverWalk = TM(paverT('#a87a6c', [164, 120, 106]), .9, 3.0), mTerr = TM(terrTex, .5, 2.4), mStone = TM(stoneTex, .85, 4.8), mSoil = TM(soilTex, 1, 9);
 [mStone, mPaver, mPaverRed, mPaverWalk, mSoil].forEach(m => m.userData.envDay = 1.1);   // west faces we look at sit in sun shadow: lift them with the sky
 photoPBR([mat.asphalt], 'asphalt_02', 3, { color: true }); photoPBR([mSoil], 'park_dirt', 3, { color: true }); const turfReady = photoPBR([mat.turf], 'grass_ground', 2.5, { color: true });   // CC0 ground sets, site only
+photoPBR([mPaver, mPaverRed, mPaverWalk], 'interlocking_concrete_pavers', 1.8, { color: true, normal: .6 });   // one CC0 paver set (Poly Haven), tinted to each paver colour
 const mWin = M('#39434b', .25, { metalness: .3 }), mWinFrame = M('#4b5258', .5), mBlue = M('#3d6fa8', .8), mWhiteLine = M('#f2f2ee', .8), mBlueFence = TM(canvasTex(64, 8, (g, w, h) => { for (let x = 0; x < w; x++) { const v = 128 + Math.round(22 * Math.sin(x / w * Math.PI * 8)); g.fillStyle = `rgb(${v},${v + 12},${v + 16})`; g.fillRect(x, 0, 1, h); } }), .6, 1.2);   // grey-blue corrugated hoarding
 const mGlassRail = new THREE.MeshStandardMaterial({ color: '#cfe0e4', roughness: .05, metalness: .1, transparent: true, opacity: .25, depthWrite: false });
 const mSail = M('#e7cf98', .9, { side: THREE.DoubleSide }), mShadeNet = M('#4f8f6a', .95, { side: THREE.DoubleSide }), mAlu = M('#c3c6c8', .35, { metalness: .8 });
