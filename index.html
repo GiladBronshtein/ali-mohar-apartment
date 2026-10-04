@@ -1192,14 +1192,15 @@ B(.02, .58, .02, TMD - .02, GH - .02, GH, mat.matteBlack); B(.04, .56, .04, TMD 
 B(.02, .20, .10, TMD - .10, 0, .40, M('#2c2e30', .5), { round: .02 });
 C(.40, TMD / 2, .002, .09, .17, M('#3a3c3f', .4), { seg: 40 }); C(.40, TMD / 2, .09, .092, .16, M('#1b1c1d', .3), { seg: 40, cast: false });
 plate('e', .02, TMD - .058, .44, .06, .05);
-// side walls stay plain white like the rest of the home (no limewash); LED grazers in the ceiling, art
-B(.62, 1.97, .03, .06, H - .012, H, mat.ledWall, { parent: ceilGroup, cast: false }); B(.62, 1.43, TW - .06, TW - .03, H - .012, H, mat.ledWall, { parent: ceilGroup, cast: false });
+// side walls stay plain white like the rest of the home (no limewash); LED grazer in the ceiling, art
+B(.62, 1.97, .03, .06, H - .012, H, mat.ledWall, { parent: ceilGroup, cast: false });
 art('s', .006, 1.30, 1.55, .95, 1.20, 102, ['#ebe4d6', '#c39a6b', '#7f876b', '#3b4340'], 'fields', mat.black);
 art('n', TW - .006, 1.03, 1.55, .55, .80, 202, ['#efe9dd', '#2f3a36', '#b46f4b', '#d6c7ab'], 'arch', mat.black);
 // wave pendant in front of the storage wall (owners' lamp, photo): a 124 cm black bar parallel to the cabinet that waves in plan
 // (1.5 waves) and gently in height, a white diffuser under it, hung on four cables that drop straight out of a slim canopy as long
-// as the bar. 60 cm out from the cabinet front, clear of the upper doors; diffuser bottom about 2.06 so it clears heads (estimate)
-{ const N = 48, xc = 1.20, za = .82, zb = 2.06, yc = 2.12, A = .06, P = s => [xc + A * Math.sin(s * Math.PI * 3), yc + .02 * Math.sin(s * Math.PI * 2), za + (zb - za) * s];
+// as the bar. 60 cm out from the cabinet front, clear of the upper doors, centred between the AC bulkhead and the south wall;
+// diffuser bottom about 2.06 so it clears heads (estimate)
+{ const N = 48, xc = 1.20, za = 1.17, zb = 2.41, yc = 2.12, A = .06, P = s => [xc + A * Math.sin(s * Math.PI * 3), yc + .02 * Math.sin(s * Math.PI * 2), za + (zb - za) * s];
   for (let i = 0; i < N; i++) { const [xA, yA, zA] = P(i / N), [xB, yB, zB] = P((i + 1) / N), Lh = Math.hypot(xB - xA, zB - zA), L = Math.hypot(Lh, yB - yA) + .004;
     const g = new THREE.Group(); root.add(g); g.position.set((xA + xB) / 2, (yA + yB) / 2, (zA + zB) / 2);
     g.rotation.order = 'YZX'; g.rotation.y = -Math.atan2(zB - zA, xB - xA); g.rotation.z = Math.atan2(yB - yA, Lh);
@@ -1974,7 +1975,7 @@ winLight(-3.81, .955, .97, 1.0, 1.5, 0, .955, 3.5);         // mamad
 winLight(8.90, -1.79, .96, 2.15, 1.10, 0, -1.79, 5.5);       // master
 winLight(6.285, -4.99, .59, .7, 1.85, 6.285, 0, 2.5);       // master bath
 const warm = [];
-[[1.2, 1.44, 5, 1.95], [4.7, 2.2, 5, H - .25], [5.99, 6.31, 5, 2.0], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 5], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 2, BC - .3]]   // kids' bath: under its lowered ceiling
+[[1.2, 1.79, 5, 1.95], [4.7, 2.2, 5, H - .25], [5.99, 6.31, 5, 2.0], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 5], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 2, BC - .3]]   // kids' bath: under its lowered ceiling
   .forEach(([x, z, k, y = H - .3]) => { const p = new THREE.PointLight(0xffd3a1, 0, 6, 2); p.position.set(x, y, z); p.userData.k = k; scene.add(p); warm.push(p); });
 
 // =====================================================================
