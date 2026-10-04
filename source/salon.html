@@ -262,6 +262,10 @@ const gtao = new GTAOPass(scene, camera, window.innerWidth, window.innerHeight);
 gtao.updateGtaoMaterial({ radius: 0.5, distanceExponent: 1.4, thickness: 1.2, scale: 1.2, samples: 16 });
 gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
 composer.addPass(gtao);
+// GTAO draws depth and normals with one override material that ignores alphaTest, so a tree card would darken the full quad
+// behind it: cards listed here are hidden from that pass
+const noAO = [], gtaoHide = gtao.overrideVisibility.bind(gtao);
+gtao.overrideVisibility = () => { gtaoHide(); noAO.forEach(o => { o.visible = false; }); };
 const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), .1, .45, .95);   // soft glow on LED lines and lamps
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
@@ -1805,7 +1809,7 @@ function treeCards(img, spots) {
 }
 Promise.all(['tree_small_02', 'jacaranda_tree', 'island_tree_02'].map(f => assetTex(`trees/${f}.webp`))).then(ts => {
   if (ts.some(t => !t)) return;
-  const [street, jac, isl] = ts, card = (t, spots) => mesh(treeCards(t.image, spots), new THREE.MeshStandardMaterial({ map: t, alphaTest: .45, roughness: .9, envMapIntensity: isEve ? .12 : ENV }), scene, false);
+  const [street, jac, isl] = ts, card = (t, spots) => noAO.push(mesh(treeCards(t.image, spots), new THREE.MeshStandardMaterial({ map: t, alphaTest: .45, roughness: .9, envMapIntensity: isEve ? .12 : ENV }), scene, false));
   card(street, streetTrees); card(jac, yardTrees.filter((_, i) => i % 2)); card(isl, yardTrees.filter((_, i) => !(i % 2)));
   procTrees.visible = false; dirty = 1; });
 const sky = new THREE.Mesh(new THREE.SphereGeometry(650, 32, 16), new THREE.MeshBasicMaterial({ map: skyDay, side: THREE.BackSide, fog: false }));
