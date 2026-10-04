@@ -32,7 +32,7 @@ const out = await page.evaluate(() => {
   for (const [gname, grp] of groups) {
     grp.updateMatrixWorld(true);
     grp.traverse(o => {
-      if (!o.isMesh || !o.visible) return; let vis = true; for (let p = o; p; p = p.parent) if (!p.visible) vis = false; if (!vis) return;
+      if (!o.isMesh || o.isReflector || !o.visible) return; let vis = true; for (let p = o; p; p = p.parent) if (!p.visible) vis = false; if (!vis) return;
       const m = o.material; if (!m || Array.isArray(m)) return;
       const transparent = m.transparent && m.opacity < .99;
       if (transparent && !m.map) return;                          // glass, sheers: light passes

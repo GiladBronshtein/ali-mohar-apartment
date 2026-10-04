@@ -19,7 +19,8 @@ for src, dst in [('kloofendal_48d_partly_cloudy_puresky', 'day'), ('belfast_suns
     webp(im.crop((0, 0, 4096, 1152)), f'{OUT}/sky/{dst}.webp', 80)
 
 # PBR sets: colour (sRGB) only where the set's own colour is used, normal (OpenGL) + roughness always
-SETS = {'laminate_floor_02': True, 'oak_veneer_01': True, 'white_stucco': False, 'caban': False, 'rough_linen': False}
+SETS = {'laminate_floor_02': True, 'oak_veneer_01': True, 'white_stucco': False, 'caban': False, 'rough_linen': False,
+        'asphalt_02': True, 'park_dirt': True, 'grass_ground': True}
 for sid, color in SETS.items():
     for m, q in ([('diff', 82)] if color else []) + [('nor', 90), ('rough', 80)]:
         webp(Image.open(f'{SRC}/tex/{sid}/{m}.jpg').convert('RGB').resize((1024, 1024), Image.LANCZOS), f'{OUT}/tex/{sid}/{m}.webp', q)
@@ -30,3 +31,10 @@ for mid in ['potted_plant_01', 'potted_plant_02']:
     subprocess.run(['npx', '-y', '@gltf-transform/cli@4', 'optimize', f'{SRC}/models/{mid}/{mid}.gltf', f'{OUT}/models/{mid}.glb', '--compress', 'meshopt',
                     '--texture-compress', 'webp', '--texture-size', '1024', '--simplify', 'true', '--simplify-ratio', '0.5', '--simplify-error', '0.002',
                     '--instance', 'false', '--join', 'false', '--flatten', 'false'], check=True)
+
+# tree cards: the two Cycles views from treecards.py (out/tree_<id>_<0|1>.png) side by side, 1024 px tall, WebP with alpha
+for tid in ['tree_small_02', 'jacaranda_tree', 'island_tree_02']:
+    ims = [Image.open(f'out/tree_{tid}_{k}.png').convert('RGBA') for k in (0, 1)]
+    atlas = Image.new('RGBA', (sum(i.width for i in ims), ims[0].height)); atlas.paste(ims[0], (0, 0)); atlas.paste(ims[1], (ims[0].width, 0))
+    os.makedirs(f'{OUT}/trees', exist_ok=True); tmp = f'{OUT}/trees/{tid}.png'; atlas.save(tmp)
+    subprocess.run(['cwebp', '-quiet', '-q', '82', '-alpha_q', '90', tmp, '-o', f'{OUT}/trees/{tid}.webp'], check=True); os.remove(tmp)

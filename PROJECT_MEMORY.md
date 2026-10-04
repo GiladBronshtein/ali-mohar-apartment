@@ -5,14 +5,13 @@ session; remove entries that are no longer true.
 
 ## Status (2026-10-04)
 
-- Live site and the claude.ai artifact both reflect `source/salon.html` at commit `aae2b0f` (the only commit).
+- Live site reflects `source/salon.html` at the exterior/mirrors commit (2026-10-04). The claude.ai artifact is
+  older: paste `source/salon.html` into the artifact chat to update it (it gets mirrors, cars, soil colour and fov,
+  not the tree cards or photo textures).
 - Local checkout: `/Users/Gilad.Bronshtein/AliMohar`. Node deps and Playwright Chromium installed in `source/`.
 - Verified locally: `build_site.py` rebuild is byte-identical; `sitetest.mjs` "no issues" on desktop and phone;
   `clearance_audit.py` 0 issues; `roomdims.py` +0 on all rooms except the closet probe artifact.
-- Uncommitted: Chrome path fix in 5 Playwright scripts, `source/package-lock.json`, `.claude/launch.json`,
-  `CLAUDE.md`, `DESIGN.md`, this file, `QA_BASELINE.md`, and the realism pass below (`salon.html`, `index.html`,
-  `assets/`, `lm/`, `vendor/.../GLTFLoader.js` and `meshopt_decoder.module.js`, `source/assets.py`, `lm/bake.py`,
-  `exportglb.mjs`, `vendor.mjs`).
+- `CLAUDE.md` and `.claude/` stay uncommitted (listed in `.git/info/exclude`).
 - Realism pass verified 2026-10-04: `sitetest.mjs` no issues, `roomdims.py` +0, `clearance_audit.py` 0 issues,
   `out/qa_full.mjs ... after` 0 errors. Download 2.0 to 7.4 MB; forced-render fps desktop HQ 21 to 15, phone 40 to
   35; ready 1.8 s desktop, 2.6 s phone (warm cache). Shots in `source/out/qa/after/`.
@@ -21,6 +20,7 @@ session; remove entries that are no longer true.
 
 | Date | Event |
 |---|---|
+| 2026-10-04 | Exterior and mirrors: CC0 tree cards (Cycles renders of 3 Poly Haven trees on crossed quads), CC0 asphalt, dirt and grass sets, soil no longer orange, extruded car profiles; live `Reflector` mirrors on desktop HQ (4 mirrors); phone fov 96 to 84, narrow-screen top views step back. QA: `sitetest` no issues, `qa_full ... ext` 0 errors, desktop forced fps 20 (was 15, noisy), phone 37; desktop download 7.6 to 11.9 MB. |
 | 2026-10-04 | Realism pass, after a full QA baseline (`QA_BASELINE.md`). Installed skills: web3d-realism-performance, MengTo 3d, Impertio three.js. Added CC0 Poly Haven assets in `assets/` (photo skies, 5 PBR sets, 2 potted plant glTF models) with procedural fallback; day retune (ACES, exposure .85, hemi .22, env .3, sun 3.0); kids' bath eve lamp moved under its lowered ceiling. GPU lightmap bake works (Metal, proxies, HDRI) and is published in `lm/`, but stays opt-in (`?baked=1`). |
 | 2026-10-04 | Moved from the claude.ai chat into a local Claude Code project. Replaced the sandbox Chromium path `/opt/pw-browsers/chromium-1194/chrome-linux/chrome` with `process.env.CHROME_PATH` in `exportglb.mjs`, `icons.mjs`, `sitetest.mjs`, `qa_lm.mjs`, `lm/export.mjs`. Added preview config and these docs. |
 | 2026-10-03 | Independent audit of the model against the plans (`audit/report.md`). Most findings were then fixed in `salon.html` (see below). |
@@ -64,12 +64,15 @@ Checked against the current code on 2026-10-04; `audit/report.md` line numbers a
   renders also predate the realism pass (photo sky, PBR sets, glTF plants). `exportglb.mjs` serves `source/`, where
   there is no `assets/`, so a re-render would still use the procedural materials unless the export is pointed at
   the repo root.
-- **Exterior** is the weakest part (box buildings, lollipop trees, orange ground, box cars). Not touched yet.
+- **Exterior:** trees, ground and cars improved 2026-10-04; buildings are still boxes with poster facades, and the
+  bird-view shell is plain grey.
+- **No CC0 furniture found** for sanitaryware or a matching sofa on Poly Haven; those stay procedural.
+- **Renders stale again:** none of the 17 show the tree cards, ground sets, cars or the new soil colour.
 - **Baked light:** ideas not tried yet: a higher-resolution atlas or several atlases for ceilings, a brighter or
   neutral sky in the bake, window fill in the natural pass, or using only the AO map as `aoMap` on the real-time
   materials.
-- **Phone fov 96** still distorts bird views; desktop fov 68 stretches frame edges (QA_BASELINE finding 8).
-- **Mirrors and glass** still reflect only the blurred environment.
+- **Desktop fov 68** still stretches frame edges a little (QA_BASELINE finding 8); phones fixed 2026-10-04.
+- **Mirrors** are live only on desktop HQ; phones and glass still reflect the blurred environment.
 - **`render_all.sh` broken as committed:** writes to `source/renders/` (not `../renders/`), and never creates
   `source/logs/`, so every run fails at the log redirect. It also renders `bath-day` and `room1-day`, which are not
   in the gallery.
@@ -94,7 +97,7 @@ Ceiling 2.60 m; window sills 0.95 / 1.0 / 1.05 / 1.5 / 1.0 / 0; window heads 2.0
 ## Next steps
 
 - Decide whether to commit the Chrome path fix, lockfile, docs and the realism pass (`assets/` and `lm/` get published).
-- Exterior: an HDRI backplate plus simpler massing, CC0 tree models.
-- More CC0 models where the QA saw primitives: sofas, sanitaryware, bed.
+- Exterior: facades with real window depth, or an HDRI backplate in place of the far blocks.
+- CC0 sofas and sanitaryware from another source (ambientCG has none; check licences elsewhere).
 - Fix `render_all.sh` paths before the next render run; re-render the 4 stale images.
 - Re-verify the unconfirmed audit items and refresh `audit/report.md`.

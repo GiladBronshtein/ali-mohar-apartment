@@ -80,6 +80,14 @@ interior dimensions, e.g. חדר הורים 430×296.
 - glTF props (site only): `GLTFLoader` + `MeshoptDecoder` load `assets/models/potted_plant_0{1,2}.glb` onto the
   balcony (`propGroup`); the procedural plants (`procPlants`, a separate group added to `scene` so `mergeGroup` keeps
   it swappable) are hidden only when both models load.
+- Ground (site only): CC0 `asphalt_02` on the street, `park_dirt` on the soil (`mSoil`, procedural base now dusty
+  brown), `grass_ground` on lawns (`mat.turf`), all via `photoPBR(..., { color: true })`. `photoPBR` tints to
+  `m.color` when the material has no map.
+- Trees (site only): the procedural crowns sit in `procTrees`; street and courtyard positions are collected in
+  `streetTrees` / `yardTrees`. When the three atlases in `assets/trees/` load, `treeCards()` draws each tree as two
+  crossed quads (front and back faces, normals up, `alphaTest` .45) and `procTrees` is hidden. Street trees use
+  `tree_small_02`, the courtyard alternates `jacaranda_tree` and `island_tree_02`.
+- Cars: extruded side profiles (`carProf`: body, glass cabin, body-colour roof), wheels, head and tail lights.
 - `mergeGroup()` merges `root`, `ceilGroup` and `outside` into one mesh per material and shadow flag, with box-projected
   world-space UVs (unless `userData.keepUV`). Doors, curtains and fans stay separate so they can animate. No instancing.
 
@@ -98,6 +106,11 @@ interior dimensions, e.g. חדר הורים 430×296.
 - High quality (`hq`, desktop default): composer with RenderPass, TAA (32 frames once still), GTAO, bloom, output.
   Phones default to plain `renderer.render`.
 - Render on demand: a dirty flag plus camera-matrix diffing; after 180 ms still, TAA accumulates and the loop idles.
+- Mirrors: `reflector()` puts a three.js `Reflector` (1024², HalfFloat, tint .46) on the entry round mirror, the
+  closet door mirror, the master bath vanity (in `scene`, so the `withShift` offset is added by hand) and the kids'
+  bath mirror. Visible only when `hq` and not path tracing (`setHQ`, `ptScene`). `onBeforeRender` skips GTAO's
+  override-material pass, nested reflections and repeat draws in one frame (`frameNo`, bumped in `tick`).
+  `lm/export.mjs` and `exportglb.mjs` drop them (Cycles has its own mirror material). `__app.mirrors` lists them.
 - Path tracer (three-gpu-pathtracer, lazy import, 5 bounces, denoised): reachable only via `__app.setPT(true)`;
   the `#btnPT` button is hidden.
 - Baked lightmaps: `?baked=1` loads `lm/manifest.json` and the atlases in the published `lm/` folder (256 spp GPU
@@ -116,7 +129,9 @@ interior dimensions, e.g. חדר הורים 430×296.
   - A, living/dining/kitchen (12): entry, photo, storage, island, hall, kitchen, kitchen2, kitchen3, tvwall, balcony, balcony2, view
   - B, rooms (13): master, master2, closet, mbath, shower, bath, bath2, service, room1, room2, room3, corridor, top
   - C, extra (8): sofa, inside, isle2, bedtv, desk, corr2, bird1, bird2
-- Top views hide the ceiling; `top` shows dimensions, `bird1/bird2` do not. Portrait screens get fov 96.
+- Top views hide the ceiling; `top` shows dimensions, `bird1/bird2` do not. Portrait screens (aspect < .8) get fov
+  84 in eye-level views. Top views on screens narrower than 1.2 use fov 60 and step the camera back so the plan is
+  as wide as on a 16:10 screen at fov 50.
 - Start view: URL hash `#<key>`, default `entry`. The only other URL parameter is `?baked=1`.
 
 ## UI
@@ -164,6 +179,10 @@ salon.html --exportglb.mjs (Chrome on :8765)--> apartment.glb + views.json
   from CC0 downloads in `out/assets_src/` (gitignored); sources are listed in its header. `vendor/` now also holds
   `loaders/GLTFLoader.js` and `libs/meshopt_decoder.module.js` (copied by hand: `vendor.mjs` fails on the missing
   three-mesh-bvh in `node_modules`).
+- Tree cards: `.venv-bpy/bin/python treecards.py` renders the Poly Haven tree glTFs in Cycles (Metal), two
+  orthographic views 90° apart, white world, transparent film, to `out/tree_<id>_<0|1>.png`; `assets.py` packs each
+  pair into `../assets/trees/<id>.webp`. The system Python 3.11 binary on this Mac is broken; use the venv.
+  `vendor/three/examples/jsm/objects/Reflector.js` was also copied by hand from `node_modules/three`.
 - `qa_lm.mjs` + `qa_*.json`: screenshot shot lists for visual QA.
 
 ## Checks

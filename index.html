@@ -242,6 +242,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
 
 // =====================================================================
 // Plan coordinates in meters. x = east (toward balcony), z = south (toward kitchen), y = up.
@@ -499,7 +500,7 @@ const mat = {
   rug: fab('#cfc5b5', 14, 1), anthracite: M('#3a3b3d', .45), rugGrey: fab('#9aa0a3', 15, 1), rugKid: fab('#d9cdb4', 16, 1), rugBlue: fab('#a7b6c2', 17, 1),
   mattress: M('#f4f3ef', 0.95),
   leaf: M('#4c6a39', 0.7, { side: THREE.DoubleSide }), leaf2: M('#6b8a47', 0.7, { side: THREE.DoubleSide }), leaf3: M('#3e5a33', 0.7, { side: THREE.DoubleSide }), pot: M('#cdbda7', 0.92), potDark: M('#4a4642', 0.9), terracotta: M('#b97a57', 0.9),
-  concrete: M('#e9e7e2', 0.95), ground: M('#a7a49a', 1), asphalt: M('#55585b', 0.95), soil: M('#c98a52', 1), turf: M('#6f9a4c', 1), pv: M('#24364f', 0.3, { metalness: 0.4 }),
+  concrete: M('#e9e7e2', 0.95), ground: M('#a7a49a', 1), asphalt: M('#55585b', 0.95, {}, 4), soil: M('#c98a52', 1), turf: M('#6f9a4c', 1, {}, 3), pv: M('#24364f', 0.3, { metalness: 0.4 }),
   louver: M('#d9d6cf', 0.6, { metalness: 0.3 }),
   book1: M('#7b6a58', 0.8), book2: M('#c9b99f', 0.8), book3: M('#46505a', 0.8), book4: M('#a65e3e', 0.8), book5: M('#e6e1d6', 0.8),
   ceramicVase: M('#e8e2d6', 0.6), stoneVase: M('#8b8277', 0.8),
@@ -553,7 +554,7 @@ async function photoPBR(mats, id, metres, { color = false, normal = 1 } = {}) {
   if (!nor || !rough || (color && !diff)) return;
   for (const m of mats) {
     const r = (m.userData.uv || 1) / metres, fit = t => { t = t.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(r, r); t.needsUpdate = true; return t; };
-    if (color) { const a = meanLin(m.map.image), b = meanLin(diff.image); m.color.setRGB(a[0] / b[0], a[1] / b[1], a[2] / b[2]); m.map = fit(diff); }
+    if (color) { const a = m.map ? meanLin(m.map.image) : [m.color.r, m.color.g, m.color.b], b = meanLin(diff.image); m.color.setRGB(a[0] / b[0], a[1] / b[1], a[2] / b[2]); m.map = fit(diff); }
     m.normalMap = fit(nor); m.normalScale.setScalar(normal); m.roughnessMap = fit(rough); m.roughness = 1; m.bumpMap = null; m.needsUpdate = true;
   }
   dirty = 1;
@@ -744,10 +745,21 @@ function curtain(axis, a1, a2, at, y1, y2, m, folds = 9, amp = .045) {
 }
 function pendantGlobe(x, z, y, r = .14) { C(x, z, y + r, H, .004, mat.black, { seg: 6, parent: ceilGroup, cast: false }); C(x, z, H - .02, H, .05, mat.black, { parent: ceilGroup, cast: false }); Sph(x, y, z, r, mat.lamp, { seg: 28, cast: false }); }
 function pendantCone(x, z, y, r = .13, hgt = .26) { C(x, z, y + hgt / 2, H, .004, mat.black, { seg: 6, parent: ceilGroup, cast: false }); C(x, z, y - hgt / 2, y + hgt / 2, r, mat.black, { r2: r * .35, cast: false }); C(x, z, y - hgt / 2 - .005, y - hgt / 2 + .004, r * .92, mat.lamp, { cast: false }); }
+// Planar mirrors (desktop HQ): a Reflector 1 mm in front of the mirror surface re-renders the scene from the mirrored camera, at most
+// once per frame and never for the AO normal pass or from inside another mirror. Phones, the path tracer and the bake keep the
+// env-mapped mirror material underneath. g: geometry in the xy plane, facing +z before the turn ry.
+const mirrors = []; let frameNo = 0, reflecting = false;
+function reflector(g, parent, x, y, z, ry) {
+  const r = new Reflector(g, { textureWidth: 1024, textureHeight: 1024, clipBias: .003, multisample: 4 }), draw = r.onBeforeRender; let last = -1;
+  r.material.uniforms.color.value.setRGB(.46, .46, .46);   // overlay blend: about 90% reflectance
+  r.position.set(x, y, z); r.rotation.y = ry; r.visible = hq; parent.add(r); mirrors.push(r);
+  r.onBeforeRender = function (rd, sc, cam) { if (sc.overrideMaterial || reflecting || last === frameNo) return; last = frameNo; reflecting = true; draw.call(this, rd, sc, cam); reflecting = false; };
+}
 // round wall mirror on an x-facing wall: thin disc with a black rim
 function flatMirror(x, y, z, r) {
   const rim = C(0, 0, -.006, .006, r + .012, mat.blackMetal, { seg: 56, cast: false }); rim.rotation.z = Math.PI / 2; rim.position.set(x, y, z);
   const m = C(0, 0, -.006, .006, r, mat.mirror, { seg: 56, cast: false }); m.rotation.z = Math.PI / 2; m.position.set(x + .004, y, z);
+  reflector(new THREE.CircleGeometry(r, 56), scene, x + .011, y, z, Math.PI / 2);
 }
 // heated towel ladder: two rails + rungs. axis 'x' => rungs along x on a z-facing wall, 'z' => rungs along z on an x-facing wall
 function ladder(axis, a1, a2, wall, s, y1, y2) {
@@ -928,7 +940,7 @@ doorLeaf(3.68, -1.315, 0, -1, .81, mat.door, DOORH - .02, .04, -1, 0);          
 doorLeaf(4.205, -.35, 1, 0, .80, mat.door, DOORH - .02, .04, 0, -1);               // master (opening -1.16..-0.34), hinge on the TV-wall side as in the plan
 doorLeaf(-2.0, -.195, 0, -1, .86, mat.blastDoor, 2.04, .08, 1, 0);                  // mamad blast door: hinge at the west end, open 90 deg into the corridor (as drawn in the plan)
 doorLeaf(6.945, -3.365, -1, 0, .69, mat.door, DOORH - .02, .04, 0, -1, (P, w, t) => {   // master bath door from the closet, full-length mirror on the closet side
-  B(.08, w - .08, t / 2, t / 2 + .006, .25, 1.95, mat.mirror, { parent: P.g, cast: false }); B(.06, w - .06, t / 2, t / 2 + .003, .23, 1.97, mat.blackMetal, { parent: P.g, cast: false }); });
+  B(.08, w - .08, t / 2, t / 2 + .006, .25, 1.95, mat.mirror, { parent: P.g, cast: false }); reflector(new THREE.PlaneGeometry(w - .16, 1.7), P.g, w / 2, 1.1, t / 2 + .007, 0); B(.06, w - .06, t / 2, t / 2 + .003, .23, 1.97, mat.blackMetal, { parent: P.g, cast: false }); });
 // DOOR FRAMES (Israeli "bondor" style): a 2.5 cm jamb lining the whole reveal plus a 6 cm casing on both faces of the wall.
 // The leaves are 1-1.5 cm wider than the clear opening on each side and 5 mm taller than the head, so a closed leaf seats
 // into the frame: no slit to see through and no coplanar faces (the casing stands 16 mm proud, the head casing 17 mm, the
@@ -1329,7 +1341,7 @@ B(4.44, 4.92, -4.07, -3.39, .45, .80, mat.walnut, { round: .006 }); B(4.92, 4.92
 B(4.44, 4.94, -4.08, -3.38, .80, .83, mat.trav);
 B(4.55, 4.83, -3.89, -3.55, .83, .95, mat.ceramic, { round: .05 });
 B(4.44, 4.56, -3.73, -3.71, 1.02, 1.04, mat.blackMetal);
-B(4.44, 4.58, -4.03, -3.43, 1.15, 1.85, mat.walnut, { round: .004 }); B(4.58, 4.586, -4.02, -3.44, 1.16, 1.84, mat.mirror, { cast: false });
+B(4.44, 4.58, -4.03, -3.43, 1.15, 1.85, mat.walnut, { round: .004 }); B(4.58, 4.586, -4.02, -3.44, 1.16, 1.84, mat.mirror, { cast: false }); reflector(new THREE.PlaneGeometry(.58, .68), scene, 4.587 + .19, 1.5, -3.73 + .06, Math.PI / 2);   // in the scene, so the shift is added by hand
 B(4.46, 4.57, -4.01, -3.45, 1.144, 1.15, mat.led, { cast: false });
 });
 // heated towel ladder on the south wall, clear of the door leaf (door hinges at the south end and opens along this wall up to x 6.18)
@@ -1416,6 +1428,7 @@ B(2.01, 2.2, -2.035, -2.015, 1.00, 1.02, mat.blackMetal);
 // mirror cabinet: white frame, two mirror doors with a fine black split, black knobs at the bottom
 B(2.01, 2.15, -2.605, -1.765, 1.15, 1.85, paint, { round: .004 });
 B(2.15, 2.156, -2.565, -2.187, 1.19, 1.81, mat.mirror, { cast: false }); B(2.15, 2.156, -2.183, -1.805, 1.19, 1.81, mat.mirror, { cast: false });
+reflector(new THREE.PlaneGeometry(.76, .62), scene, 2.157, 1.5, -2.185, Math.PI / 2); B(2.157, 2.159, -2.187, -2.183, 1.19, 1.81, mat.black, { cast: false });   // one reflector, the split drawn over it
 Sph(2.175, 1.215, -2.215, .011, knobM); Sph(2.175, 1.215, -2.155, .011, knobM);
 B(2.02, 2.14, -2.585, -1.785, 1.144, 1.15, mat.led, { cast: false });
 cornice('e', 2.15, -2.605, -1.765, 1.89);
@@ -1685,9 +1698,10 @@ const stoneTex = canvasTex(512, 512, (g, w, h) => { const r = rnd(93);    // cre
   g.fillStyle = 'rgb(226,218,200)'; g.fillRect(0, 0, w, h);
   for (let j = 0; j < 16; j++) for (let i = -1; i < 8; i++) { const v = Math.floor(r() * 10); g.fillStyle = `rgb(${232 - v},${224 - v},${206 - v})`; g.fillRect(i * 64 + (j % 2) * 32, j * 32, 64, 32); }
   g.fillStyle = 'rgba(170,160,140,.45)'; for (let j = 0; j < 16; j++) g.fillRect(0, j * 32, w, 1); for (let j = 0; j < 16; j++) for (let i = 0; i < 9; i++) g.fillRect(i * 64 + (j % 2) * 32, j * 32, 1, 32); });
-const soilTex = canvasTex(512, 512, (g, w, h) => { const r = rnd(94); g.fillStyle = '#c4824e'; g.fillRect(0, 0, w, h);
-  for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(${r() > .5 ? '120,70,40' : '225,170,120'},${r() * .25})`; g.beginPath(); g.ellipse(r() * w, r() * h, 1 + r() * 9, 1 + r() * 5, r() * 3, 0, 7); g.fill(); } });
+const soilTex = canvasTex(512, 512, (g, w, h) => { const r = rnd(94); g.fillStyle = '#9c8770'; g.fillRect(0, 0, w, h);   // dusty brown, not orange
+  for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(${r() > .5 ? '105,80,60' : '210,185,155'},${r() * .25})`; g.beginPath(); g.ellipse(r() * w, r() * h, 1 + r() * 9, 1 + r() * 5, r() * 3, 0, 7); g.fill(); } });
 const mPaver = TM(paverTex, .9, 3.0), mTerr = TM(terrTex, .5, 2.4), mStone = TM(stoneTex, .85, 4.8), mSoil = TM(soilTex, 1, 9);
+photoPBR([mat.asphalt], 'asphalt_02', 3, { color: true }); photoPBR([mSoil], 'park_dirt', 3, { color: true }); photoPBR([mat.turf], 'grass_ground', 2.5, { color: true });   // CC0 ground sets, site only
 const mWin = M('#39434b', .25, { metalness: .3 }), mWinFrame = M('#e9e8e4', .5), mBlue = M('#3d6fa8', .8), mWhiteLine = M('#f2f2ee', .8), mBlueFence = M('#4f7fae', .7);
 const mGlassRail = new THREE.MeshStandardMaterial({ color: '#cfe0e4', roughness: .05, metalness: .1, transparent: true, opacity: .25, depthWrite: false });
 const mSail = M('#e7cf98', .9, { side: THREE.DoubleSide }), mShadeNet = M('#4f8f6a', .95, { side: THREE.DoubleSide }), mAlu = M('#c3c6c8', .35, { metalness: .8 });
@@ -1705,20 +1719,29 @@ for (let z = -60; z < 30; z += 2.5) B(23.0, 28.0, z - .05, z + .05, GY + .03, GY
 [[-3.0, -.5], [0, 2.5]].forEach(([a, b]) => { B(23.0, 28.0, a + .06, b - .06, GY + .031, GY + .035, mBlue, OUT); });        // accessible bays
 for (let k = 0; k < 6; k++) B(23.2 + k * .8, 23.5 + k * .8, -.45, -.05, GY + .031, GY + .036, mWhiteLine, OUT);
 B(28.0, 32.0, -160, 160, GY, GY + .15, mPaver, OUT); B(27.85, 28.0, -160, 160, GY, GY + .16, mat.concrete, OUT); B(14.3, 14.45, -160, 160, GY, GY + .16, mat.concrete, OUT);
-// young street trees on the far sidewalk, thin crowns (as in the photos); no trees on our side
-const treeR = rnd(5);
+// young street trees on the far sidewalk, thin crowns (as in the photos); no trees on our side. On the site they are tree cards
+// (assets/trees, see the loader after the courtyard trees); these procedural crowns are the fallback, in their own group.
+const treeR = rnd(5), procTrees = new THREE.Group(), streetTrees = [], yardTrees = []; scene.add(procTrees);   // spots: [x, z, height, turn]
 for (let z = -70; z < 42; z += 9) { const x = 28.7 + treeR() * .3, hgt = 3.4 + treeR() * 1.2;
-  C(x, z, GY, GY + hgt * .65, .07, mat.walnut, { seg: 6, parent: outside, cast: false });
-  for (let k = 0; k < 3; k++) { const c = mesh(new THREE.IcosahedronGeometry(.75 + treeR() * .4, 1), treeR() > .5 ? mat.leaf : mat.leaf2, outside, false);
-    c.position.set(x + (treeR() - .5) * 1.0, GY + hgt * .75 + treeR() * .8, z + (treeR() - .5) * 1.0); c.scale.y = .8; } }
+  C(x, z, GY, GY + hgt * .65, .07, mat.walnut, { seg: 6, parent: procTrees, cast: false });
+  for (let k = 0; k < 3; k++) { const c = mesh(new THREE.IcosahedronGeometry(.75 + treeR() * .4, 1), treeR() > .5 ? mat.leaf : mat.leaf2, procTrees, false);
+    c.position.set(x + (treeR() - .5) * 1.0, GY + hgt * .75 + treeR() * .8, z + (treeR() - .5) * 1.0); c.scale.y = .8; }
+  streetTrees.push([x, z, hgt + 1.2, z * 1.7]); }
 // street lights
 [-40, -14, 12, 38].forEach(z => { C(28.4, z, GY, GY + 7, .07, mAlu, { seg: 8, parent: outside, cast: false }); B(26.6, 28.4, z - .08, z + .08, GY + 6.95, GY + 7.05, mAlu, OUT); });
 // parked cars: parallel on our side, nose-in on the far side
 const carCols = ['#f4f4f2', '#1d1f22', '#9aa0a6', '#f4f4f2', '#5b636b', '#b8bcc0', '#2c3e57', '#f4f4f2'];
-function car(cx, cz, along, col) {   // along = 'z' (car parallel to the street) or 'x'
-  const L = 4.4, Wd = 1.8, m = M(col, .3, { metalness: .5 }), g = new THREE.Group(); g.position.set(cx, GY, cz); if (along === 'x') g.rotation.y = Math.PI / 2; outside.add(g);
-  B(-Wd / 2, Wd / 2, -L / 2, L / 2, .25, .95, m, { round: .18, parent: g, cast: false }); B(-Wd / 2 + .1, Wd / 2 - .1, -L / 2 + 1.1, L / 2 - 1.0, .9, 1.42, mWin, { round: .15, parent: g, cast: false });
-  [[-1.35], [1.35]].forEach(([z]) => [-1, 1].forEach(s => { const w = C(0, 0, -.11, .11, .33, mat.black, { seg: 16, parent: g, cast: false }); w.rotation.z = Math.PI / 2; w.position.set(s * (Wd / 2 - .05), .33, z); }));
+const carProf = (pts, depth, bevel) => { const sh = new THREE.Shape(pts.map(([u, v]) => new THREE.Vector2(u, v)));
+  const g = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 3, curveSegments: 4 });
+  g.rotateY(-Math.PI / 2); g.translate(depth / 2, 0, 0); return g; };   // side profile (u along the car, v up), extruded across
+const carBody = carProf([[-2.12, .3], [2.12, .3], [2.14, .62], [2.0, .82], [1.0, .97], [-1.75, 1.0], [-2.08, .9]], 1.66, .06);
+const carCabin = carProf([[-1.66, .98], [.98, .98], [.32, 1.4], [-1.28, 1.42]], 1.5, .04), carRoof = carProf([[-1.22, 1.42], [.26, 1.42], [.22, 1.47], [-1.2, 1.475]], 1.42, .03);
+const mTail = M('#8a1c1c', .4), mHead = M('#e9ecee', .2, { metalness: .3 });
+function car(cx, cz, along, col) {   // along = 'z' (car parallel to the street) or 'x'; a generic hatchback, about 4.4 x 1.8 x 1.45 m
+  const Wd = 1.8, m = M(col, .3, { metalness: .5 }), g = new THREE.Group(); g.position.set(cx, GY, cz); if (along === 'x') g.rotation.y = Math.PI / 2; outside.add(g);
+  mesh(carBody, m, g, false); mesh(carCabin, mWin, g, false); mesh(carRoof, m, g, false);
+  [[-1.35], [1.35]].forEach(([z]) => [-1, 1].forEach(s => { const w = C(0, 0, -.11, .11, .33, mat.black, { seg: 16, parent: g, cast: false }); w.rotation.z = Math.PI / 2; w.position.set(s * (Wd / 2 - .08), .33, z); }));
+  [-1, 1].forEach(s => { B(s * .55 - .2, s * .55 + .2, 2.18, 2.22, .5, .6, mHead, { parent: g, cast: false }); B(s * .62 - .14, s * .62 + .14, -2.17, -2.13, .74, .86, mTail, { parent: g, cast: false }); });
 }
 [[-26, 0], [-19, 1], [-9, 2], [6.5, 3], [13, 4], [24, 5]].forEach(([z, i]) => car(15.45, z, 'z', carCols[i]));
 [[-12.5, 6], [-7.5, 7], [-5, 1], [5, 4], [7.5, 0], [15, 2], [20, 3]].forEach(([z, i]) => car(25.6, z + 1.25, 'x', carCols[i]));
@@ -1779,10 +1802,28 @@ function block(x1, x2, z1, z2, floors, kind = 'white', face = 'w') {
   .forEach(([a, b, c, d, f, k]) => block(a, b, c, d, f, k || 'white', a > 30 ? 'w' : (c > 30 ? 'n' : 's')));
 // courtyard trees between the blocks
 for (let i = 0; i < 46; i++) {
-  const x = 50 + treeR() * 80, z = -90 + treeR() * 180;
-  C(x, z, GY, GY + 2.4, .12, mat.walnut, { seg: 6, parent: outside, cast: false });
-  const c = mesh(new THREE.IcosahedronGeometry(1.6 + treeR() * 1.2, 1), treeR() > .5 ? mat.leaf : mat.leaf2, outside, false); c.position.set(x, GY + 3.6 + treeR() * 1.4, z);
+  const x = 50 + treeR() * 80, z = -90 + treeR() * 180, r = 1.6 + treeR() * 1.2;
+  C(x, z, GY, GY + 2.4, .12, mat.walnut, { seg: 6, parent: procTrees, cast: false });
+  const c = mesh(new THREE.IcosahedronGeometry(r, 1), treeR() > .5 ? mat.leaf : mat.leaf2, procTrees, false); c.position.set(x, GY + 3.6 + treeR() * 1.4, z);
+  yardTrees.push([x, z, 4.4 + r * 1.6, i * 2.3]);
 }
+// Tree cards: two Cycles views (90 degrees apart, side by side in one image) of CC0 Poly Haven trees, rendered by treecards.py and
+// packed by assets.py, on two crossed quads per tree. Normals point up so both faces of every card take the sun and sky alike.
+// Young street trees: tree_small_02; courtyards: jacaranda and an olive-like island tree, alternating.
+function treeCards(img, spots) {
+  const a = img.width / 2 / img.height, P = [], U = [];
+  spots.forEach(([x, z, h, t]) => { const w = h * a;
+    for (let k = 0; k < 2; k++) { const ang = t + k * Math.PI / 2, dx = Math.cos(ang) * w / 2, dz = Math.sin(ang) * w / 2, u0 = k / 2;
+      const q = [[x - dx, GY, z - dz, u0, 0], [x + dx, GY, z + dz, u0 + .5, 0], [x + dx, GY + h, z + dz, u0 + .5, 1], [x - dx, GY + h, z - dz, u0, 1]];
+      [0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2].forEach(i => { P.push(q[i][0], q[i][1], q[i][2]); U.push(q[i][3], q[i][4]); }); } });   // front and back faces
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(P.map((_, i) => i % 3 === 1 ? 1 : 0), 3)); return g;
+}
+Promise.all(['tree_small_02', 'jacaranda_tree', 'island_tree_02'].map(f => assetTex(`trees/${f}.webp`))).then(ts => {
+  if (ts.some(t => !t)) return;
+  const [street, jac, isl] = ts, card = (t, spots) => mesh(treeCards(t.image, spots), new THREE.MeshStandardMaterial({ map: t, alphaTest: .45, roughness: .9, envMapIntensity: isEve ? .12 : ENV }), scene, false);
+  card(street, streetTrees); card(jac, yardTrees.filter((_, i) => i % 2)); card(isl, yardTrees.filter((_, i) => !(i % 2)));
+  procTrees.visible = false; dirty = 1; });
 const sky = new THREE.Mesh(new THREE.SphereGeometry(650, 32, 16), new THREE.MeshBasicMaterial({ map: skyDay, side: THREE.BackSide, fog: false }));
 scene.add(sky);
 // photo skies (Poly Haven puresky HDRIs, tonemapped): upper 1152 of 2048 rows, turned so the day sun matches the sun light (ESE)
@@ -1826,7 +1867,7 @@ function mergeGroup(group) {
   while (group.children.length) group.remove(group.children[0]);
   buckets.forEach(({ m, cast, list }) => { const merged = mergeGeometries(list); mesh(merged, m, group, cast); list.forEach(g => g.dispose()); });
 }
-mergeGroup(root); mergeGroup(ceilGroup); mergeGroup(outside); mergeGroup(procPlants);
+mergeGroup(root); mergeGroup(ceilGroup); mergeGroup(outside); mergeGroup(procPlants); mergeGroup(procTrees);
 
 // =====================================================================
 // LIGHTING
@@ -2015,7 +2056,9 @@ function setView(key, instant = false) {
   setCeil(!v.top); setDims(!!v.top && !v.nodims); setNav(!!v.top);
   const pos = new THREE.Vector3(...v.pos), look = new THREE.Vector3(...v.tgt);
   const tgt = v.top ? look : pos.clone().add(look.sub(pos).normalize().multiplyScalar(.35));
-  let fov = v.fov || 68; if (camera.aspect < 0.8 && !v.top) fov = 96;
+  let fov = v.fov || 68; if (camera.aspect < 0.8 && !v.top) fov = 84;   // phone portrait: wider, but not so wide that the edges stretch
+  if (v.top && camera.aspect < 1.2) { fov = 60; const k = Math.tan(25 * Math.PI / 180) * 1.6 / (Math.tan(30 * Math.PI / 180) * camera.aspect);   // narrow screens:
+    if (k > 1) pos.sub(tgt).multiplyScalar(k).add(tgt); }   // step back until the plan is as wide as on a 16:10 screen at fov 50
   if (instant) { camera.position.copy(pos); controls.target.copy(tgt); camera.fov = fov; camera.updateProjectionMatrix(); controls.update(); return; }
   anim = { fp: camera.position.clone(), ft: controls.target.clone(), ff: camera.fov, tp: pos, tt: tgt, tf: fov, t0: performance.now(), dur: 900 };
 }
@@ -2073,7 +2116,7 @@ document.getElementById('btnCeil').onclick = () => setCeil(!ceilOn);
 document.getElementById('btnDims').onclick = () => setDims(!dimGroup.children[0].visible);
 function setHQ(on) { dirty = 1;
   hq = on; document.getElementById('btnHQ').setAttribute('aria-pressed', on);
-  gtao.enabled = on;
+  gtao.enabled = on; mirrors.forEach(r => r.visible = on && !ptOn);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, on ? 1.5 : 1));
   composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(window.innerWidth, window.innerHeight);
 }
@@ -2138,7 +2181,7 @@ if (!(new THREE.Scene()).environmentRotation) { THREE.Scene.prototype.environmen
 let pt = null, ptOn = false, isEve = false;
 const ptInfo = document.getElementById('ptInfo'), btnPT = document.getElementById('btnPT');
 function ptScene(on) {
-  sky.visible = !on; hemi.visible = !on; windowLights.forEach(l => { l.visible = true; l.intensity = on ? (isEve ? 0 : l.userData.k * .6) : (isEve ? .12 : l.userData.k); });
+  sky.visible = !on; hemi.visible = !on; mirrors.forEach(r => r.visible = !on && hq); windowLights.forEach(l => { l.visible = true; l.intensity = on ? (isEve ? 0 : l.userData.k * .6) : (isEve ? .12 : l.userData.k); });
   root.traverse(o => { if (o.isMesh && o.material === mat.glass) o.visible = !on; });   // window panes: open in PT (15% glass only adds noise)
   renderer.toneMappingExposure = on ? (isEve ? 1.6 : 2.4) : (isEve ? EXPO.eve : EXPO.day);
   warm.forEach(p => p.visible = !on || isEve);
@@ -2251,7 +2294,7 @@ function tick(now) {
     camera.fov = anim.ff + (anim.tf - anim.ff) * e; camera.updateProjectionMatrix();
     if (t >= 1) anim = null;
   }
-  frame();
+  frameNo++; frame();
   requestAnimationFrame(tick);
 }
 setHQ(hq);
@@ -2261,7 +2304,7 @@ setView(views[start] ? start : 'entry', true);
 document.getElementById('loading').hidden = true;
 requestAnimationFrame(tick);
 LM.ready = LM.load();
-window.__app = { LM, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls };
+window.__app = { LM, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls, mirrors };
 </script>
 
 </body>
