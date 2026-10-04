@@ -1959,8 +1959,6 @@ B(31.0, 31.5, 9.6, 11.4, GY + .4, GY + .45, mat.walnut, OUT);
 // two stepped wings, 9 storeys plus a roof storey, white large-format panels, small square windows, two dark-brown louvre strips
 // on the face toward us, recessed loggias, a red-tile roof element. All dimensions are estimates.
 const litMats = [];   // lit-window emissive maps, on in the evening
-const litTex = (seed, cols, rows, win) => canvasTex(512, 512, (g, w, h) => { const r = rnd(seed), cw = w / cols, ch = h / rows; g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
-  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) if (r() < .3) { g.fillStyle = r() < .7 ? '#ffcf8f' : '#ffe6c2'; win(g, i * cw, j * ch, cw, ch, r); } });
 { const U = 12, wins = [];   // one texture = 12 m x 12 m: 10 panel columns, 4 floors
   { const r = rnd(301); for (let f = 0; f < 4; f++) for (let k = 0; k < 3; k++) wins.push([(k * 4 + Math.floor(r() * 3)) * 51.2 + 7, f * 128 + 40, 38]); }
   const face = canvasTex(512, 512, (g, w, h) => { const r = rnd(302); g.fillStyle = '#f0f0ec'; g.fillRect(0, 0, w, h);
@@ -1987,11 +1985,69 @@ B(-60, 90, -100, -92, GY, GY + .035, mat.asphalt, OUT);                         
 // the rest of Neve Zemer: 6-8 storey residential blocks in light stone or white, balconies on every floor, red-tile roof pergolas
 // and solar heaters, around green courtyards (no towers)
 const foot = [[32.5, 48, -70, 3.2], [32, 90, 3, 28], [-160, 160, 42, 54], [58, 86, 22, 43]];   // no courtyard trees here: school, lot, Tirtsa Atar, tower
+// Facade atlas for the residential blocks: 4 x 4 bays of 3.2 x 3.2 m drawn at load. Atlas column = bay layout (window and
+// bathroom window, balcony door, loggia, window with AC unit and drainpipe), row = roller shutter 0, 30, 70 or 100% down.
+// The shader picks the layout per bay column and the shutter per bay from a hash of the bay and the face, so one material
+// per kind serves every block. A second canvas marks the open glass: it makes the glass glossy (reflects the sky) and is
+// the only part that lights up in the evening (about a third of the windows). Layouts and colours are generic estimates.
+function facadeAtlas(kind) {
+  const S = isPhone ? 128 : 256, k = S / 3.2, wall = kind === 'stone' ? [227, 220, 205] : [238, 236, 230];
+  const col = new Array(2).fill(0).map(() => { const c = document.createElement('canvas'); c.width = c.height = 4 * S; return c; });
+  const g = col[0].getContext('2d'), mk = col[1].getContext('2d'); mk.fillStyle = '#000'; mk.fillRect(0, 0, 4 * S, 4 * S);
+  const r = rnd(kind.length * 97 + 11);
+  for (let L = 0; L < 4; L++) for (let row = 0; row < 4; row++) {
+    const ox = L * S, oy = row * S, X = m => ox + m * k, Y = m => oy + (3.2 - m) * k, sh = [0, .3, .7, 1][row];
+    const R = (x1, x2, y1, y2, c, ctx = g) => { ctx.fillStyle = c; ctx.fillRect(X(x1), Y(y2), (x2 - x1) * k, (y2 - y1) * k); };
+    const v = Math.floor(r() * 6); g.fillStyle = `rgb(${wall[0] - v},${wall[1] - v},${wall[2] - v})`; g.fillRect(ox, oy, S, S);
+    for (let i = 0; i < 260; i++) { g.fillStyle = `rgba(${r() < .5 ? '120,115,105' : '255,255,250'},${.04 + r() * .05})`; g.fillRect(ox + r() * S, oy + r() * S, 1 + r() * 2, 1 + r() * 2); }
+    if (kind === 'clad') R(2.0, 3.2, 0, 3.2, '#4a3a32');                                                     // dark-brown balcony cladding
+    const sof = g.createLinearGradient(0, Y(3.2), 0, Y(2.9)); sof.addColorStop(0, 'rgba(70,65,60,.16)'); sof.addColorStop(1, 'rgba(70,65,60,0)');
+    g.fillStyle = sof; g.fillRect(ox, Y(3.2), S, .3 * k); R(0, 3.2, 0, .04, 'rgba(120,115,108,.25)');        // soffit shade, slab joint
+    const win = (x1, x2, y1, y2, s, glass = ['#3d4954', '#252f38']) => {
+      const gr = g.createLinearGradient(0, Y(y2), 0, Y(y1)); gr.addColorStop(0, glass[0]); gr.addColorStop(1, glass[1]); g.fillStyle = gr; g.fillRect(X(x1), Y(y2), (x2 - x1) * k, (y2 - y1) * k);
+      const yb = y2 - s * (y2 - y1); R(x1 + .04, x2 - .04, y1 + .04, yb - .04, '#fff', mk);                    // open glass (mask)
+      if (y2 - y1 > .5) { R(x1 - .03, x2 + .03, y2, y2 + .18, '#d6d3cb'); R(x1 - .03, x2 + .03, y2 + .16, y2 + .18, 'rgba(90,85,80,.35)'); }   // shutter box
+      if (s > 0) { R(x1, x2, yb, y2, '#dddad2'); g.fillStyle = 'rgba(150,145,138,.55)'; for (let y = y2; y > yb; y -= .06) g.fillRect(X(x1), Y(y), (x2 - x1) * k, Math.max(1, .012 * k)); R(x1, x2, yb, yb + .03, '#b9b5ad'); }
+      g.strokeStyle = '#c4c7c8'; g.lineWidth = Math.max(1, .05 * k); g.strokeRect(X(x1), Y(y2), (x2 - x1) * k, (y2 - y1) * k);
+      if (x2 - x1 > 1) { const xm = (x1 + x2) / 2; R(xm - .025, xm + .025, y1, yb, '#c4c7c8'); R(xm - .025, xm + .025, y1, yb, '#000', mk); }   // sliding sashes
+      if (y1 > .3) { R(x1 - .06, x2 + .06, y1 - .05, y1, '#d0cbc0'); const st = g.createLinearGradient(0, Y(y1 - .05), 0, Y(y1 - .9)); st.addColorStop(0, 'rgba(110,105,95,.10)'); st.addColorStop(1, 'rgba(110,105,95,0)'); g.fillStyle = st; g.fillRect(X(x1), Y(y1 - .05), (x2 - x1) * k, .85 * k); }   // sill and its rain streak
+    };
+    const ac = (x1, y1) => { R(x1, x1 + .8, y1, y1 + .55, '#e3e3df'); R(x1, x1 + .8, y1, y1 + .05, 'rgba(90,90,88,.35)'); g.fillStyle = '#a9aba8'; g.beginPath(); g.arc(X(x1 + .5), Y(y1 + .28), .2 * k, 0, 7); g.fill();
+      g.fillStyle = 'rgba(80,80,78,.25)'; g.fillRect(X(x1), Y(y1), .8 * k, .1 * k); };
+    if (L === 0) { win(.35, 1.65, .9, 2.3, sh); win(2.3, 2.9, 1.7, 2.3, 0, ['#8a949a', '#7a8489']); if (row % 2) ac(2.2, .25); }
+    if (L === 1) { win(.5, 2.7, .05, 2.3, sh); if (row === 1 || row === 2) ac(2.75, .1); }
+    if (L === 2) {                                                                                            // loggia: recess, door inside, parapet
+      const gr = g.createLinearGradient(0, Y(2.75), 0, Y(0)); gr.addColorStop(0, '#3b3d3f'); gr.addColorStop(1, '#77787a'); g.fillStyle = gr; g.fillRect(X(.45), Y(2.75), 2.3 * k, 2.75 * k);
+      win(.8, 2.4, .05, 2.3, sh, ['#2a333b', '#1d252c']); R(.45, 2.75, 0, 1.05, `rgb(${wall[0] - v},${wall[1] - v},${wall[2] - v})`); R(.45, 2.75, 0, 1.05, '#000', mk);
+      if (kind === 'clad') R(2.0, 2.75, 0, 1.05, '#4a3a32'); R(.42, 2.78, 1.02, 1.08, '#d2cdc3'); }
+    if (L === 3) { win(.35, 1.65, .9, 2.3, sh); ac(2.0, 1.0); R(3.0, 3.09, 0, 3.2, '#d3d0c9'); R(3.07, 3.09, 0, 3.2, 'rgba(80,78,74,.3)'); }
+  }
+  const map = new THREE.CanvasTexture(col[0]), win = new THREE.CanvasTexture(col[1]);
+  map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy()); win.anisotropy = map.anisotropy;
+  const m = new THREE.MeshStandardMaterial({ map, roughness: .9, emissive: '#ffffff', emissiveIntensity: 0 }); m.userData.envDay = 1.1; litMats.push(m);
+  m.onBeforeCompile = sh => {
+    sh.uniforms.uWin = { value: win };
+    sh.vertexShader = 'varying vec3 vFW, vFN;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n  vFW = (modelMatrix * vec4(transformed, 1.0)).xyz; vFN = normalize(mat3(modelMatrix) * objectNormal);');
+    const f = sh.fragmentShader, need = ['#include <map_fragment>', '#include <roughnessmap_fragment>', '#include <emissivemap_fragment>'];
+    need.forEach(c => { if (!f.includes(c)) throw new Error('facade atlas: shader chunk changed: ' + c); });
+    sh.fragmentShader = 'uniform sampler2D uWin; varying vec3 vFW, vFN;\nfloat fh(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }\n' + f
+      .replace(need[0], `
+  vec2 fC = floor(vMapUv), fF = clamp(fract(vMapUv), .004, .996);
+  float fS = floor(dot(vFW, vFN) * 2. + .5) + dot(vFN, vec3(13., 29., 47.));   // constant on a face: the bay pattern differs per face and block
+  vec2 fUv = (vec2(floor(fh(vec2(fC.x, fS)) * 4.), 3. - floor(fh(fC + fS * 1.31) * 4.)) + fF) * .25, fdx = dFdx(vMapUv) * .25, fdy = dFdy(vMapUv) * .25;
+  diffuseColor *= textureGrad(map, fUv, fdx, fdy);
+  float fWin = textureGrad(uWin, fUv, fdx, fdy).r, fLit = step(fh(fC + fS * 2.71 + 5.3), .32);`)
+      .replace(need[1], need[1] + '\n  roughnessFactor = mix(roughnessFactor, .12, fWin);')
+      .replace(need[2], 'totalEmissiveRadiance *= fWin * fLit * mix(vec3(1., .62, .28), vec3(1., .82, .62), fh(fC + fS * 3.7));');
+  };
+  m.customProgramCacheKey = () => 'facade2';
+  return m;
+}
+const blockMats = {};
 function block(x1, x2, z1, z2, floors, kind = 'white', face = 'w') {
-  const h = floors * 3.2, t = facadeTex(kind), cols = Math.max(x2 - x1, z2 - z1) / 3.2; t.repeat.set(cols, floors);
-  const e = litTex(Math.round(x1 * 7 + z1 * 3), 16, 16, (g, x, y, cw, ch) => g.fillRect(x + cw * .14, y + ch * .26, cw * .3, ch * .45)); e.repeat.set(cols / 16, floors / 16);
-  const m = new THREE.MeshStandardMaterial({ map: t, roughness: .9, emissiveMap: e, emissive: '#ffffff', emissiveIntensity: 0 }); m.userData.envDay = 1.1; litMats.push(m);
-  B(x1, x2, z1, z2, GY, GY + h, m, OUT); foot.push([x1, x2, z1, z2]); sunBoxes.push([x1, x2, z1, z2, h + 1.4]);
+  const h = floors * 3.2, m = blockMats[kind] ||= facadeAtlas(kind);
+  const uv = B(x1, x2, z1, z2, GY, GY + h, m, OUT).geometry.attributes.uv, nx = Math.max(1, Math.round((z2 - z1) / 3.2)), nz = Math.max(1, Math.round((x2 - x1) / 3.2));
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * ((i >> 2) < 2 ? nx : nz), uv.getY(i) * floors);   // whole bays per face (box faces: +x, -x, +y, -y, +z, -z) foot.push([x1, x2, z1, z2]); sunBoxes.push([x1, x2, z1, z2, h + 1.4]);
   const rail = mGlassRail, slab = M('#efede7', .8);
   for (let f = 1; f < floors; f++) { const y = GY + f * 3.2;
     if (face === 'w') for (let z = z1 + 1; z < z2 - 3; z += 6.5) { B(x1 - 1.6, x1, z, z + 4.2, y - .2, y, slab, OUT); B(x1 - 1.62, x1 - 1.55, z, z + 4.2, y, y + 1.05, rail, OUT); }
