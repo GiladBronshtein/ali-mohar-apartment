@@ -767,7 +767,7 @@ function pendantCone(x, z, y, r = .13, hgt = .26) { C(x, z, y + hgt / 2, H, .004
 // Planar mirrors (desktop HQ): a Reflector 1 mm in front of the mirror surface re-renders the scene from the mirrored camera, at most
 // once per frame and never for the AO normal pass or from inside another mirror. Phones, the path tracer and the bake keep the
 // env-mapped mirror material underneath. g: geometry in the xy plane, facing +z before the turn ry.
-const mirrors = []; let frameNo = 0, reflecting = false;
+const mirrors = [], _mv = new THREE.Vector3(); let frameNo = 0, reflecting = false;
 function reflector(g, parent, x, y, z, ry) {
   const r = new Reflector(g, { textureWidth: 1024, textureHeight: 1024, clipBias: .003, multisample: 4 }), draw = r.onBeforeRender; let last = -1;
   r.material.uniforms.color.value.setRGB(.46, .46, .46);   // overlay blend: about 90% reflectance
@@ -1441,6 +1441,7 @@ tileZ(2.01, 2.375, -3.775, 1, 0, H, mat.bathWall2); tileZ(2.375, 3.575, -3.775, 
 tileZ(2.01, 2.86, -1.395, -1, 0, H, mat.bathWall2); tileZ(2.86, 3.69, -1.395, -1, DOORH, H, mat.bathWall2); tileZ(3.69, 4.46, -1.395, -1, 0, H, mat.bathWall2);
 tileZ(3.69, 4.46, -2.98, 1, 0, H, mat.bathWall2); tileX(-3.09, -2.98, 3.69, -1, 0, H, mat.bathWall2);
 windowX(2.375, 3.575, -3.775, -3.99, 1.10, 2.10);
+tileX(-3.8525, -3.769, 2.375, 1, 1.10, 2.10, mat.bathWall2); tileX(-3.8525, -3.769, 3.575, -1, 1.10, 2.10, mat.bathWall2); B(2.375, 3.575, -3.8525, -3.769, 2.094, 2.10, mat.bathWall2, { cast: false });   // tiled reveals (estimate)
 // washer + dryer stacked in the niche (dashed circle in the plan), cabinet above for detergents
 const appl = M('#efeeea', .45);
 withShift(.20, -.12, () => {
@@ -2466,6 +2467,7 @@ function frame() {
     const now = performance.now(), moving = camMoved() || anim || fansOn || dirty;
     dirty = 0;
     if (moving) stillSince = now;
+    mirrors.forEach(r => r.visible = camera.position.distanceTo(r.getWorldPosition(_mv)) < 6);   // Reflector goes black from about 8 m; far away the env-mapped mirror shows
     const offset = camera.view && camera.view.enabled;
     if (moving || offset || now - stillSince < 180) { renderPass.enabled = true; taa.enabled = false; taa.accumulateIndex = -1; composer.render(); }
     else if (taa.accumulateIndex < 32) { renderPass.enabled = false; taa.enabled = true; composer.render(); }
