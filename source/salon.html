@@ -1890,7 +1890,8 @@ for (let z = -70; z < 42; z += 9) { const x = 28.7 + treeR() * .3, hgt = 3.4 + t
   streetTrees.push([x, z, hgt + 1.2, z * 1.7]); }
 // street lights: about 8 m grey poles with one curved arm and a flat head (photos 08, 12; height estimated). Heads glow in the evening.
 const mPole = M('#9aa0a4', .5, { metalness: .5 }), mLampHead = M('#fff3dc', .4, { emissive: '#ffd9a0', emissiveIntensity: 0 }), glowMats = [mLampHead];
-const streetLight = (x, z, h, dx) => { C(x, z, GY, GY + h, .07, mPole, { seg: 10, parent: outside, cast: false }); sunPoles.push([x, z, h + .3]);
+const lampU = { uLamp: { value: [] }, uLampK: { value: 0 } };   // lamp heads that light the ground in the evening (see the ground mask shader)
+const streetLight = (x, z, h, dx) => { C(x, z, GY, GY + h, .07, mPole, { seg: 10, parent: outside, cast: false }); sunPoles.push([x, z, h + .3]); lampU.uLamp.value.push(new THREE.Vector3(x + dx, GY + h + .15, z));
   mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(new THREE.Vector3(x, GY + h - .5, z), new THREE.Vector3(x, GY + h + .25, z), new THREE.Vector3(x + dx, GY + h + .3, z)), 12, .04, 6), mPole, outside, false);
   const a = x + dx - .25; B(a, a + .5, z - .14, z + .14, GY + h + .2, GY + h + .3, mPole, OUT); B(a + .03, a + .47, z - .11, z + .11, GY + h + .19, GY + h + .2, mLampHead, OUT); };
 [-40, -14, 12, 38].forEach(z => streetLight(28.4, z, 7.7, -1.6));
@@ -1946,7 +1947,7 @@ for (let i = 0; i < 9; i++) { const c = mesh(new THREE.IcosahedronGeometry(.6, 1
   const g = new THREE.PlaneGeometry(6.4, 5.8); g.rotateX(-Math.PI / 2); g.rotateZ(.07); g.translate(x + 3, GY + 3.4, z + 2.75); mesh(g, m, outside, false); sunBoxes.push([x - .2, x + 6.2, z - .15, z + 5.65, 3.45, .6, 3.35]); });
 B(32.5, 48, -70, SZ1, GY, GY + .04, mat.turf, OUT);
 // paved walkway east between the school and the empty lot, with a lamp post
-B(32.0, 90, 3.2, 8.6, GY, GY + .12, mPaverWalk, OUT); sunPoles.push([33.2, 8.0, 5.4]); C(33.2, 8.0, GY, GY + 5, .06, mPole, { seg: 8, parent: outside, cast: false }); C(33.2, 8.0, GY + 5, GY + 5.4, .2, mPole, { seg: 12, parent: outside, cast: false }); C(33.2, 8.0, GY + 4.98, GY + 5, .18, mLampHead, { seg: 12, parent: outside, cast: false });
+B(32.0, 90, 3.2, 8.6, GY, GY + .12, mPaverWalk, OUT); sunPoles.push([33.2, 8.0, 5.4]); lampU.uLamp.value.push(new THREE.Vector3(33.2, GY + 5.2, 8.0)); C(33.2, 8.0, GY, GY + 5, .06, mPole, { seg: 8, parent: outside, cast: false }); C(33.2, 8.0, GY + 5, GY + 5.4, .2, mPole, { seg: 12, parent: outside, cast: false }); C(33.2, 8.0, GY + 4.98, GY + 5, .18, mLampHead, { seg: 12, parent: outside, cast: false });
 // the empty lot south of the walkway (photos 11, 26): bare soil behind a grey fence, its south edge a concrete retaining wall;
 // beyond it a driveway with parked cars toward the tower (its car-park ramp is not modelled). Extents estimated from the photos.
 B(33.0, 82, 9.0, 22, GY, GY + .08, mSoil, OUT);
@@ -1989,7 +1990,7 @@ const foot = [[32.5, 48, -70, 3.2], [32, 90, 3, 28], [-160, 160, 42, 54], [58, 8
 // bathroom window, balcony door, loggia, window with AC unit and drainpipe), row = roller shutter 0, 30, 70 or 100% down.
 // The shader picks the layout per bay column and the shutter per bay from a hash of the bay and the face, so one material
 // per kind serves every block. A second canvas marks the open glass: it makes the glass glossy (reflects the sky) and is
-// the only part that lights up in the evening (about a third of the windows). Layouts and colours are generic estimates.
+// the only part that lights up in the evening (about a third of the windows, in three colour temperatures). Layouts and colours are generic estimates.
 function facadeAtlas(kind) {
   const S = isPhone ? 128 : 256, k = S / 3.2, wall = kind === 'stone' ? [227, 220, 205] : [238, 236, 230];
   const col = new Array(2).fill(0).map(() => { const c = document.createElement('canvas'); c.width = c.height = 4 * S; return c; });
@@ -2038,7 +2039,8 @@ function facadeAtlas(kind) {
   diffuseColor *= textureGrad(map, fUv, fdx, fdy);
   float fWin = textureGrad(uWin, fUv, fdx, fdy).r, fLit = step(fh(fC + fS * 2.71 + 5.3), .32);`)
       .replace(need[1], need[1] + '\n  roughnessFactor = mix(roughnessFactor, .12, fWin);')
-      .replace(need[2], 'totalEmissiveRadiance *= fWin * fLit * mix(vec3(1., .62, .28), vec3(1., .82, .62), fh(fC + fS * 3.7));');
+      .replace(need[2], `float fT = fh(fC + fS * 3.7);   // about 15% cool white (LED, TV), the rest 2700-3500 K, brightness .5 to 1.2
+  totalEmissiveRadiance *= fWin * fLit * (fT < .15 ? vec3(.72, .84, 1.) : mix(vec3(1., .62, .28), vec3(1., .82, .62), fT)) * (.5 + .7 * fh(fC + fS * 4.9));`);
   };
   m.customProgramCacheKey = () => 'facade2';
   return m;
@@ -2130,11 +2132,11 @@ Promise.all(['tree_small_02', 'jacaranda_tree', 'island_tree_02'].map(f => asset
   const tex = new THREE.DataTexture(data, N, N, THREE.RGBAFormat); tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.generateMipmaps = true; tex.needsUpdate = true;
   const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); white.needsUpdate = true;
   const U = { uSite: { value: tex }, uSiteR: { value: new THREE.Vector3(X0, Z0, 1 / SZ) }, uGrass: { value: white }, uLawnTint: { value: mat.turf.color } };
-  const patch = (m, lawnOn) => { m.onBeforeCompile = sh => { Object.assign(sh.uniforms, U);
+  const patch = (m, lawnOn) => { m.onBeforeCompile = sh => { Object.assign(sh.uniforms, U, lampU);
       sh.vertexShader = 'varying vec3 vSiteW;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n  vSiteW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
       const f = sh.fragmentShader, s1 = '#include <map_fragment>', s2 = '#include <lights_fragment_end>';
       if (!f.includes(s1) || !f.includes(s2)) throw new Error('site mask: shader chunk changed');
-      sh.fragmentShader = (lawnOn ? '#define SITE_LAWN\n' : '') + 'uniform sampler2D uSite, uGrass; uniform vec3 uSiteR, uLawnTint; varying vec3 vSiteW;\n' + f
+      sh.fragmentShader = (lawnOn ? '#define SITE_LAWN\n' : '') + `uniform sampler2D uSite, uGrass; uniform vec3 uSiteR, uLawnTint, uLamp[${lampU.uLamp.value.length}]; uniform float uLampK; varying vec3 vSiteW;\n` + f
         .replace(s1, s1 + `
   vec4 site = texture2D(uSite, (vSiteW.xz - uSiteR.xy) * uSiteR.z);
   #ifdef SITE_LAWN
@@ -2143,7 +2145,10 @@ Promise.all(['tree_small_02', 'jacaranda_tree', 'island_tree_02'].map(f => asset
     grass = mix(grass, grass * vec3(1.45, 1.15, .8), smoothstep(.4, .8, site.a));   // dry patches
     diffuseColor.rgb = mix(diffuseColor.rgb * (.92 + .16 * site.a), grass, site.b);
   #endif`)
-        .replace(s2, s2 + '\n  reflectedLight.directDiffuse *= site.r; reflectedLight.directSpecular *= site.r; reflectedLight.indirectDiffuse *= site.g * (.8 + .2 * site.r); reflectedLight.indirectSpecular *= site.g;'); };
+        .replace(s2, s2 + `
+  reflectedLight.directDiffuse *= site.r; reflectedLight.directSpecular *= site.r; reflectedLight.indirectDiffuse *= site.g * (.8 + .2 * site.r); reflectedLight.indirectSpecular *= site.g;
+  vec3 lampE = vec3(0.); for (int i = 0; i < ${lampU.uLamp.value.length}; i++) { vec3 d = uLamp[i] - vSiteW; float r2 = dot(d, d); lampE += max(d.y, 0.) / (r2 * sqrt(r2)); }   // cos / r^2 on level ground
+  reflectedLight.directDiffuse += uLampK * lampE * vec3(1., .8, .58) * diffuseColor.rgb;   // about 3000 K LED (estimate)`); };
     m.customProgramCacheKey = () => 'site' + (lawnOn ? 1 : 0); m.needsUpdate = true; };
   patch(mat.ground, true); [mat.asphalt, mKerb, mPaver, mPaverRed, mPaverWalk, mSoil, mat.turf, mWeeds, mTactile, mWhiteLine, mBlue, mKerbRed].forEach(m => patch(m, false));
   mat.ground.color.set('#b3aea3');   // the paved aprons and paths between the lawns
@@ -2557,7 +2562,7 @@ function setMode(eve) { dirty = 1;
   renderer.toneMappingExposure = eve ? EXPO.eve : EXPO.day;
   LM.eve = eve; LM.apply();
   scene.traverse(o => { if (o.isMesh && o.material && o.material !== sky.material && 'envMapIntensity' in o.material) o.material.envMapIntensity = eve ? .12 : (o.material.userData.envDay ?? ENV); }); mat.mirror.envMapIntensity = eve ? .3 : 1.2;
-  litMats.forEach(m => m.emissiveIntensity = eve ? 1.0 : 0); glowMats.forEach(m => m.emissiveIntensity = eve ? 2.5 : 0);
+  litMats.forEach(m => m.emissiveIntensity = eve ? 1.0 : 0); glowMats.forEach(m => m.emissiveIntensity = eve ? 2.5 : 0); lampU.uLampK.value = eve ? 9 : 0;
 }
 function refreshPT() { if (!ptOn || !pt) return; ptScene(true); pt.updateLights(); pt.updateMaterials(); pt.updateEnvironment(); }
 document.getElementById('btnDay').onclick = () => { isEve = false; setMode(false); refreshPT(); };
