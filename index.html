@@ -2342,10 +2342,24 @@ winLight(.815, -4.99, .90, 2.20, 1.25, .815, 0, 4);           // room 2
 winLight(-3.81, .955, .97, 1.0, 1.5, 0, .955, 3.5);         // mamad
 winLight(8.90, -1.79, .96, 2.15, 1.10, 0, -1.79, 5.5);       // master
 winLight(6.285, -4.99, .59, .7, 1.85, 6.285, 0, 2.5);       // master bath
+winLight(2.975, -3.78, 1.2, 1.0, 1.6, 2.975, 0, 2.5);       // family bath (onto the laundry recess, so dimmer; estimate)
 const warm = [];
 [[1.2, 1.79, 2.5, 1.95], [4.7, 2.2, 5, H - .25], [5.99, 6.31, 2.8, 2.3], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 2.8], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 1.2, BC - .55]]   // kids' bath: well under its lowered ceiling, so the ceiling does not blow out
   .forEach(([x, z, k, y = H - .3]) => { const p = new THREE.PointLight(0xffd3a1, 0, 6, 2); p.position.set(x, y, z); p.userData.k = k; scene.add(p); warm.push(p); });
 if (!isPhone) [[5.64, -.48], [7.92, -.48]].forEach(([x, z]) => { const p = new THREE.PointLight(0xffc98a, 0, 2.2, 2); p.position.set(x, 1.05, z); p.userData.k = 1.2; scene.add(p); warm.push(p); });   // bedside globes light the bed and wall (desktop)
+// Room gate (int4): area and point lights cast no shadows, so a window or a lamp leaked through the walls into the rooms
+// behind it (lit corridor, hall and closet with no source). Each light now lights only its own room's floor-plan box
+// (x1, z1, x2, z2 from roomdims.py, +5 cm for the wall faces); the living-room lights also reach the balcony.
+{ const LIV = [-.05, -.05, 10.5, 8.84], r1 = [-3.94, -5.08, -1.10, -1.37], r2 = [-1.02, -5.06, 1.90, -1.40], mamad = [-3.85, .08, -.20, 2.80],
+    master = [4.56, -3.15, 8.96, -.09], mbath = [4.58, -5.03, 6.90, -3.21], fbath = [1.96, -3.82, 4.51, -1.34], corr = [-2.17, -1.29, 4.20, -.09];
+  const rect = [LIV, LIV, LIV, r1, r2, mamad, master, mbath, fbath], pts = [LIV, LIV, LIV, LIV, corr, master, r1, r2, mamad, mbath, fbath, master, master].slice(0, warm.length);
+  const arr = (n, l) => `const vec4 ${n}[${l.length}] = vec4[${l.length}](${l.map(b => `vec4(${b.map(v => v.toFixed(3)).join(',')})`).join(',')});`;
+  const G = n => `step( ${n}.x, gateW.x ) * step( gateW.x, ${n}.z ) * step( ${n}.y, gateW.z ) * step( gateW.z, ${n}.w )`;
+  const c = THREE.ShaderChunk, pa = 'getPointLightInfo( pointLight, geometryPosition, directLight );', ra = 'rectAreaLight = rectAreaLights[ i ];';
+  if (rect.length !== windowLights.length || !c.lights_fragment_begin.includes(pa) || !c.lights_fragment_begin.includes(ra)) throw new Error('room gate: lights or chunk changed');
+  c.lights_fragment_begin = `vec3 gateW = transpose( mat3( viewMatrix ) ) * ( - vViewPosition - viewMatrix[ 3 ].xyz );\n${arr('rectBox', rect)}\n${arr('pointBox', pts)}\n` +
+    c.lights_fragment_begin.replace(pa, `${pa}\n\t\tdirectLight.color *= ${G('pointBox[ i ]')};`).replace(ra, `${ra}\n\t\trectAreaLight.color *= ${G('rectBox[ i ]')};`);
+}
 
 // =====================================================================
 // BAKED LIGHT. Daylight (sun + sky through the real window openings) and the evening lamps were path traced offline in
