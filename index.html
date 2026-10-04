@@ -1842,14 +1842,17 @@ B(8.47, 8.53, BZ2 - .04, BZ2, .57, .63, mat.steel, { round: .01 }); C(8.50, BZ2 
 // Our own building (7 storeys) continues to the south of the apartment. Other buildings are approximate, from the site photos.
 // =====================================================================
 const GY = -6.6;
+const SUN_OFF = [25, 24, 14];   // sun position minus its target: the one sun vector shared by the light and the baked ground shadows
+const sunBoxes = [], sunPoles = [];            // [x1, x2, z1, z2, height, opacity, base]: boxes that throw a baked shadow on the ground (see siteMask)
+const mKerb = mat.concrete.clone();   // street-level concrete (kerbs, sidewalks): takes the baked ground shadows, the shell keeps mat.concrete
 const mGlassRailN = new THREE.MeshStandardMaterial({ color: '#cfe0e4', roughness: .05, metalness: .1, transparent: true, opacity: .3, depthWrite: false });
 { const g = new THREE.PlaneGeometry(500, 500); g.rotateX(-Math.PI / 2); g.translate(10, GY, 0); mesh(g, mat.ground, outside, false); }
 B(-160, 160, 44, 52, GY, GY + .03, mat.asphalt, { cast: false, parent: outside });                                    // Tirtsa Atar street (south)
-B(-160, 12.8, 42, 44, GY, GY + .15, mat.concrete, { cast: false, parent: outside }); B(32, 160, 42, 44, GY, GY + .15, mat.concrete, { cast: false, parent: outside }); B(-160, 160, 52, 54, GY, GY + .15, mat.concrete, { cast: false, parent: outside });
+B(-160, 12.8, 42, 44, GY, GY + .15, mKerb, { cast: false, parent: outside }); B(32, 160, 42, 44, GY, GY + .15, mKerb, { cast: false, parent: outside }); B(-160, 160, 52, 54, GY, GY + .15, mKerb, { cast: false, parent: outside });
 function building(x1, x2, z1, z2, h, kind = 'white') {
   const t = facadeTex(kind); t.repeat.set(Math.max(x2 - x1, z2 - z1) / 3.2, h / 3);
   B(x1, x2, z1, z2, GY, GY + h, new THREE.MeshStandardMaterial({ map: t, roughness: .9 }), { cast: false, parent: outside });
-  B(x1, x2, z1, z2, GY + h, GY + h + .6, mat.concrete, { cast: false, parent: outside });
+  B(x1, x2, z1, z2, GY + h, GY + h + .6, mat.concrete, { cast: false, parent: outside }); sunBoxes.push([x1, x2, z1, z2, h + .6]);
 }
 // building A itself: the rest of the building south of the apartment (7 storeys), its stacked east balconies, and the floors below us
 building(-4.28, 7.70, 9.11, 38, 23.1);
@@ -1877,7 +1880,7 @@ const soilTex = canvasTex(512, 512, (g, w, h) => { const r = rnd(94); g.fillStyl
   for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(${r() > .5 ? '105,80,60' : '210,185,155'},${r() * .25})`; g.beginPath(); g.ellipse(r() * w, r() * h, 1 + r() * 9, 1 + r() * 5, r() * 3, 0, 7); g.fill(); } });
 const mPaver = TM(paverTex, .9, 3.0), mPaverRed = TM(paverT('#b08a7c', [172, 134, 120]), .9, 3.0), mPaverWalk = TM(paverT('#a87a6c', [164, 120, 106]), .9, 3.0), mTerr = TM(terrTex, .5, 2.4), mStone = TM(stoneTex, .85, 4.8), mSoil = TM(soilTex, 1, 9);
 [mStone, mPaver, mPaverRed, mPaverWalk, mSoil].forEach(m => m.userData.envDay = 1.1);   // west faces we look at sit in sun shadow: lift them with the sky
-photoPBR([mat.asphalt], 'asphalt_02', 3, { color: true }); photoPBR([mSoil], 'park_dirt', 3, { color: true }); photoPBR([mat.turf], 'grass_ground', 2.5, { color: true });   // CC0 ground sets, site only
+photoPBR([mat.asphalt], 'asphalt_02', 3, { color: true }); photoPBR([mSoil], 'park_dirt', 3, { color: true }); const turfReady = photoPBR([mat.turf], 'grass_ground', 2.5, { color: true });   // CC0 ground sets, site only
 const mWin = M('#39434b', .25, { metalness: .3 }), mWinFrame = M('#4b5258', .5), mBlue = M('#3d6fa8', .8), mWhiteLine = M('#f2f2ee', .8), mBlueFence = TM(canvasTex(64, 8, (g, w, h) => { for (let x = 0; x < w; x++) { const v = 128 + Math.round(22 * Math.sin(x / w * Math.PI * 8)); g.fillStyle = `rgb(${v},${v + 12},${v + 16})`; g.fillRect(x, 0, 1, h); } }), .6, 1.2);   // grey-blue corrugated hoarding
 const mGlassRail = new THREE.MeshStandardMaterial({ color: '#cfe0e4', roughness: .05, metalness: .1, transparent: true, opacity: .25, depthWrite: false });
 const mSail = M('#e7cf98', .9, { side: THREE.DoubleSide }), mShadeNet = M('#4f8f6a', .95, { side: THREE.DoubleSide }), mAlu = M('#c3c6c8', .35, { metalness: .8 });
@@ -1896,9 +1899,9 @@ for (let z = -158; z < 160; z += 6) B(19.75, 19.87, z, z + 3, GY + .03, GY + .03
 for (let k = 0; k < 6; k++) B(23.2 + k * .8, 23.5 + k * .8, -.45, -.05, GY + .031, GY + .036, mWhiteLine, OUT);
 // far side (photos 08, 12): perpendicular bays only at z -8..3; north and south of them a parallel lane (x 23.0-25.2) and the red
 // sidewalk widens to the kerb, with a yellow tactile strip along it. Positions estimated from the photos.
-B(28.0, 32.0, -8, 3.2, GY, GY + .15, mPaverRed, OUT); B(27.85, 28.0, -8, 3.2, GY, GY + .16, mat.concrete, OUT); B(14.3, 14.45, -160, 160, GY, GY + .16, mat.concrete, OUT);
+B(28.0, 32.0, -8, 3.2, GY, GY + .15, mPaverRed, OUT); B(27.85, 28.0, -8, 3.2, GY, GY + .16, mKerb, OUT); B(14.3, 14.45, -160, 160, GY, GY + .16, mKerb, OUT);
 const mTactile = M('#d4c27a', .8);
-[[-160, -8], [3.2, 160]].forEach(([a, b]) => { B(25.2, 32.0, a, b, GY, GY + .15, mPaverRed, OUT); B(25.05, 25.2, a, b, GY, GY + .16, mat.concrete, OUT); B(25.2, 25.5, a, b, GY + .15, GY + .156, mTactile, OUT); });
+[[-160, -8], [3.2, 160]].forEach(([a, b]) => { B(25.2, 32.0, a, b, GY, GY + .15, mPaverRed, OUT); B(25.05, 25.2, a, b, GY, GY + .16, mKerb, OUT); B(25.2, 25.5, a, b, GY + .15, GY + .156, mTactile, OUT); });
 const mKerbRed = M('#c8352e', .7);
 [[-8.15, -8], [3.2, 3.35]].forEach(([a, b]) => { for (let k = 0; k < 6; k++) B(25.05 + k * .49, 25.54 + k * .49, a, b, GY, GY + .16, k % 2 ? mKerbRed : mWhiteLine, OUT); });   // red-white kerb at the bay ends
 // young street trees on the far sidewalk, thin crowns (as in the photos); no trees on our side. On the site they are tree cards
@@ -1911,7 +1914,7 @@ for (let z = -70; z < 42; z += 9) { const x = 28.7 + treeR() * .3, hgt = 3.4 + t
   streetTrees.push([x, z, hgt + 1.2, z * 1.7]); }
 // street lights: about 8 m grey poles with one curved arm and a flat head (photos 08, 12; height estimated). Heads glow in the evening.
 const mPole = M('#9aa0a4', .5, { metalness: .5 }), mLampHead = M('#fff3dc', .4, { emissive: '#ffd9a0', emissiveIntensity: 0 }), glowMats = [mLampHead];
-const streetLight = (x, z, h, dx) => { C(x, z, GY, GY + h, .07, mPole, { seg: 10, parent: outside, cast: false });
+const streetLight = (x, z, h, dx) => { C(x, z, GY, GY + h, .07, mPole, { seg: 10, parent: outside, cast: false }); sunPoles.push([x, z, h + .3]);
   mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(new THREE.Vector3(x, GY + h - .5, z), new THREE.Vector3(x, GY + h + .25, z), new THREE.Vector3(x + dx, GY + h + .3, z)), 12, .04, 6), mPole, outside, false);
   const a = x + dx - .25; B(a, a + .5, z - .14, z + .14, GY + h + .2, GY + h + .3, mPole, OUT); B(a + .03, a + .47, z - .11, z + .11, GY + h + .19, GY + h + .2, mLampHead, OUT); };
 [-40, -14, 12, 38].forEach(z => streetLight(28.4, z, 7.7, -1.6));
@@ -1925,6 +1928,7 @@ const carCabin = carProf([[-1.66, .98], [.98, .98], [.32, 1.4], [-1.28, 1.42]], 
 const mTail = M('#8a1c1c', .4), mHead = M('#e9ecee', .2, { metalness: .3 });
 function car(cx, cz, along, col) {   // along = 'z' (car parallel to the street) or 'x'; a generic hatchback, about 4.4 x 1.8 x 1.45 m
   const Wd = 1.8, m = M(col, .3, { metalness: .5 }), g = new THREE.Group(); g.position.set(cx, GY, cz); if (along === 'x') g.rotation.y = Math.PI / 2; outside.add(g);
+  const hx = along === 'x' ? 2.2 : .9, hz = along === 'x' ? .9 : 2.2; sunBoxes.push([cx - hx, cx + hx, cz - hz, cz + hz, 1.45, 1, 0, 'car']);
   mesh(carBody, m, g, false); mesh(carCabin, mWin, g, false); mesh(carRoof, m, g, false);
   [[-1.35], [1.35]].forEach(([z]) => [-1, 1].forEach(s => { const w = C(0, 0, -.11, .11, .33, mat.black, { seg: 16, parent: g, cast: false }); w.rotation.z = Math.PI / 2; w.position.set(s * (Wd / 2 - .08), .33, z); }));
   [-1, 1].forEach(s => { B(s * .55 - .2, s * .55 + .2, 2.18, 2.22, .5, .6, mHead, { parent: g, cast: false }); B(s * .62 - .14, s * .62 + .14, -2.17, -2.13, .74, .86, mTail, { parent: g, cast: false }); });
@@ -1932,6 +1936,7 @@ function car(cx, cz, along, col) {   // along = 'z' (car parallel to the street)
 [[-26, 0], [-19, 1], [-9, 2], [6.5, 3], [13, 4], [24, 5]].forEach(([z, i]) => car(15.45, z, 'z', carCols[i]));
 [[-6.75, 6], [-4.25, 7], [1.25, 1]].forEach(([z, i]) => car(25.6, z, 'x', carCols[i]));                                       // nose-in only in the bays
 [[-44, 2], [-36, 4], [-15, 6], [-10.5, 0], [13, 7], [19, 3], [31, 5]].forEach(([z, i]) => car(24.1, z, 'z', carCols[i]));        // parallel along the far kerb
+sunBoxes.push([23.1, 25.1, -24.6, -19.4, 2.3, 1, 0, 'car']);
 { const g = new THREE.Group(); g.position.set(24.1, GY, -22); outside.add(g); const m = M('#f4f4f2', .3, { metalness: .4 }), o = { parent: g, cast: false };   // white van (photo 12)
   B(-.98, .98, -2.6, 1.7, .32, 2.3, m, o); B(-.95, .95, 1.7, 2.6, .32, 1.15, m, o); B(-.9, .9, 1.68, 2.2, 1.15, 1.95, mWin, o); B(-.99, .99, 1.85, 1.95, .32, 2.25, m, o);
   [[-1.75], [1.85]].forEach(([z]) => [-1, 1].forEach(s => { const w = C(0, 0, -.12, .12, .36, mat.black, { seg: 16, parent: g, cast: false }); w.rotation.z = Math.PI / 2; w.position.set(s * .84, .36, z); }));
@@ -1941,6 +1946,7 @@ function car(cx, cz, along, col) {   // along = 'z' (car parallel to the street)
 const SX1 = 32.5, SX2 = 48, SZ1 = -50, SZ2 = 3.2, SH = 8.4;
 B(SX1, SX2, SZ1, SZ2, GY, GY + SH, mStone, OUT); B(SX1 - .05, SX2 + .05, SZ1 - .05, SZ2 + .05, GY + SH, GY + SH + .5, mStone, OUT);
 B(SX1 - .02, SX1, -10.6, -8.4, GY + .6, GY + SH - .3, M('#b0b4b6', .7), OUT);                                                 // small grey accent, one bay (photo 10)
+sunBoxes.push([SX1, SX2, SZ1, SZ2, SH + .5], [SX1, SX2, -2, SZ2, SH + 1.9], [32, 32.04, SZ1, SZ2, 1.78, .45]);   // school, its fence
 B(SX1, SX2, -2, SZ2, GY + SH, GY + SH + 1.5, mStone, OUT); B(SX1 - .05, SX2 + .05, -2.05, SZ2 + .05, GY + SH + 1.5, GY + SH + 1.9, mStone, OUT);   // taller south end
 for (let i = 0; i < 3; i++) { const t = C(0, 0, -.9, .9, .28, M('#e2e4e4', .4, { metalness: .5 }), { seg: 12, parent: outside, cast: false }); t.rotation.x = Math.PI / 2; t.position.set(SX1 + 4 + i * 2.2, GY + SH + 2.3, 0.4); }   // solar water heaters
 B(32.05, 32.45, -1, 3, GY, GY + 1.5, M('#ecebe6', .6), OUT);                                                                    // white utility cabinets at the fence
@@ -1961,15 +1967,15 @@ for (let i = 0; i < 9; i++) { const c = mesh(new THREE.IcosahedronGeometry(.6, 1
 // kindergarten yards north of the school: cream shade sails and green shade nets on posts
 [[34, -64, mSail], [40, -60, mSail], [34, -57, mShadeNet]].forEach(([x, z, m]) => {
   [[x, z], [x + 6, z], [x, z + 5.5], [x + 6, z + 5.5]].forEach(([px, pz]) => C(px, pz, GY, GY + 3.6, .06, mAlu, { seg: 6, parent: outside, cast: false }));
-  const g = new THREE.PlaneGeometry(6.4, 5.8); g.rotateX(-Math.PI / 2); g.rotateZ(.07); g.translate(x + 3, GY + 3.4, z + 2.75); mesh(g, m, outside, false); });
+  const g = new THREE.PlaneGeometry(6.4, 5.8); g.rotateX(-Math.PI / 2); g.rotateZ(.07); g.translate(x + 3, GY + 3.4, z + 2.75); mesh(g, m, outside, false); sunBoxes.push([x - .2, x + 6.2, z - .15, z + 5.65, 3.45, .6, 3.35]); });
 B(32.5, 48, -70, SZ1, GY, GY + .04, mat.turf, OUT);
 // paved walkway east between the school and the empty lot, with a lamp post
-B(32.0, 90, 3.2, 8.6, GY, GY + .12, mPaverWalk, OUT); C(33.2, 8.0, GY, GY + 5, .06, mPole, { seg: 8, parent: outside, cast: false }); C(33.2, 8.0, GY + 5, GY + 5.4, .2, mPole, { seg: 12, parent: outside, cast: false }); C(33.2, 8.0, GY + 4.98, GY + 5, .18, mLampHead, { seg: 12, parent: outside, cast: false });
+B(32.0, 90, 3.2, 8.6, GY, GY + .12, mPaverWalk, OUT); sunPoles.push([33.2, 8.0, 5.4]); C(33.2, 8.0, GY, GY + 5, .06, mPole, { seg: 8, parent: outside, cast: false }); C(33.2, 8.0, GY + 5, GY + 5.4, .2, mPole, { seg: 12, parent: outside, cast: false }); C(33.2, 8.0, GY + 4.98, GY + 5, .18, mLampHead, { seg: 12, parent: outside, cast: false });
 // the empty lot south of the walkway (photos 11, 26): bare soil behind a grey fence, its south edge a concrete retaining wall;
 // beyond it a driveway with parked cars toward the tower (its car-park ramp is not modelled). Extents estimated from the photos.
 B(33.0, 82, 9.0, 22, GY, GY + .08, mSoil, OUT);
 B(32.9, 82, 8.85, 8.9, GY, GY + 1.8, M('#a9adb0', .6, { metalness: .4 }), OUT); for (let x = 33; x < 82; x += 2.5) B(x, x + .05, 8.8, 8.95, GY, GY + 1.85, mAlu, OUT);
-const mRetain = M('#cfcac0', .9); B(33.0, 82, 22, 22.3, GY, GY + 1.0, mRetain, OUT);
+const mRetain = M('#cfcac0', .9); B(33.0, 82, 22, 22.3, GY, GY + 1.0, mRetain, OUT); sunBoxes.push([33, 82, 22, 22.3, 1], [32.9, 82, 8.85, 8.9, 1.8, .6]);
 B(32.0, 60, 22.3, 28, GY, GY + .03, mat.asphalt, OUT);
 [[38, 1], [43.5, 3], [47, 6]].forEach(([x, i]) => car(x, 26.2, 'x', carCols[i]));
 B(31.0, 31.5, 9.6, 11.4, GY + .4, GY + .45, mat.walnut, OUT);
@@ -1988,7 +1994,7 @@ const litTex = (seed, cols, rows, win) => canvasTex(512, 512, (g, w, h) => { con
   const glow = canvasTex(512, 512, (g, w, h) => { const r = rnd(303); g.fillStyle = '#000'; g.fillRect(0, 0, w, h); wins.forEach(([x, y, s]) => { if (r() < .35) { g.fillStyle = '#ffcf8f'; g.fillRect(x, y, s, s); } }); });
   const mT = TM(face, .6, U, { emissiveMap: glow, emissive: '#ffffff', emissiveIntensity: 0 }); mT.userData.envDay = 1.1; litMats.push(mT);
   const mBrown = M('#4a3a30', .7), mLog = M('#7c8084', .8), mRed = M('#b5523b', .8), T = { ...OUT, cast: true };
-  B(60, 70, 24, 34, GY, GY + 27, mT, T); B(64, 84, 30, 41.5, GY, GY + 30, mT, T);                                          // west wing (toward us), main wing
+  B(60, 70, 24, 34, GY, GY + 27, mT, T); B(64, 84, 30, 41.5, GY, GY + 30, mT, T); sunBoxes.push([60, 70, 24, 34, 27.6], [64, 84, 30, 41.5, 32.2]);                                          // west wing (toward us), main wing
   B(60, 70, 24, 34, GY + 27, GY + 27.6, mat.concrete, OUT); B(64, 84, 30, 41.5, GY + 30, GY + 30.6, mat.concrete, OUT);
   [[25.6, 27.1], [30.6, 32.1]].forEach(([a, b]) => { B(59.7, 60, a, b, GY + 1, GY + 26.6, mBrown, OUT);                       // louvre strips, slats every 25 cm
     for (let y = GY + 1.2; y < GY + 26.5; y += .25) B(59.55, 59.7, a, b, y, y + .07, mBrown, OUT); });
@@ -1998,7 +2004,7 @@ const litTex = (seed, cols, rows, win) => canvasTex(512, 512, (g, w, h) => { con
 // north of our building: an empty plot behind a blue construction fence (photo looking north from the balcony)
 const mWeeds = TM(canvasTex(256, 256, (g, w, h) => { const r = rnd(95); g.fillStyle = '#8a7656'; g.fillRect(0, 0, w, h);
   for (let i = 0; i < 1800; i++) { g.strokeStyle = `rgba(${r() > .5 ? '110,95,60' : '170,150,105'},${.3 + r() * .4})`; const x = r() * w, y = r() * h; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 6, y - 3 - r() * 6); g.stroke(); } }), 1, 3);
-B(-6, 10.8, -48, -6, GY, GY + .06, mWeeds, OUT); B(10.8, 10.86, -48, -6, GY, GY + 2.0, mBlueFence, OUT); B(-6, 10.8, -48.05, -48, GY, GY + 2.0, mBlueFence, OUT);
+B(-6, 10.8, -48, -6, GY, GY + .06, mWeeds, OUT); B(10.8, 10.86, -48, -6, GY, GY + 2.0, mBlueFence, OUT); sunBoxes.push([10.8, 10.86, -48, -6, 2], [-6, 10.8, -48.05, -48, 2]); B(-6, 10.8, -48.05, -48, GY, GY + 2.0, mBlueFence, OUT);
 B(10.86, 12.8, -160, -5.39, GY, GY + .15, mPaver, OUT);
 [[2, -20], [3.4, -21], [-1, -33]].forEach(([x, z]) => B(x, x + 1.2, z, z + 1.0, GY + .06, GY + .2, M('#a08463', .9), OUT));     // pallets
 B(-60, 90, -100, -92, GY, GY + .035, mat.asphalt, OUT);                                                                       // cross street at the T-junction
@@ -2009,7 +2015,7 @@ function block(x1, x2, z1, z2, floors, kind = 'white', face = 'w') {
   const h = floors * 3.2, t = facadeTex(kind), cols = Math.max(x2 - x1, z2 - z1) / 3.2; t.repeat.set(cols, floors);
   const e = litTex(Math.round(x1 * 7 + z1 * 3), 16, 16, (g, x, y, cw, ch) => g.fillRect(x + cw * .14, y + ch * .26, cw * .3, ch * .45)); e.repeat.set(cols / 16, floors / 16);
   const m = new THREE.MeshStandardMaterial({ map: t, roughness: .9, emissiveMap: e, emissive: '#ffffff', emissiveIntensity: 0 }); m.userData.envDay = 1.1; litMats.push(m);
-  B(x1, x2, z1, z2, GY, GY + h, m, OUT); foot.push([x1, x2, z1, z2]);
+  B(x1, x2, z1, z2, GY, GY + h, m, OUT); foot.push([x1, x2, z1, z2]); sunBoxes.push([x1, x2, z1, z2, h + 1.4]);
   const rail = mGlassRail, slab = M('#efede7', .8);
   for (let f = 1; f < floors; f++) { const y = GY + f * 3.2;
     if (face === 'w') for (let z = z1 + 1; z < z2 - 3; z += 6.5) { B(x1 - 1.6, x1, z, z + 4.2, y - .2, y, slab, OUT); B(x1 - 1.62, x1 - 1.55, z, z + 4.2, y, y + 1.05, rail, OUT); }
@@ -2051,6 +2057,66 @@ Promise.all(['tree_small_02', 'jacaranda_tree', 'island_tree_02'].map(f => asset
   const [street, jac, isl] = ts, card = (t, spots) => noAO.push(mesh(treeCards(t.image, spots), new THREE.MeshStandardMaterial({ map: t, alphaTest: .45, roughness: .9, envMapIntensity: isEve ? .12 : ENV }), scene, false));
   card(street, streetTrees); card(jac, yardTrees.filter((_, i) => i % 2)); card(isl, yardTrees.filter((_, i) => !(i % 2)));
   procTrees.visible = false; dirty = 1; });
+// Ground mask (ext 2 and 5): one RGBA texture over the site, drawn once at load, read by the ground-level materials in world xz.
+//  R = sun visibility: shadows of the blocks, school, tower, cars, trees and poles projected along SUN_OFF (none of them is in
+//      the real shadow map, so nothing doubles). Multiplies the direct light, and 20% of the sky light (the caster hides part of the sky).
+//  G = ambient occlusion: soft darkening under cars and trees and along building bases. Multiplies the indirect light.
+//  B = lawn weight on the open ground (paved aprons of 3 m around buildings), A = low-frequency lawn variation.
+// Lawns, aprons and all positions are estimates from the site photos.
+{ const N = isPhone ? 1024 : 2048, X0 = -120, Z0 = -200, SZ = 380, S = N / SZ, sx = SUN_OFF[0] / SUN_OFF[1], sz = SUN_OFF[2] / SUN_OFF[1];
+  const cv = () => { const c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d', { willReadFrequently: true }); g.fillStyle = '#fff'; g.fillRect(0, 0, N, N); g.fillStyle = '#000'; g.strokeStyle = '#000'; return g; };
+  const P = (x, z) => [(x - X0) * S, (z - Z0) * S];
+  const hull = pts => { pts.sort((a, b) => a[0] - b[0] || a[1] - b[1]); const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
+    for (const p of pts) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+    for (const p of pts.slice().reverse()) { while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }
+    return lo.slice(0, -1).concat(up.slice(0, -1)); };
+  const poly = (g, pts) => { g.beginPath(); pts.forEach(([x, z], i) => { const [u, v] = P(x, z); i ? g.lineTo(u, v) : g.moveTo(u, v); }); g.closePath(); g.fill(); };
+  const sun = cv(), ao = cv(), lawn = cv();
+  sunBoxes.forEach(([x1, x2, z1, z2, h, op = .85, base = 0, kind]) => {   // .85: the sky term here is weaker than a real sky, so full-black shade reads too dark
+    const c = [[x1, z1], [x2, z1], [x2, z2], [x1, z2]], d = (y, [x, z]) => [x - y * sx, z - y * sz];
+    sun.globalAlpha = op; poly(sun, hull(base ? c.map(p => d(base, p)).concat(c.map(p => d(h, p))) : c.concat(c.map(p => d(h, p)))));
+    if (kind === 'car') { ao.globalAlpha = .5; ao.beginPath(); const [u, v] = P(x1 - .15, z1 - .15); ao.roundRect(u, v, (x2 - x1 + .3) * S, (z2 - z1 + .3) * S, .5 * S); ao.fill(); }
+    else if (h > 3 && op === .85) { ao.globalAlpha = .28; ao.lineWidth = 1.6 * S; const [u, v] = P(x1, z1); ao.strokeRect(u, v, (x2 - x1) * S, (z2 - z1) * S);
+      lawn.globalAlpha = 1; const [a, b] = P(x1 - 3, z1 - 3); lawn.fillRect(a, b, (x2 - x1 + 6) * S, (z2 - z1 + 6) * S); } });
+  const ang = Math.atan2(sz, sx), el = 1 / Math.sin(Math.atan(1 / Math.hypot(sx, sz)));   // a round crown's shadow stretches by 1 / sin(elevation)
+  [[streetTrees, .3, .62], [yardTrees, .36, .55]].forEach(([spots, rk, op]) => spots.forEach(([x, z, h, t]) => {
+    const r = h * rk, cy = h * .62, [u, v] = P(x - cy * sx, z - cy * sz), rr = rnd(Math.round(t * 1000) + 7);
+    sun.globalAlpha = op; for (let k = 0; k < 5; k++) { sun.beginPath(); sun.ellipse(u + (rr() - .5) * r * S * .6, v + (rr() - .5) * r * S * .6, r * el * S * (.55 + rr() * .3), r * S * (.55 + rr() * .3), ang, 0, 7); sun.fill(); }   // dappled crown
+    sun.globalAlpha = .8; sun.lineWidth = Math.max(1, .16 * S); sun.beginPath(); sun.moveTo(...P(x, z)); sun.lineTo(...P(x - (cy - r) * sx, z - (cy - r) * sz)); sun.stroke();
+    ao.globalAlpha = .22; ao.beginPath(); ao.arc(...P(x, z), r * .9 * S, 0, 7); ao.fill(); }));
+  sun.globalAlpha = .75; sun.lineWidth = Math.max(1, .14 * S); sunPoles.forEach(([x, z, h]) => { sun.beginPath(); sun.moveTo(...P(x, z)); sun.lineTo(...P(x - h * sx, z - h * sz)); sun.stroke(); });
+  const noise = document.createElement('canvas'); noise.width = noise.height = 64; { const g = noise.getContext('2d'), r = rnd(808), id = g.createImageData(64, 64);
+    for (let i = 0; i < id.data.length; i += 4) { id.data[i] = id.data[i + 1] = id.data[i + 2] = r() * 255; id.data[i + 3] = 255; } g.putImageData(id, 0, 0); }
+  const var_ = cv(); var_.imageSmoothingEnabled = true; var_.drawImage(noise, 0, 0, N, N);
+  const blur = (a, rad) => { if (rad < 1) return; const t = new Uint8ClampedArray(a.length);
+    for (let pass = 0; pass < 2; pass++) { for (let y = 0; y < N; y++) { let acc = 0; const o = y * N;
+      for (let x = -rad; x <= rad; x++) acc += a[o + Math.min(N - 1, Math.max(0, x))];
+      for (let x = 0; x < N; x++) { t[x * N + y] = acc / (2 * rad + 1); acc += a[o + Math.min(N - 1, x + rad + 1)] - a[o + Math.max(0, x - rad)]; } } a.set(t); } };   // two transposing passes = one 2D box blur
+  const ch = (g, rad) => { const d = g.getImageData(0, 0, N, N).data, a = new Uint8ClampedArray(N * N); for (let i = 0; i < a.length; i++) a[i] = d[i * 4]; blur(a, rad); return a; };
+  const R = ch(sun, Math.round(.12 * S)), G = ch(ao, Math.round(.5 * S)), Bc = ch(lawn, Math.round(1.2 * S)), A = ch(var_, 0), data = new Uint8Array(N * N * 4);
+  (d32 => { for (let i = 0; i < N * N; i++) d32[i] = R[i] | G[i] << 8 | Bc[i] << 16 | A[i] << 24; })(new Uint32Array(data.buffer));   // RGBA bytes (little-endian); in a function so V8 optimises the loop
+  const tex = new THREE.DataTexture(data, N, N, THREE.RGBAFormat); tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.generateMipmaps = true; tex.needsUpdate = true;
+  const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); white.needsUpdate = true;
+  const U = { uSite: { value: tex }, uSiteR: { value: new THREE.Vector3(X0, Z0, 1 / SZ) }, uGrass: { value: white }, uLawnTint: { value: mat.turf.color } };
+  const patch = (m, lawnOn) => { m.onBeforeCompile = sh => { Object.assign(sh.uniforms, U);
+      sh.vertexShader = 'varying vec3 vSiteW;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n  vSiteW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      const f = sh.fragmentShader, s1 = '#include <map_fragment>', s2 = '#include <lights_fragment_end>';
+      if (!f.includes(s1) || !f.includes(s2)) throw new Error('site mask: shader chunk changed');
+      sh.fragmentShader = (lawnOn ? '#define SITE_LAWN\n' : '') + 'uniform sampler2D uSite, uGrass; uniform vec3 uSiteR, uLawnTint; varying vec3 vSiteW;\n' + f
+        .replace(s1, s1 + `
+  vec4 site = texture2D(uSite, (vSiteW.xz - uSiteR.xy) * uSiteR.z);
+  #ifdef SITE_LAWN
+    vec3 grass = texture2D(uGrass, vSiteW.xz / 2.5).rgb * uLawnTint * vec3(.5, .54, .4) * (.8 + .4 * site.a);
+    grass = mix(grass, vec3(dot(grass, vec3(.3, .59, .11))), .3);   // a summer lawn in Israel: darker and drier than the turf set
+    grass = mix(grass, grass * vec3(1.45, 1.15, .8), smoothstep(.4, .8, site.a));   // dry patches
+    diffuseColor.rgb = mix(diffuseColor.rgb * (.92 + .16 * site.a), grass, site.b);
+  #endif`)
+        .replace(s2, s2 + '\n  reflectedLight.directDiffuse *= site.r; reflectedLight.directSpecular *= site.r; reflectedLight.indirectDiffuse *= site.g * (.8 + .2 * site.r); reflectedLight.indirectSpecular *= site.g;'); };
+    m.customProgramCacheKey = () => 'site' + (lawnOn ? 1 : 0); m.needsUpdate = true; };
+  patch(mat.ground, true); [mat.asphalt, mKerb, mPaver, mPaverRed, mPaverWalk, mSoil, mat.turf, mWeeds, mTactile, mWhiteLine, mBlue, mKerbRed].forEach(m => patch(m, false));
+  mat.ground.color.set('#b3aea3');   // the paved aprons and paths between the lawns
+  turfReady.then(() => { if (mat.turf.map) { U.uGrass.value = mat.turf.map; dirty = 1; } });
+}
 const sky = new THREE.Mesh(new THREE.SphereGeometry(650, 32, 16), new THREE.MeshBasicMaterial({ map: skyDay, side: THREE.BackSide, fog: false }));
 sky.renderOrder = 10; scene.add(sky);   // drawn after the opaque scene: only the uncovered pixels are shaded
 // photo skies (Poly Haven puresky HDRIs, tonemapped): upper 1152 of 2048 rows, turned so the day sun matches the sun light (ESE)
@@ -2180,7 +2246,7 @@ captureContact();
 const HEMI = .22, ENV = .3;
 const hemi = new THREE.HemisphereLight(0xdfe9f6, 0xcdc4b2, HEMI); scene.add(hemi);
 const SUN = 3.0, sun = new THREE.DirectionalLight(0xfff1dc, SUN);
-sun.target.position.set(2.4, 0, 1.5); sun.position.set(2.4 + 25, 24, 1.5 + 14);   // ~10:00 in autumn: east-south-east, ~40 deg up
+sun.target.position.set(2.4, 0, 1.5); sun.position.set(2.4 + SUN_OFF[0], SUN_OFF[1], 1.5 + SUN_OFF[2]);   // ~10:00 in autumn: east-south-east, ~40 deg up
 sun.castShadow = true; sun.shadow.mapSize.set(isPhone ? 2048 : 4096, isPhone ? 2048 : 4096);
 Object.assign(sun.shadow.camera, { left: -13, right: 13, top: 13, bottom: -13, near: 1, far: 80 });
 sun.shadow.bias = -.0004; sun.shadow.normalBias = .02;
