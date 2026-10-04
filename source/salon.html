@@ -66,11 +66,17 @@ button:disabled { opacity: .55; cursor: default; border-color: var(--line); }
 .notes b { color: var(--fg); font-weight: 600; }
 .ptinfo { font-size: 12px; color: var(--muted); line-height: 1.45; flex: 1 1 180px; min-width: 0; }
 .hint { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; line-height: 1.5; }
+.tabs { display: flex; gap: 6px; }
+.tabs button { flex: 1 1 0; padding: 10px 8px; font-weight: 600; font-size: 13.5px; }
+.cer-title { margin: 0; font: 700 16px/1.2 var(--font-display); }
 .cer-row { margin: 10px 0 0; }
+.cer-sel { display: flex; gap: 8px; align-items: flex-start; margin-top: 5px; }
+.cer-sw { flex: none; width: 44px; height: 44px; border-radius: 6px; border: 1px solid var(--line); background: var(--chip); }
 .cer-ctl { display: flex; gap: 6px; align-items: center; }
 .cer-ctl select { flex: 1 1 auto; min-width: 0; font: 500 13px/1.2 var(--font-ui); color: var(--fg); background: var(--chip);
   border: 1px solid var(--line); border-radius: 7px; padding: 7px 6px; }
 .cer-info { font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 4px; }
+.cer-sel .cer-info { margin-top: 0; }
 .cer-info b { color: var(--fg); font-weight: 600; }
 .cer-note { color: var(--fg); }
 .cer-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
@@ -122,6 +128,10 @@ details[open] summary::after { content: " ▴"; }
       <p class="sub">5 חדרים · כ-132 מ״ר · מרפסת 275 × 884</p>
     </div>
     <button class="icon-btn" id="btnHide" aria-label="הסתרת הבקרים">הסתר ✕</button>
+  </div>
+  <div class="tabs">
+    <button id="tabV" aria-pressed="true">זוויות ותצוגה</button>
+    <button id="tabC" aria-pressed="false">בחירת קרמיקה</button>
   </div>
   <div>
     <div class="label">סלון, אוכל ומטבח</div>
@@ -189,14 +199,14 @@ details[open] summary::after { content: " ▴"; }
       
     </ul>
   </details>
-  <details id="cer">
-    <summary>קרמיקה מהמפרט</summary>
-    <p class="notes" style="padding:0">מוצרים מ"מפרט מוצרים סטנדרט" של סטודיו קרמיקה, לפי הסגנון שעיצבנו. בכל חלל אפשר לדפדף בין כל המוצרים שהמפרט מאפשר שם. השם, המידה והעמוד בקטלוג כתובים מתחת לבחירה, כדי שאפשר יהיה להגיד למעצבת. האריחים מצוירים לפי התמונה בקטלוג (צבע, מידה, גימור ודוגמה), כך שהם קירוב ולא צילום של המוצר.</p>
+  <section id="cer" hidden>
+    <h2 class="cer-title">בחירת קרמיקה</h2>
+    <p class="notes" style="padding:0">מוצרים מ"מפרט מוצרים סטנדרט" של סטודיו קרמיקה. בכל חלל בוחרים מהרשימה או מדפדפים בחיצים בין כל המוצרים שהמפרט מאפשר שם, והמצלמה עוברת לחלל. השם, המידה והעמוד בקטלוג כתובים ליד הבחירה, כדי שאפשר יהיה להגיד למעצבת. הבחירות נשמרות בדפדפן. האריחים מצוירים לפי התמונה בקטלוג (צבע, מידה, גימור ודוגמה), כך שהם קירוב ולא צילום של המוצר.</p>
     <div id="cerList"></div>
     <div class="cer-btns"><button id="cerCopy">העתקת הבחירות</button><button id="cerReset">חזרה להמלצות שלי</button></div>
     <div class="label" style="margin-top:12px">כלים וברזים מאותו מפרט (רשומים בלבד, לא מוחלפים בדגם)</div>
     <ul class="notes" id="cerFix"></ul>
-  </details>
+  </section>
   <div class="hint" id="hint">בתוך חדר: גרירה מסובבת את המבט. חץ למעלה/למטה הולך קדימה/אחורה, חץ ימינה/שמאלה מסתובב (Shift מהר יותר). גלגלת מתקדמת. בטלפון: אצבע אחת מסתכלת מסביב, שתי אצבעות בפישוק הולכות קדימה, וגרירה בשתי אצבעות מזיזה. במבט על: גרירה מסובבת, גלגלת מזיזה זום. מקש H מסתיר את הבקרים.</div>
 </aside>
 <button id="show" hidden aria-label="הצגת הבקרים">☰ בקרים</button>
@@ -2307,6 +2317,12 @@ function updateOffset() { dirty = 1;
   else camera.clearViewOffset();
 }
 document.getElementById('btnHide').onclick = () => setPanel(false);
+function setTab(c) {   // two tabs: views and display, or the ceramics picker
+  [...panel.children].forEach(el => { if (!el.matches('.head, .tabs')) el.hidden = c ? el.id !== 'cer' : el.id === 'cer'; });
+  document.getElementById('tabV').setAttribute('aria-pressed', !c); document.getElementById('tabC').setAttribute('aria-pressed', c); panel.scrollTop = 0;
+}
+document.getElementById('tabV').onclick = () => setTab(false);
+document.getElementById('tabC').onclick = () => setTab(true);
 show.onclick = () => setPanel(true);
 window.addEventListener('keydown', e => { if (e.key === 'h' || e.key === 'H' || e.key === 'ח') setPanel(panel.hidden); });
 
@@ -2769,13 +2785,16 @@ for (const sp of CER_SPACES) {
     CER[cat].items.map(it => { const k = cerKey(cat, it), f = CER_FIN[cerFin(cat, it)][0]; return `<option value="${k}">${it[0]}${it[0].includes(f) || /^[ub]$/.test(cerFin(cat, it)) ? '' : ` (${f})`}</option>`; }).join('') + '</optgroup>'));
   row.innerHTML = `<div class="label">${sp.name}</div><div class="cer-ctl"><button class="icon-btn" data-d="-1" aria-label="הקודם">›</button>` +
     `<select aria-label="${sp.name}">${opts.join('')}</select><button class="icon-btn" data-d="1" aria-label="הבא">‹</button><button class="icon-btn" data-v>הצג</button></div>` +
-    `<div class="cer-info"></div>${sp.note ? `<div class="cer-info cer-note">${sp.note}</div>` : ''}`;
+    `<div class="cer-sel"><canvas class="cer-sw" width="88" height="88" aria-hidden="true"></canvas><div class="cer-info"></div></div>${sp.note ? `<div class="cer-info cer-note">${sp.note}</div>` : ''}`;
   cerList.appendChild(row);
-  const sel = row.querySelector('select'), info = row.querySelector('.cer-info');
-  const set = key => { sel.value = key; if (sel.value !== key) sel.value = key = 'cur'; info.innerHTML = key === 'cur' ? sp.cur : cerDesc(key, true) + (key === sp.def ? ' · ההמלצה שלי' : '');
-    photoReady.then(() => { if (sel.value === key) { cerApply(sp, key); cerSave(); } }); };
-  sel.onchange = () => set(sel.value);
-  row.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const n = sel.options.length; set(sel.options[(sel.selectedIndex + +b.dataset.d + n) % n].value); });
+  const sel = row.querySelector('select'), info = row.querySelector('.cer-info'), sw = row.querySelector('.cer-sw');
+  const swatch = () => { const c = sw.getContext('2d'), im = sp.m.map && sp.m.map.image; c.fillStyle = '#' + sp.m.color.getHexString(); c.fillRect(0, 0, 88, 88);
+    try { if (im) c.drawImage(im, 0, 0, Math.min(im.width, im.height), Math.min(im.width, im.height), 0, 0, 88, 88); } catch (e) { } };
+  const set = (key, fly) => { sel.value = key; if (sel.value !== key) sel.value = key = 'cur'; info.innerHTML = key === 'cur' ? sp.cur : cerDesc(key, true) + (key === sp.def ? ' · ההמלצה שלי' : '');
+    if (fly && current !== sp.view) setView(sp.view);
+    photoReady.then(() => { if (sel.value === key) { cerApply(sp, key); cerSave(); swatch(); } }); };
+  sel.onchange = () => set(sel.value, true);
+  row.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const n = sel.options.length; set(sel.options[(sel.selectedIndex + +b.dataset.d + n) % n].value, true); });
   row.querySelector('[data-v]').onclick = () => setView(sp.view);
   cerUI[sp.id] = set;
 }
