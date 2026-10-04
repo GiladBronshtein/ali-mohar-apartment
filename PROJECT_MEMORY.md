@@ -21,6 +21,7 @@ session; remove entries that are no longer true.
 
 | Date | Event |
 |---|---|
+| 2026-10-04 | Owners' current furniture and lamps, from their photos (sizes estimated): living sofa as dark leather with flip-up headrests and chrome legs, shaggy rug with a diamond lattice (`T.berber`), rotating slab coffee table; balcony sofa on a slim aluminium frame with loose cushions, teak-top table; egg chair rebuilt as an open rattan teardrop on a C-stand. Lamps: frames pendant over the island (replaces the two cones), wave pendant over the mamad desk, flush three-frame light over the coffee table, black cylinder downlights in the corridor and entry (replace 5 recessed spots); three warm point lights moved under them. Footprints unchanged: `clearance_audit` 0, `roomdims` +0, `sitetest` no issues. |
 | 2026-10-04 | Tree cards hidden from the GTAO pass: its override material ignores alphaTest, so each card drew a dark rectangle on walls behind it and a light box around far trees (desktop HQ only). |
 | 2026-10-04 | Blueprint re-check against full-resolution photos of the electrical, plumbing and AC sheets and the coloured sales plan (`audit/recheck/`, summary in `audit/recheck/APPLIED.md`). Fixed: entry door opening 97 hinge west; room 2 opening 83; TV wall 19 cm on the corridor stretch (panel kept flush); balcony north wall to z .34; family-bath tub 70 wide with taps on the corridor wall, basin and mirror axis 72; ensuite point drain and basin axis 44; room 1/2 grilles 80x20; living grilles moved; mamad sleeves moved and a 4" relief sleeve added; niche floor drain; balcony drains and garden tap h=60; corridor, closet, family-bath and balcony lights; two fans; switches to the latch side and 8 missing switches. `roomdims` +0, `clearance_audit` 0 issues, `sitetest` no issues. |
 | 2026-10-04 | Exterior and mirrors: CC0 tree cards (Cycles renders of 3 Poly Haven trees on crossed quads), CC0 asphalt, dirt and grass sets, soil no longer orange, extruded car profiles; live `Reflector` mirrors on desktop HQ (4 mirrors); phone fov 96 to 84, narrow-screen top views step back. QA: `sitetest` no issues, `qa_full ... ext` 0 errors, desktop forced fps 20 (was 15, noisy), phone 37; desktop download 7.6 to 11.9 MB. |
@@ -90,6 +91,7 @@ writes 90x15 only for the two living grilles; rooms 1 and 2 get a combined 80x20
 - **Renders stale again:** none of the 17 show the tree cards, ground sets, cars or the new soil colour, nor the
   2026-10-04 blueprint fixes (`bath-day` tub and basin, `shower-day` drain and basin, `entry-day`/`kitchen` living
   grilles and entry door, `balcony-day` lights and drains).
+- **Renders stale (furniture, 2026-10-04):** `sofa`, `kitchen`, `balcony`, `balcony2`, entry eve and the `lm/` bake predate the owners' furniture and lamps.
 - **Baked light:** ideas not tried yet: a higher-resolution atlas or several atlases for ceilings, a brighter or
   neutral sky in the bake, window fill in the natural pass, or using only the AO map as `aoMap` on the real-time
   materials.
