@@ -46,6 +46,7 @@ session; remove entries that are no longer true.
 - Laminate floor keeps the procedural plank colour and layout and takes only the photo normal and roughness maps:
   the full photo colour lost the plank seams and washed out in the master bedroom.
 - Dining area replaced by a storage wall.
+- Header area is "כ-132 מ״ר", the contractor's figure (owner, 2026-10-04). The model measures about 113 net (inside the walls); 132 is a gross figure that includes walls.
 - Baked lightmaps off by default. The 2-core bake was dark and blotchy; the 2026-10-04 256 spp GPU bake still reads
   darker and blotchier than real-time even at 30x natural gain (brown-purple cast on ceilings, about 4 cm per texel).
   Real-time lighting is the shipped look.
