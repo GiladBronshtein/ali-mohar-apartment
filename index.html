@@ -524,7 +524,15 @@ function artTex(seed, palette, style) {
 // =====================================================================
 function M(color, rough = 0.85, extra = {}, uv) { const m = new THREE.MeshStandardMaterial({ color, roughness: rough, ...extra }); if (uv) m.userData.uv = uv; return m; }
 function TM(map, rough, uv, extra = {}) { return M('#ffffff', rough, { map, ...extra }, uv); }
-const fab = (c, s, rough = 0.98) => TM(fabricTex(c, s), rough, 0.25);
+// Physical finishes on desktop (estimates: no finish is written on a plan): satin lacquer, glaze over vitreous china,
+// leather and fabric sheen. Phones keep the standard shader.
+function phys(m, extra) {
+  if (isPhone) return m;
+  const p = new THREE.MeshPhysicalMaterial(); THREE.MeshStandardMaterial.prototype.copy.call(p, m); p.defines = { STANDARD: '', PHYSICAL: '' };
+  for (const k in extra) { if (p[k] && p[k].isColor) p[k].set(extra[k]); else p[k] = extra[k]; }
+  return p;
+}
+const fab = (c, s, rough = 0.98) => phys(TM(fabricTex(c, s), rough, 0.25), { sheen: rough === 1 ? .4 : .6, sheenRoughness: .7, sheenColor: new THREE.Color(c).lerp(new THREE.Color('#ffffff'), .25) });
 const matSlab = TM(T.slab, 0.18, null); matSlab.userData.uv = null;
 const mat = {
   wall: M('#efeeea', 0.95, {}, 2.0), ceil: M('#f1f0ec', 0.97, { side: THREE.DoubleSide }), cap: M('#4a4f54', 0.9),
@@ -558,6 +566,10 @@ const mat = {
   limewash: TM(T.lime, 0.95, 1.6), graphite: M('#4b4e51', 0.62), sinkSteel: M('#c9cdcf', 0.3, { metalness: 0.25 }), nicheStone: M('#d9d3c6', .4), nicheBack: M('#ada596', .55), fanBlade: M('#8e9194', 0.5), fanBody: M('#6e7174', 0.4, { metalness: 0.4 }), fluteGrey: M('#45484b', 0.55), fluteBack: M('#26282a', 0.7), matteBlack: M('#1f2123', 0.6), greyFront: M('#8e9194', 0.6),
   fridge: M('#2d3034', 0.32, { metalness: 0.55 }), blackFab: fab('#2b2c2e', 19), nicheGrey: M('#d9dadb', 0.7), greyStone: TM(T.greyStone, 0.45, 1.2), greyStoneDark: M('#5e6163', 0.6),
 };
+['front', 'greigeFront', 'whiteFront', 'greyFront', 'graphite', 'door'].forEach(k => mat[k] = phys(mat[k], { roughness: .5, clearcoat: .45, clearcoatRoughness: .28 }));
+mat.ceramic = phys(mat.ceramic, { roughness: .25, clearcoat: 1, clearcoatRoughness: .05 });
+mat.fridge = phys(mat.fridge, { clearcoat: .6, clearcoatRoughness: .15 });
+Object.assign(mat.steel, { metalness: 1, roughness: isPhone ? .35 : .32 });
 Object.values(mat).forEach(m => { m.dithering = true; });   // no 8-bit banding on smooth wall and ceiling gradients
 // PBR detail: a roughness map and a relief (bump) map derived from each procedural colour texture, so joints, grain and
 // speckle change how glossy the surface is. Roughness variation is what makes tile, wood and stone read as real
@@ -1173,7 +1185,7 @@ withShift(.55, .40, () => {
 // legs, a wide arm with the recliner switch at the west end and an open end on the return. Long run with its back to the kitchen,
 // return on the east with its back to the balcony; footprint unchanged
 rug(3.35, 5.75, .95, 2.95, mat.berber);                                         // 240 x 200 grey Berber, front legs of the sofa on it
-const sf = M('#2f2a28', .46), sl = (x1, x2, z1, z2, y1, y2, r = .05) => B(x1, x2, z1, z2, y1, y2, sf, { round: r });
+const sf = phys(M('#2f2a28', .46), { roughness: .55, clearcoat: .25, clearcoatRoughness: .45, sheen: .3, sheenColor: '#5a4d45', sheenRoughness: .5 }), sl = (x1, x2, z1, z2, y1, y2, r = .05) => B(x1, x2, z1, z2, y1, y2, sf, { round: r });
 [[3.52, 2.69], [3.52, 3.47], [4.75, 3.47], [5.97, 3.47], [5.97, 2.10], [5.97, 1.33], [5.17, 1.33], [5.17, 2.66], [4.40, 2.69]]
   .forEach(([x, z]) => B(x - .018, x + .018, z - .03, z + .03, 0, .12, mat.steel, { cast: false }));
 sl(3.46, 6.04, 2.61, 3.54, .12, .40, .04); sl(5.11, 6.04, 1.26, 2.60, .12, .40, .04);         // body, 12 cm clear of the floor
@@ -2791,7 +2803,7 @@ function cerTex(cat, it) {
       case 'cem': cerNoise(g, x, y, w, h, 3 + big * 6, .2, R); cerNoise(g, x, y, w, h, big * 40, .22, R); cerSpots(g, x, y, w, h, big * big * 260, .4, 1.4, [c.map(v => v * .7)], .5, R); break;
       case 'stone': cerNoise(g, x, y, w, h, 2 + big * 4, .25, R); cerNoise(g, x, y, w, h, big * 30, .18, R); cerSpots(g, x, y, w, h, big * big * 120, .6, 2.5, [c.map(v => v * .82), c.map(v => v * 1.08)], .45, R); break;
       case 'marble': cerNoise(g, x, y, w, h, 3, .22, R); cerVeins(g, x, y, w, h, vein, 2 + Math.floor(R() * 3), Math.max(.6, ppm * .0015), .32, R); cerVeins(g, x, y, w, h, vein, 3, Math.max(.4, ppm * .0007), .18, R); break;
-      case 'cloud': cerNoise(g, x, y, w, h, 3, .36, R); cerNoise(g, x, y, w, h, 8, .22, R); break;
+      case 'cloud': cerNoise(g, x, y, w, h, 3, .26, R); cerNoise(g, x, y, w, h, 8, .16, R); cerNoise(g, x, y, w, h, 40, .08, R); break;   // porcelain cloud: an even field, fine grain
       case 'onyx': cerNoise(g, x, y, w, h, 3, .35, R); for (let k = 0; k < 8; k++) cerVeins(g, x, y, w, h, c.map(v => v * (k % 2 ? 1.15 : .8)), 1, ppm * .004, .18, R); break;
       case 'chips': cerNoise(g, x, y, w, h, 8, .2, R); cerSpots(g, x, y, w, h, big * big * 2400, ppm * .001, ppm * .005, [[40, 40, 42], [90, 90, 92], [150, 150, 150], [245, 245, 243], [120, 112, 104]], .9, R); break;
       case 'gran': cerSpots(g, x, y, w, h, big * big * 9000, ppm * .0006, ppm * .0022, [[30, 31, 34], [140, 142, 146], [210, 210, 212], [70, 74, 80]], .85, R); break;
