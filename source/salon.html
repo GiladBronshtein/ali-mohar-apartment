@@ -1319,7 +1319,7 @@ B(3.98, 3.982, 8.198, 8.202, 1.63, H - .01, mat.black, { cast: false });
 [SK1, SK2, DW2, HB2].forEach(x => B(x - .002, x + .002, 8.438, 8.44, 1.63, H - .01, mat.black, { cast: false }));
 B(3.98, 4, 7.64, 8.42, 1.618, 1.622, mat.led, { cast: false }); B(4, 7.23, 8.42, 8.44, 1.618, 1.622, mat.led, { cast: false });
 B(DW2 + .04, HB2 - .04, 8.48, 8.75, 1.615, 1.62, mat.slot, { cast: false });                       // hood intake
-B(4.28, FX, 8.775, 8.79, .92, 1.62, mat.splash, { cast: false }); B(3.63, 3.645, 7.62, 8.79, .92, 1.62, mat.splash, { cast: false });
+B(3.645, FX, 8.775, 8.79, .92, 1.62, mat.splash, { cast: false }); B(3.63, 3.645, 7.62, 8.79, .92, 1.62, mat.splash, { cast: false });
 C(3.88, 8.58, .92, 1.08, .09, mat.ceramicVase); B(4.4, 4.8, 8.45, 8.62, .92, .935, mat.greyStone, { round: .005 });
 // ISLAND 160 x 90, ends near the fridge line (19 cm past it). Seats 2 + 2: two on the fridge side, two on the balcony side,
 // each with a 35 cm knee recess either side of a 20 cm graphite spine. Storage: a drawer block at the hob end with 3 full-width
@@ -2745,7 +2745,7 @@ const CER_SPACES = [
   { id: 'ensW', name: 'חיפוי: מקלחת ההורים', m: mat.bathWall, cats: CER_WALL, def: 'c2575b|מיסטרל אייבורי|m', view: 'mbath', o: [4.63, 0], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
   { id: 'ensA', name: 'חיפוי: שני קירות המקלחון', m: mat.sage, cats: CER_WALL, def: 'c2575b|מיסטרל אייבורי דקור|m', view: 'shower', o: [4.63, 0],
     cur: 'זליג׳ ירוק מרווה 7.5×30 (לא מהמפרט)' },
-  { id: 'kitB', name: 'חיפוי: בין ארונות המטבח', m: mat.splash, cats: ['k1030', 'k2020', 'c3060a', 'c3060b', 'c3060c', 'c2060'], def: 'k1030|וראנו לבן|g', view: 'kitchen3', o: [4.28, .92],
+  { id: 'kitB', name: 'חיפוי: בין ארונות המטבח', m: mat.splash, cats: ['k1030', 'k2020', 'c3060a', 'c3060b', 'c3060c', 'c2060'], def: 'k1030|וראנו לבן|g', view: 'kitchen3', o: [3.645, .92],
     cur: 'לוח קוורץ כמו המשטח (לא מהמפרט)' },
   { id: 'balc', name: 'ריצוף: מרפסת השמש', m: mat.deck, cats: ['w30', 'w1560'], def: 'w30|מלרוז אפור|r', view: 'balcony', o: [BX1, BZ1], cur: 'דק עץ (לא מהמפרט)',
     note: 'במפרט ה-15×60 מיועד למרפסות עד 20 מ״ר. המרפסת כ-24 מ״ר, כדאי לברר עם הסטודיו.' },
