@@ -833,7 +833,7 @@ function lever(axis, a, face, s, y) {   // window handle: rose + down-pointing l
 function windowZ(z1, z2, xIn, xOut, sill, head, panes = 2) {
   const xc = (xIn + xOut) / 2, f = .05;
   B(xc - .03, xc + .03, z1, z2, sill, sill + f, mat.frame); B(xc - .03, xc + .03, z1, z2, head - f, head, mat.frame);
-  for (let i = 0; i <= panes; i++) { const z = z1 + (z2 - z1) * i / panes; B(xc - .03, xc + .03, Math.max(z1, z - f / 2), Math.min(z2, z + f / 2), sill, head, mat.frame); }
+  for (let i = 0; i <= panes; i++) { const z = Math.min(z2 - f / 2, Math.max(z1 + f / 2, z1 + (z2 - z1) * i / panes)); B(xc - .03, xc + .03, z - f / 2, z + f / 2, sill, head, mat.frame); }
   B(xc - .005, xc + .005, z1 + f, z2 - f, sill + f, head - f, mat.glass, { cast: false });
   if (sill > .1) { const s = Math.sign(xIn - xOut); B(xIn - s * .02, xIn + s * .03, z1 - .03, z2 + .03, sill - .03, sill, mat.sill, { cast: false }); }
   lever('x', panes > 1 ? z1 + (z2 - z1) / panes + .05 : z2 - .08, xc + Math.sign(xIn - xOut) * .03, Math.sign(xIn - xOut), Math.min(head - .2, Math.max(sill + .35, 1.25)));
@@ -845,7 +845,7 @@ function tileX(z1, z2, xFace, s, y1, y2, m) { B(xFace, xFace + s * .006, z1, z2,
 // FLOORS
 // =====================================================================
 floor(-4.3, FX, -5.4, LZ, mat.tile, 0);                 // base porcelain everywhere
-floor(-3.90, -1.14, -5.01, -1.45, mat.planks);          // room 1
+floor(-3.90, -1.14, -5.035, -1.45, mat.planks);         // room 1
 floor(-3.81, -2.36, -1.45, -0.80, mat.planks);          //   + wardrobe niche
 floor(-0.98, 1.86, -5.01, -1.45, mat.planks);           // room 2
 floor(-3.83, -0.22, 0.09, 2.78, mat.planks);            // mamad (room 3)
@@ -1394,7 +1394,7 @@ rug(7.24, 8.19, -4.3, -3.4, mat.rug);
 // MASTER BATH (222 x 172 net; x 4.63..6.85, z -4.98..-3.26): enclosed 100x91 shower in the NW corner (ends 39 cm before the
 // window), 70 cm vanity, wall-hung WC under the window (as drawn in the plan), door from the closet
 tileX(-4.98, -4.10, 4.63, 1, 0, H, mat.sage); tileX(-4.10, -3.26, 4.63, 1, 0, H, mat.bathWall);
-tileZ(4.63, 5.60, -4.98, 1, 0, H, mat.sage); tileZ(5.60, 5.99, -4.98, 1, 0, H, mat.bathWall);
+tileZ(4.63, 5.60, -4.98, 1, 0, H, mat.sage); tileZ(5.60, 6.015, -4.98, 1, 0, H, mat.bathWall);
 tileZ(6.015, 6.615, -4.98, 1, 0, 1.25, mat.bathWall); tileZ(6.015, 6.615, -4.98, 1, 2.35, H, mat.bathWall); tileZ(6.615, 6.85, -4.98, 1, 0, H, mat.bathWall);
 tileX(-4.98, -4.06, 6.85, -1, 0, H, mat.bathWall); tileX(-4.06, -3.36, 6.85, -1, DOORH, H, mat.bathWall); tileX(-3.36, -3.26, 6.85, -1, 0, H, mat.bathWall);
 tileZ(4.63, 6.85, -3.26, -1, 0, H, mat.bathWall);
@@ -1409,7 +1409,7 @@ B(5.49, 5.515, -4.10, -4.035, 0, 2.0, mat.blackMetal); B(4.44, 5.49, -4.10, -4.0
 gl(5.495, 5.505, -5.0, -4.10); B(5.49, 5.51, -4.97, -4.10, 1.98, 2.0, mat.blackMetal);
 B(4.94, 4.96, -4.045, -4.03, .85, 1.35, mat.blackMetal); B(4.94, 4.96, -4.085, -4.07, .85, 1.35, mat.blackMetal);   // pull on the sliding panel
 B(4.92, 5.02, -4.53, -4.43, .005, .012, mat.blackMetal, { cast: false });                       // point drain at the tray centre (plan)
-B(4.72, 5.22, -5.004, -4.998, 1.05, 1.40, mat.nicheBack, { cast: false }); B(4.72, 5.22, -5.004, -4.95, 1.03, 1.05, mat.nicheStone);   // niche panel on the tile, ledge
+B(4.72, 5.22, -4.974, -4.968, 1.05, 1.40, mat.nicheBack, { cast: false }); B(4.72, 5.22, -5.004, -4.95, 1.03, 1.05, mat.nicheStone);   // niche panel on the tile, ledge
 B(4.446, 4.80, -4.595, -4.575, 2.09, 2.11, mat.blackMetal); C(4.80, -4.585, 2.04, 2.05, .15, mat.blackMetal);   // wall arm, head at 2.10 (plumbing plan); arm length an estimate
 B(4.446, 4.466, -4.77, -4.74, .90, 1.75, mat.blackMetal); B(4.46, 4.5, -4.78, -4.73, 1.38, 1.56, mat.blackMetal); // hand shower on a rail
 B(4.446, 4.48, -4.53, -4.45, 1.0, 1.1, mat.blackMetal);                                          // mixer
@@ -1436,8 +1436,8 @@ ladder('x', 5.40, 5.90, -3.23, -1, .55, 1.25); B(5.49, 5.87, -3.315, -3.295, .78
 // FAMILY BATH (245 x 238 net; x 2.01..4.46, z -3.775..-1.395), laid out as the plan: WC and 100 cm vanity on the west wall,
 // washer niche in the NE corner, 160 cm bathtub along the east wall below a stub wall, window to the laundry niche, door at the SE.
 tileX(-3.775, -1.395, 2.01, 1, 0, H, mat.bathWall2);
-tileX(-2.98, -1.395, 4.46, -1, 0, H, mat.bathWall2); tileX(-3.775, -3.09, 4.46, -1, 1.80, H, mat.bathWall2);
-tileZ(2.01, 2.375, -3.775, 1, 0, H, mat.bathWall2); tileZ(2.375, 3.575, -3.775, 1, 0, 1.10, mat.bathWall2); tileZ(2.375, 3.575, -3.775, 1, 2.10, H, mat.bathWall2); tileZ(3.575, 3.69, -3.775, 1, 0, H, mat.bathWall2);
+tileX(-2.98, -1.395, 4.46, -1, 0, H, mat.bathWall2); tileX(-3.775, -3.09, 4.46, -1, 0, H, mat.bathWall2);
+tileZ(2.01, 2.375, -3.775, 1, 0, H, mat.bathWall2); tileZ(2.375, 3.575, -3.775, 1, 0, 1.10, mat.bathWall2); tileZ(2.375, 3.575, -3.775, 1, 2.10, H, mat.bathWall2); tileZ(3.575, 4.46, -3.775, 1, 0, H, mat.bathWall2); tileZ(3.69, 4.46, -3.09, -1, 0, H, mat.bathWall2);   // washer niche tiled (estimate)
 tileZ(2.01, 2.86, -1.395, -1, 0, H, mat.bathWall2); tileZ(2.86, 3.69, -1.395, -1, DOORH, H, mat.bathWall2); tileZ(3.69, 4.46, -1.395, -1, 0, H, mat.bathWall2);
 tileZ(3.69, 4.46, -2.98, 1, 0, H, mat.bathWall2); tileX(-3.09, -2.98, 3.69, -1, 0, H, mat.bathWall2);
 windowX(2.375, 3.575, -3.775, -3.99, 1.10, 2.10);
@@ -1645,7 +1645,7 @@ B(-3.69, -3.3, .855, 1.675, .45, .55, mat.dusty, { round: .03 });
 });
 B(-3.79, -3.74, .505, 1.475, 1.72, 2.0, mat.linenGrey, { round: .01 });
 { const P = place(-3.8, -2.36, -.465, .125, 's'); wardrobe(P, { h: H, front: mat.whiteFront, doors: 3 }); }
-windowZ(.48, 1.48, -3.83, -4.28, 1.10, 2.10, 1);
+windowZ(.48, 1.48, -3.80, -4.28, 1.10, 2.10, 1);
 [[.42, .48], [1.48, 1.54]].forEach(([a, b]) => B(-3.805, -3.78, a, b, 1.06, 2.14, mat.blastDoor, { cast: false })); B(-3.805, -3.78, .42, 1.54, 2.10, 2.14, mat.blastDoor, { cast: false }); // steel blast-window frame
 
 // =====================================================================
@@ -1654,7 +1654,7 @@ windowZ(.48, 1.48, -3.83, -4.28, 1.10, 2.10, 1);
 const BX1 = FO, BX2 = 10.45, BZ1 = .34, BZ2 = 8.71, BY = -.04, BN = 9.30, BS = 10.07, BZN = -.13;
 floor(BX1, BX2, BZ1, BZ2, mat.deck, BY); floor(BN, BX2, BZN, BZ1, mat.deck, BY);
 B(BX1, BX2, BZN, 9.20, 2.70, 2.95, mat.concrete, { parent: ceilGroup });
-B(BX1, BN, BZN, BZ1, BY, 2.70, mat.concrete); B(BX1, BS, BZ2, 9.20, BY, 2.70, mat.concrete);
+B(BX1, BN + .002, BZN - .015, BZ1, BY, 2.70, mat.concrete); B(BX1, BS, BZ2, 9.20, BY, 2.70, mat.concrete);
 B(BX2 - .15, BX2, BZN, BZ2, BY, .45, mat.concrete); B(BN, BX2 - .15, BZN, BZN + .15, BY, .45, mat.concrete);   // upstand about knee high (site photos, estimate) B(BX1, BX2, BZN, 9.20, -.40, BY - .012, mat.concrete);
 for (let z = BZN + .07; z < BZ2 - .05; z += .12) B(BX2 - .10, BX2 - .08, z - .01, z + .01, .47, 1.05, mat.blackMetal);
 B(BX2 - .12, BX2 - .06, BZN, BZ2, 1.05, 1.09, mat.blackMetal); B(BX2 - .11, BX2 - .07, BZN, BZ2, .45, .49, mat.blackMetal);
