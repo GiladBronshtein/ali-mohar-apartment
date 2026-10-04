@@ -66,6 +66,14 @@ button:disabled { opacity: .55; cursor: default; border-color: var(--line); }
 .notes b { color: var(--fg); font-weight: 600; }
 .ptinfo { font-size: 12px; color: var(--muted); line-height: 1.45; flex: 1 1 180px; min-width: 0; }
 .hint { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; line-height: 1.5; }
+.cer-row { margin: 10px 0 0; }
+.cer-ctl { display: flex; gap: 6px; align-items: center; }
+.cer-ctl select { flex: 1 1 auto; min-width: 0; font: 500 13px/1.2 var(--font-ui); color: var(--fg); background: var(--chip);
+  border: 1px solid var(--line); border-radius: 7px; padding: 7px 6px; }
+.cer-info { font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 4px; }
+.cer-info b { color: var(--fg); font-weight: 600; }
+.cer-note { color: var(--fg); }
+.cer-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
 details summary { cursor: pointer; font-size: 13px; font-weight: 600; list-style: none; }
 details summary::-webkit-details-marker { display: none; }
 details summary::after { content: " ▾"; color: var(--muted); }
@@ -151,9 +159,9 @@ details[open] summary::after { content: " ▴"; }
   <details>
     <summary>קונספט העיצוב והנחות</summary>
     <ul class="notes">
-      <li><b>סגנון:</b> מודרני. במטבח, בסלון ובארונות: לבן, אפור ושחור בלי עץ. ארונות חדרי הילדים לבנים, חדר הארונות באפור. קירות לבן שבור, ריצוף 120×120 בגוון בטון אפור, שחור מט לפרזול ולמסגרות. עץ נשאר רק בחדרי השינה: הרצפה וקיר הרפפות מאחורי מיטת ההורים.</li>
+      <li><b>סגנון:</b> מודרני. במטבח, בסלון ובארונות: לבן, אפור ושחור בלי עץ. ארונות חדרי הילדים לבנים, חדר הארונות באפור. קירות לבן שבור, ריצוף אפור בהיר (במקור 120×120 בגוון בטון; עכשיו מלרוז אפור 80×80 מהמפרט, ראו "קרמיקה מהמפרט"), שחור מט לפרזול ולמסגרות. עץ נשאר רק בחדרי השינה: הרצפה וקיר הרפפות מאחורי מיטת ההורים.</li>
       <li><b>פאנלים:</b> פאנל לבן 8 ס״מ לאורך כל הקירות בסלון, במטבח, בכניסה, במסדרון ובכל החדרים, עם הפסקה בכל פתח ודלת. בחדרי הרחצה אין, כי הם מחופים באריחים.</li>
-      <li><b>חדרי שינה:</b> ריצוף דמוי פרקט אלון לתחושה חמה יותר. וילונות האפלה מפשתן.</li>
+      <li><b>חדרי שינה:</b> ריצוף דמוי פרקט אלון לתחושה חמה יותר (לא מהמפרט; אפשר להחליף לריצוף מהמפרט בלוח הקרמיקה). וילונות האפלה מפשתן.</li>
       <li><b>קיר הטלוויזיה:</b> קיר מובנה של 3.90 מ׳, סימטרי סביב הטלוויזיה, שמתחיל 8 ס״מ אחרי פתח המסדרון. במרכז לוח פורצלן גדול בגוון שיש חם עם טלוויזיה 85 אינץ׳. מתחת יחידה צפה לכל הרוחב, באנתרציט מט עם משטח אבן, 6 תאים סגורים ותא פתוח ומואר לממיר ולקונסולה. מעליה שני עמודי אחסון ברוחב 90 מחופים בחריצים באפור כהה, עם שתי נישות שחורות מוארות בכל אחד, וארון גשר מעל הטלוויזיה עם פס לד שמאיר את הלוח. לוח האבן צף 3 ס״מ מהקיר עם לד חם מסביבו (הילה), קווי לד אנכיים בתוך החיפוי, לד מתחת למדפים ולמזנון ופס תאורה בתקרה. בגוון חם, כמקובל היום.</li>
       <li><b>ספה:</b> ספה פינתית אחת כמו הספה שיש לכם היום: עור בחום-שחור כהה, משענת ראש מתקפלת בכל מושב, רגלי כרום, ידית רחבה בקצה אחד וקצה פתוח בצלע הקצרה עם כריות בז׳ ושמיכות מקופלות. מוזזת לכיוון המרפסת, בלי שולחן צד. גב אחד למטבח וגב אחד למרפסת, ומאחורי הגב למרפסת נשארים 69 ס״מ לעבור לדלת. מרחק צפייה כ-3.4 מ׳ מהטלוויזיה, ובין גב הספה לאי נשארים 156 ס״מ. שטיח שאגי 240×200 באפור בהיר עם רשת מעוינים כהה מתחת לרגליים הקדמיות, ושולחן סלון מסתובב 110×60 באפור מט על ערימת לוחות מוסטים, כמו השולחן שיש לכם, והצד הפתוח פונה לכניסה. בלי כורסאות, כך שהמעבר לדלת המרפסת פנוי.</li>
       <li><b>כניסה:</b> בלי ארון גבוה. קומודה צפה ונמוכה בגרפיט עם משטח אבן אפורה, עמוקה 28 ס״מ, עם 2 מגירות ומראה עגולה מעליה. היא מתחילה 40 ס״מ אחרי כנף הדלת, כך שהמעבר פנוי. על הקיר שליד הדלת שלוש תמונות 40×55 עם פס תאורה.</li>
@@ -174,12 +182,20 @@ details[open] summary::after { content: " ▴"; }
       <li><b>חלון המטבח למרפסת:</b> תריס יום/לילה (זברה) לבן, כמו בתמונה. מותקן בתוך פתח החלון ולא על הקיר, כי ארון המטבח העליון נגמר 3 ס״מ מהקיר וקופסה על הקיר הייתה נתקעת בו. פתוח: הפסים השקופים מיושרים ורואים החוצה. סגור: הפסים מוסטים והתריס אטום.</li>
       <li><b>ממ״ד:</b> זיהיתי את חדר 3 כממ״ד לפי דלת ההדף שנפתחת החוצה וכיס החלון בשרטוט. כדאי לאמת.</li>
       <li><b>כיוונים וסביבה:</b> מול המרפסת, בעלי מוהר 5, מבנה ציבור נמוך בן 2 קומות עם גני ילדים וחצר מוצלת. בנווה זמר אין מגדלים: הבניינים עד 8 קומות סביב חצרות ירוקות, עם הרבה עצים ופארקים. לפי המצפן והתרשים בגיליון האדריכל: המרפסת והסלון פונים למזרח, לרחוב עלי מוהר. חדרים 1 ו-3 למערב, חדר 2, מקלחת ההורים וחדר הארונות לצפון. רחוב תרצה אתר מדרום לבניין. הדירה בקומה 2, כ-6.6 מ׳ מעל הרחוב. השמש במצב יום היא של 10 בבוקר בסתיו, ממזרח-דרום-מזרח. הנוף נבנה לפי התמונות שצילמת מהמרפסת: בית הספר ממול נמשך צפונה מאמצע המרפסת, מדרום לו שביל ומגרש ריק, הבניין הלבן הגבוה בדרום-מזרח, ומתחתינו המרפסת המרוצפת של קומה 1. מצפון לבניין יש מגרש עם גדר בנייה כחולה. המיקומים והמרחקים משוערים מהתמונות, בדיוק של כמה מטרים.</li>
-      <li><b>מידות:</b> המידה הפנימית של כל חדר בדגם שווה בדיוק למידה הרשומה בשרטוט המכר (בדיקה אוטומטית, סטייה של עד חצי ס״מ): ממ״ד 355×262, חדר 1 274×361, חדר 2 282×356, הורים 430×296, רחצה 245×238, מקלחת הורים 222×172, חדר ארונות 190×175, מטבח 365, מסדרון 110. רהיטים, ארונות ונקודות חשמל זזו יחד עם הקירות. לפי ההערה בשרטוט המכר, המידות הן מקיר לקיר לפני טיח וחיפוי (במרפסת: מהקיר החיצוני), ולכן החדרים בפועל יהיו קטנים בכ-2 עד 6 ס״מ (הערכה). כדאי למדוד בשטח לפני הזמנת ארונות. גובה תקרה 2.60 מ׳ הוא הערכה. לפי תוכנית המיזוג: הנמכה של 35 ס״מ במסדרון ובפס לאורך קיר הטלוויזיה, עם שני תריסי אספקה 90x15 ותריס חוזר 80x60. בדיקה שנייה ונפרדת מול כל מספר בתוכניות (מכר, אינסטלציה, מיזוג) תיקנה: מרפסת 275×884 כמו בשרטוט, והקיר הצפוני שלה נעצר בחזית חדר ההורים; מקלחון בחדר הרחצה של ההורים 106×92 עם אסלה במרחק 60 ס״מ מהקיר; תריסי אספקה 90×15; ציר דלת הממ״ד בצד המערבי, נפתחת 90° למסדרון כמו בשרטוט. נוספו קופסת הצנרת בפינת האמבטיה, הבליטה בקיר ליד דלת ההורים, ולוח החשמל במקום המסומן. גובה לוח החשמל וסוג דלת המקלחון לא כתובים בתוכניות. התמונות שבכפתור "תמונות באיכות מלאה" רונדרו לפני התיקונים האלה, ולכן במקלחת ההורים ובמרפסת הן מראות את המצב הקודם. בדיקה שלישית מול צילומים מלאים של תוכניות החשמל, האינסטלציה והמיזוג תיקנה: פתח דלת הכניסה 97 ס״מ עם ציר בצד המערבי, פתח דלת חדר 2 83 ס״מ, קיר הטלוויזיה בעובי 19 ס״מ בקטע המסדרון, אמבטיה ברוחב 70 עם הברזים על קיר המסדרון, מרכז הכיור 72 ס״מ מהקיר (ובמקלחת ההורים 44), ניקוז נקודתי במקלחון, תריס משולב 80×20 בחדרים 1 ו-2, מיקום תריסי הסלון ושרוולי הממ״ד, שרוול 4 אינץ׳ לאיזון לחץ, ומיקום מנורות, מאווררים, מפסקים ושקעים לפי תוכנית החשמל. מיקום שנמדד מהצילום ולא נכתב כמספר מדויק בכמה ס״מ בלבד.</li>
-      <li><b>חדר הורים:</b> בלי שידה, ומתחת לטלוויזיה אין כלום. הטלוויזיה תלויה קרוב יותר לפינה של הדלת, 52 ס״מ מהקיר. החלון ארוך עד הרצפה כמו בשרטוט, עם פס קבוע בגובה מעקה ושורגים בחוץ. וילון וואל חצי שקוף מהתקרה עד הרצפה, כמו בסלון, כך שגם כשהוא סגור רואים החוצה. רק על אזור החלון: מסילה שעוברת 20 ס״מ מכל צד של החלון, שתי כנפיים שנאספות לקצוות כשהוא פתוח ונפגשות באמצע כשהוא סגור.</li>
+      <li><b>מידות:</b> המידה הפנימית של כל חדר בדגם שווה בדיוק למידה הרשומה בשרטוט המכר (בדיקה אוטומטית, סטייה של עד חצי ס״מ): ממ״ד 355×262, חדר 1 274×361, חדר 2 282×356, הורים 430×296, רחצה 245×238, מקלחת הורים 222×172, חדר ארונות 190×175, מטבח 365, מסדרון 110. רהיטים, ארונות ונקודות חשמל זזו יחד עם הקירות. לפי ההערה בשרטוט המכר, המידות הן מקיר לקיר לפני טיח וחיפוי (במרפסת: מהקיר החיצוני), ולכן החדרים בפועל יהיו קטנים בכ-2 עד 6 ס״מ (הערכה). כדאי למדוד בשטח לפני הזמנת ארונות. גובה תקרה 2.60 מ׳ הוא הערכה. לפי תוכנית המיזוג: הנמכה של 35 ס״מ במסדרון ובפס לאורך קיר הטלוויזיה, עם שני תריסי אספקה 90x15 ותריס חוזר 80x60. בדיקה שנייה ונפרדת מול כל מספר בתוכניות (מכר, אינסטלציה, מיזוג) תיקנה: מרפסת 275×884 כמו בשרטוט, והקיר הצפוני שלה נעצר בחזית חדר ההורים; מקלחון בחדר הרחצה של ההורים 106×92 עם אסלה במרחק 60 ס״מ מהקיר; תריסי אספקה 90×15; ציר דלת הממ״ד בצד המערבי, נפתחת 90° למסדרון כמו בשרטוט. נוספו קופסת הצנרת בפינת האמבטיה, הבליטה בקיר ליד דלת ההורים, ולוח החשמל במקום המסומן. גובה לוח החשמל וסוג דלת המקלחון לא כתובים בתוכניות. התמונות שבכפתור "תמונות באיכות מלאה" רונדרו לפני התיקונים האלה, ולכן במקלחת ההורים ובמרפסת הן מראות את המצב הקודם. בדיקה שלישית מול צילומים מלאים של תוכניות החשמל, האינסטלציה והמיזוג תיקנה: פתח דלת הכניסה 97 ס״מ עם ציר בצד המערבי, פתח דלת חדר 2 83 ס״מ, קיר הטלוויזיה בעובי 19 ס״מ בקטע המסדרון, אמבטיה ברוחב 70 עם הברזים על קיר המסדרון, מרכז הכיור 72 ס״מ מהקיר (ובמקלחת ההורים 44), ניקוז נקודתי במקלחון, תריס משולב 80×20 בחדרים 1 ו-2, מיקום תריסי הסלון ושרוולי הממ״ד, שרוול 4 אינץ׳ לאיזון לחץ, ומיקום מנורות, מאווררים, מפסקים ושקעים לפי תוכנית החשמל. מיקום שנמדד מהצילום ולא נכתב כמספר מדויק בכמה ס״מ בלבד. בדיקה רביעית מול קבצי התוכניות המקוריים (כולל תוכנית הביצוע מ-5/5/26) תיקנה: מיקום, אדן וראש של כל החלונות כפי שהם כתובים בתוכנית הביצוע (חדרים 1 ו-2 וחדר ההורים: כנף אחת, אדן 15 ס״מ, ראש 2.35; מקלחת ההורים: אדן 1.25; ממ״ד: 1.10 עד 2.10; דלתות המרפסת 270 ס״מ כל אחת וחלון המטבח 70 עם אדן 1.20), מעבר של 120 ס״מ מהמסדרון לסלון, קופסת הצנרת בפינה הצפון-מערבית של חדר הרחצה, המזגן של חדר ההורים מעל הדלת, ראש המקלחת על זרוע מהקיר בגובה 2.10, המעבה בגודל 100×45 עם המאוורר לכיוון הרפפות, ותריס חוזר, ניקוזים, שקעים ומפסקים. גובה התקרה עדיין לא כתוב; ראשי החלונות ב-2.35 עם ארגז תריס של 35 ס״מ מרמזים שהיא 2.70 לפחות.</li>
+      <li><b>חדר הורים:</b> בלי שידה, ומתחת לטלוויזיה אין כלום. הטלוויזיה תלויה קרוב יותר לפינה של הדלת, 52 ס״מ מהקיר. החלון בכנף אחת, אדן 15 ס״מ וראש ב-2.35 כמו בתוכנית הביצוע, עם שורגים בחוץ. וילון וואל חצי שקוף מהתקרה עד הרצפה, כמו בסלון, כך שגם כשהוא סגור רואים החוצה. רק על אזור החלון: מסילה שעוברת 20 ס״מ מכל צד של החלון, שתי כנפיים שנאספות לקצוות כשהוא פתוח ונפגשות באמצע כשהוא סגור.</li>
       <li><b>חומרים:</b> לריצוף, לעץ ולאבן יש מברק ומרקם שמשתנים לאורך המשטח, ולא משטח אחיד.</li>
       <li><b>צמחייה:</b> אין עציצים בתוך הבית. נשארו רק במרפסת.</li>
       
     </ul>
+  </details>
+  <details id="cer">
+    <summary>קרמיקה מהמפרט</summary>
+    <p class="notes" style="padding:0">מוצרים מ"מפרט מוצרים סטנדרט" של סטודיו קרמיקה, לפי הסגנון שעיצבנו. בכל חלל אפשר לדפדף בין כל המוצרים שהמפרט מאפשר שם. השם, המידה והעמוד בקטלוג כתובים מתחת לבחירה, כדי שאפשר יהיה להגיד למעצבת. האריחים מצוירים לפי התמונה בקטלוג (צבע, מידה, גימור ודוגמה), כך שהם קירוב ולא צילום של המוצר.</p>
+    <div id="cerList"></div>
+    <div class="cer-btns"><button id="cerCopy">העתקת הבחירות</button><button id="cerReset">חזרה להמלצות שלי</button></div>
+    <div class="label" style="margin-top:12px">כלים וברזים מאותו מפרט (רשומים בלבד, לא מוחלפים בדגם)</div>
+    <ul class="notes" id="cerFix"></ul>
   </details>
   <div class="hint" id="hint">בתוך חדר: גרירה מסובבת את המבט. חץ למעלה/למטה הולך קדימה/אחורה, חץ ימינה/שמאלה מסתובב (Shift מהר יותר). גלגלת מתקדמת. בטלפון: אצבע אחת מסתכלת מסביב, שתי אצבעות בפישוק הולכות קדימה, וגרירה בשתי אצבעות מזיזה. במבט על: גרירה מסובבת, גלגלת מזיזה זום. מקש H מסתיר את הבקרים.</div>
 </aside>
@@ -225,7 +241,7 @@ import { Reflector } from 'three/addons/objects/Reflector.js';
 // Plan coordinates in meters. x = east (toward balcony), z = south (toward kitchen), y = up.
 // Origin: living-room side of the master-bedroom wall (TV wall), at the dining-room inner west face.
 // =====================================================================
-const H = 2.60, HEAD = 2.30, DOORH = 2.10, FX = 7.28, LZ = 8.79;
+const H = 2.60, HEAD = 2.35, DOORH = 2.10, FX = 7.28, LZ = 8.79;
 const EXPO = { day: .85, eve: 1.2 };   // day: less ambient fill and stronger sun/window light than before, for contrast
 const isPhone = Math.min(window.innerWidth, window.innerHeight) < 640 || /Mobi|Android/i.test(navigator.userAgent);
 
@@ -475,7 +491,7 @@ const fab = (c, s, rough = 0.98) => TM(fabricTex(c, s), rough, 0.25);
 const matSlab = TM(T.slab, 0.18, null); matSlab.userData.uv = null;
 const mat = {
   wall: M('#efeeea', 0.95, {}, 2.0), ceil: M('#f1f0ec', 0.97, { side: THREE.DoubleSide }), cap: M('#4a4f54', 0.9),
-  tile: TM(T.tile, 0.58, 2.4), planks: TM(T.planks, 0.6, 1.2), bathFloor: TM(T.bath, 0.4, 1.2), bathWall: TM(T.bath, 0.32, 1.2),
+  tile: TM(T.tile, 0.58, 2.4), planks: TM(T.planks, 0.6, 1.2), bathFloor: TM(T.bath, 0.4, 1.2), bathWall: TM(T.bath, 0.32, 1.2), bathWall2: TM(T.bath, 0.32, 1.2), splash: TM(T.quartz, 0.22, 1.6),
   sage: TM(T.sage, 0.25, 0.6), terrazzo: TM(T.terrazzo, 0.35, 0.8), deck: TM(T.deck, 0.8, 1.4), service: M('#c9c4bb', 0.9),
   oak: TM(T.oak, 0.55, 0.8), slatOak: TM(T.oak, 0.55, 0.8), walnut: TM(T.walnut, 0.5, 0.8), quartz: TM(T.quartz, 0.22, 1.6), trav: TM(T.trav, 0.6, 0.6),
   frame: M('#2e3134', 0.45, { metalness: 0.6 }), black: M('#1d1f21', 0.5), blackMetal: M('#202224', 0.35, { metalness: 0.8 }),
@@ -528,7 +544,7 @@ function pbrDetail(m, rough, bump, invert = false) {
   m.roughnessMap = tex(rc); m.roughness = 1;
   if (bump > 0) { m.bumpMap = tex(bc); m.bumpScale = bump; }
 }
-[[mat.tile, [.42, .78], .35], [mat.planks, [.48, .74], .5], [mat.bathFloor, [.28, .6], .3], [mat.bathWall, [.2, .5], .3], [mat.sage, [.14, .45], .4],
+[[mat.tile, [.42, .78], .35], [mat.planks, [.48, .74], .5], [mat.bathFloor, [.28, .6], .3], [mat.bathWall, [.2, .5], .3], [mat.bathWall2, [.2, .5], .3], [mat.splash, [.14, .3], .05], [mat.sage, [.14, .45], .4],
  [mat.terrazzo, [.28, .5], .15], [mat.deck, [.68, .92], .6], [mat.oak, [.45, .7], .4], [mat.walnut, [.42, .66], .4], [mat.quartz, [.14, .3], .05],
  [mat.trav, [.5, .82], .5], [mat.limewash, [.84, 1], .6], [mat.greyStone, [.34, .6], .2], [matSlab, [.12, .28], .05]]
   .forEach(([m, rgh, b]) => { if (m && m.map && m.map.image) pbrDetail(m, rgh, b); });
@@ -791,14 +807,14 @@ function doorLeaf(hx, hz, dx, dz, w, m = mat.door, hgt = DOORH - .02, t = .04, c
   [-1, 1].forEach(s => { lb(P, w - .09, w - .07, s * (t / 2), s * (t / 2 + .05), 1.0, 1.02, mat.blackMetal); lb(P, w - .2, w - .07, s * (t / 2 + .04), s * (t / 2 + .055), 1.0, 1.02, mat.blackMetal); });
 }
 // window: frame + glass + stone sill + roller-shutter box. axis 'x' => spans x1..x2 in a wall between zIn and zOut
-function windowX(x1, x2, zIn, zOut, sill, head) {
+function windowX(x1, x2, zIn, zOut, sill, head, panes = 2) {
   const zc = (zIn + zOut) / 2, f = .05;
   B(x1, x2, zc - .03, zc + .03, sill, sill + f, mat.frame); B(x1, x2, zc - .03, zc + .03, head - f, head, mat.frame);
   B(x1, x1 + f, zc - .03, zc + .03, sill, head, mat.frame); B(x2 - f, x2, zc - .03, zc + .03, sill, head, mat.frame);
-  const mid = (x1 + x2) / 2; B(mid - .025, mid + .025, zc - .03, zc + .03, sill, head, mat.frame);
+  const mid = (x1 + x2) / 2; if (panes > 1) B(mid - .025, mid + .025, zc - .03, zc + .03, sill, head, mat.frame);
   B(x1 + f, x2 - f, zc - .005, zc + .005, sill + f, head - f, mat.glass, { cast: false });
   if (sill > .1) { const s = Math.sign(zIn - zOut); B(x1 - .03, x2 + .03, zIn - s * .02, zIn + s * .03, sill - .03, sill, mat.sill, { cast: false }); }
-  lever('z', mid + .05, zc + Math.sign(zIn - zOut) * .03, Math.sign(zIn - zOut), Math.min(head - .2, Math.max(sill + .35, 1.25)));
+  lever('z', panes > 1 ? mid + .05 : x2 - .08, zc + Math.sign(zIn - zOut) * .03, Math.sign(zIn - zOut), Math.min(head - .2, Math.max(sill + .35, 1.25)));
 }
 function lever(axis, a, face, s, y) {   // window handle: rose + down-pointing lever, black (position along the sash an estimate)
   const P = (a1, a2, d1, d2, y1, y2) => axis === 'z' ? B(a1, a2, face + s * d1, face + s * d2, y1, y2, mat.blackMetal, { cast: false }) : B(face + s * d1, face + s * d2, a1, a2, y1, y2, mat.blackMetal, { cast: false });
@@ -839,32 +855,32 @@ floor(6.88, 6.945, -4.06, -3.36, mat.bathFloor); floor(6.945, 7.01, -4.06, -3.36
 // WALLS: measured on the architect's PDF (gross, brick to brick). Origin = living face of the TV wall / dining west face.
 // =====================================================================
 // --- north facade (outer -5.39, inner -5.01): room 1, room 2 (window), laundry niche (louvers), master bath (window), closet
-W(-4.28, -1.14, -5.39, -5.035); W(-1.14, 0.27, -5.39, -5.01); W(0.27, 1.25, -5.39, -5.01, 0, .95); W(0.27, 1.25, -5.39, -5.01, 2.20); W(1.25, 2.15, -5.39, -5.01);
-W(3.65, 4.37, -5.39, -5.11); W(4.37, 4.63, -5.39, -5.01); W(4.63, 5.99, -5.39, -4.98); W(5.99, 6.58, -5.39, -4.98, 0, 1.50); W(5.99, 6.58, -5.39, -4.98, 2.20); W(6.58, 6.85, -5.39, -4.98); W(6.85, 7.01, -5.39, -5.01); W(7.01, 8.91, -5.39, -4.995); W(8.91, 9.30, -5.39, -5.01);
+W(-4.28, -1.14, -5.39, -5.035); W(-1.14, 0.365, -5.39, -5.01); W(0.365, 1.265, -5.39, -5.01, 0, .15); W(0.365, 1.265, -5.39, -5.01, 2.35); W(1.265, 2.15, -5.39, -5.01);
+W(3.65, 4.37, -5.39, -5.11); W(4.37, 4.63, -5.39, -5.01); W(4.63, 6.015, -5.39, -4.98); W(6.015, 6.615, -5.39, -4.98, 0, 1.25); W(6.015, 6.615, -5.39, -4.98, 2.35); W(6.615, 6.85, -5.39, -4.98); W(6.85, 7.01, -5.39, -5.01); W(7.01, 8.91, -5.39, -4.995); W(8.91, 9.30, -5.39, -5.01);
 // --- west facade (outer -4.28): room 1 (window), the two wardrobe niches, mamad (blast window)
-W(-4.28, -3.89, -5.035, -2.92); W(-4.28, -3.89, -2.92, -1.93, 0, .95); W(-4.28, -3.89, -2.92, -1.93, 2.20); W(-4.28, -3.89, -1.93, -1.425); W(-4.28, -3.81, -1.425, -0.50);
-W(-4.28, -3.83, -0.50, 0.125); W(-4.28, -3.80, 0.125, 0.47); W(-4.28, -3.80, 0.47, 1.44, 0, 1.0); W(-4.28, -3.80, 0.47, 1.44, 2.0); W(-4.28, -3.80, 1.44, 2.78);
+W(-4.28, -3.89, -5.035, -2.81); W(-4.28, -3.89, -2.81, -1.91, 0, .15); W(-4.28, -3.89, -2.81, -1.91, 2.35); W(-4.28, -3.89, -1.91, -1.425); W(-4.28, -3.81, -1.425, -0.50);
+W(-4.28, -3.83, -0.50, 0.125); W(-4.28, -3.80, 0.125, 0.48); W(-4.28, -3.80, 0.48, 1.48, 0, 1.10); W(-4.28, -3.80, 0.48, 1.48, 2.10); W(-4.28, -3.80, 1.48, 2.78);
 W(-3.90, -2.12, -0.80, -0.50);                                                                         // wall between the two niches
 W(-2.36, -2.12, -1.425, -0.80); W(-2.36, -2.12, -0.50, -0.145);                                          // niche sides = corridor west end
 // --- core: staircase mass, lobby mass
 W(-4.28, -0.25, 2.745, 5.77); W(-0.25, 1.45, 2.775, 5.77); W(1.19, 3.63, 5.70, 9.11);
 // --- front door wall, kitchen south
-W(1.19, 1.585, 5.50, 5.70); W(1.585, 2.555, 5.50, 5.70, DOORH); W(2.555, 3.63, 5.50, 5.70); W(3.63, 4.30, 5.50, 5.61); W(3.59, 7.70, 8.79, 9.11);   // the kitchen stretch is 11 thick (plan)
+W(1.19, 1.585, 5.50, 5.70); W(1.585, 2.555, 5.50, 5.70, DOORH); W(2.555, 3.63, 5.50, 5.70); W(3.63, 4.33, 5.50, 5.61); W(3.59, 7.70, 8.79, 9.11);   // the kitchen stretch is 11 thick (plan)
 // --- living facade (x 7.29..7.70, 41 cm) to balcony soffit. Openings as in the plan: A 0.78-3.45, B 4.26-6.88, window C 7.70-8.39
 const FT = 2.70, FO = 7.70;
-[[-.13, .78, 0, FT], [.78, 3.45, HEAD, FT], [3.45, 4.26, 0, FT], [4.26, 6.88, HEAD, FT], [6.88, 7.70, 0, FT], [7.70, 8.39, 0, 1.0], [7.70, 8.39, HEAD, FT], [8.39, 9.11, 0, FT]]
+[[-.13, .79, 0, FT], [.79, 3.49, HEAD, FT], [3.49, 4.29, 0, FT], [4.29, 6.99, HEAD, FT], [6.99, 7.75, 0, FT], [7.75, 8.45, 0, 1.20], [7.75, 8.45, HEAD, FT], [8.45, 9.11, 0, FT]]
   .forEach(([a, b, y1, y2]) => B(FX, FO, a, b, y1, y2, mat.wall));
 B(FX, FO, -.13, 9.11, FT, FT + .012, mat.cap, { cast: false });
-// --- master: east facade (inner 8.92, outer 9.30) with window, TV wall (14.5 cm, 19 on the corridor stretch x 2.97..4.15, sales plan)
-W(8.91, 9.30, -5.01, -2.27); W(8.91, 9.30, -2.27, -1.31, 2.20); W(8.91, 9.30, -1.31, -0.13);
-W(2.97, 4.15, -0.19, 0); W(4.15, 9.30, -0.145, 0);
+// --- master: east facade (inner 8.92, outer 9.30) with window, TV wall (14.5 cm, 19 on the corridor stretch x 3.00..4.15, sales plan)
+W(8.91, 9.30, -5.01, -2.17); W(8.91, 9.30, -2.17, -1.27, 0, .15); W(8.91, 9.30, -2.17, -1.27, 2.35); W(8.91, 9.30, -1.27, -0.13);
+W(3.00, 4.15, -0.19, 0); W(4.15, 9.30, -0.145, 0);
 // --- interior partitions
 W(-2.36, -2.06, -1.425, -1.245); W(-2.06, -1.23, -1.425, -1.245, DOORH); W(-1.23, -1.15, -1.425, -1.245); W(-1.15, -0.97, -1.45, -1.245);    // room 1 / corridor
 W(-1.15, -0.97, -5.035, -1.425);                                                                         // room 1 / room 2
 W(-0.97, 0.93, -1.45, -1.245); W(0.93, 1.77, -1.45, -1.245, DOORH); W(1.77, 2.01, -1.45, -1.245);         // room 2 / corridor
 W(1.85, 2.15, -5.39, -3.80); W(1.85, 2.01, -3.80, -1.245);                                              // room 2 / laundry niche + bath
 W(2.01, 2.86, -1.395, -1.245); W(2.86, 3.69, -1.395, -1.245, DOORH); W(3.69, 4.46, -1.395, -1.245); W(4.46, 4.61, -1.37, -1.245);          // bath / corridor
-W(2.01, 2.37, -3.99, -3.775); W(2.37, 3.55, -3.99, -3.775, 0, 1.05); W(2.37, 3.55, -3.99, -3.775, 2.10); W(3.55, 4.46, -3.99, -3.775); // bath / laundry niche: window only (as in the plan)
+W(2.01, 2.375, -3.99, -3.775); W(2.375, 3.575, -3.99, -3.775, 0, 1.10); W(2.375, 3.575, -3.99, -3.775, 2.10); W(3.575, 4.46, -3.99, -3.775); // bath / laundry niche: window only (as in the plan)
 W(3.69, 4.46, -3.09, -2.98);                                                                           // stub wall between washer niche and tub
 W(4.37, 4.63, -5.39, -3.99); W(4.46, 4.63, -3.99, -3.23); W(4.46, 4.61, -3.23, -1.37);                                              // laundry niche + bath / master side
 W(4.61, 6.85, -3.26, -3.105); W(6.85, 7.01, -3.245, -3.105); W(7.01, 7.54, -3.245, -3.105); W(8.32, 8.91, -3.245, -3.105);                                              // master bath + closet / bedroom (closet opening 7.54-8.32)
@@ -873,17 +889,17 @@ W(4.15, 4.26, -1.37, -1.16); W(4.15, 4.26, -1.16, -0.34, DOORH); W(4.15, 4.26, -
 W(4.26, 4.76, -0.24, -0.145);                                                                            // TV wall steps out 9.5 cm on the master side beside the door (plan)
 W(-2.36, -1.98, -0.145, 0.125); W(-1.98, -1.19, -0.145, 0.125, 2.0); W(-1.19, -0.25, -0.145, 0.125);         // mamad north (blast door)
 W(-0.25, 0, 0.125, 2.775);                                                                               // mamad / storage alcove
-W(-0.25, 1.99, -0.145, 0);                                                                              // corridor / storage alcove (passage 1.99-2.97)
+W(-0.25, 1.80, -0.145, 0);                                                                              // corridor / storage alcove (passage 1.80-3.00, construction plan)
 // corridor gypsum drop ceiling (AC ducts) incl. passage: 35 cm net as written on the AC plan ("h=35cm (netto)", the Latin is
 // written mirrored; an earlier read gave 25)
 const DROP = H - .35;
 const BC = H - .50;      // kids' bath ceiling: the mini-central AC unit sits above it (AC plan)
 B(-2.12, 4.15, -1.245, -.145, DROP, H, mat.ceil, { parent: ceilGroup, cast: false });
-B(1.99, 2.97, -.145, 0.0, DROP, H, mat.ceil, { parent: ceilGroup, cast: false });
+B(1.80, 3.00, -.145, 0.0, DROP, H, mat.ceil, { parent: ceilGroup, cast: false });
 // return-air grille 80x60 in the corridor ceiling (ת.א.ח on the AC plan), slatted
 const grilleM = M('#ecebe7', .5);
-B(1.80, 2.60, -1, -.4, DROP - .006, DROP, grilleM, { parent: ceilGroup, cast: false });
-for (let x = 1.84; x < 2.58; x += .035) B(x, x + .012, -.97, -.43, DROP - .008, DROP - .006, mat.slot, { parent: ceilGroup, cast: false });
+B(1.88, 2.68, -1.145, -.545, DROP - .006, DROP, grilleM, { parent: ceilGroup, cast: false });
+for (let x = 1.92; x < 2.66; x += .035) B(x, x + .012, -1.115, -.575, DROP - .008, DROP - .006, mat.slot, { parent: ceilGroup, cast: false });
 // AC supply grilles above doors, inside rooms
 [[-1.425, -1.65], [-1.45, 1.32]].forEach(([wall, c]) => {
   B(c - .40, c + .40, wall - .014, wall, DROP + .02, DROP + .22, grilleM, { cast: false });   // combined grille 80 x 20 in an 85 x 25 wall opening (AC plan)
@@ -901,7 +917,7 @@ for (let x = 1.84; x < 2.58; x += .035) B(x, x + .012, -.97, -.43, DROP - .008, 
 // SKIRTING: 8 cm white skirting along every wall that meets the floor in the dry rooms, broken automatically at every doorway
 // and opening (each room edge is sampled every 1 cm; a skirting run is laid wherever a floor-height wall stands behind it)
 const skirt = M('#e4e2dc', 0.5), SK = .08, ST = .012;
-[[-.13, .78], [3.45, 4.26], [6.88, 7.70], [8.39, 9.11]].forEach(([a, b]) => wallBoxes.push([FX, FO, a, b]));   // living facade piers
+[[-.13, .79], [3.49, 4.29], [6.99, 7.75], [8.45, 9.11]].forEach(([a, b]) => wallBoxes.push([FX, FO, a, b]));   // living facade piers
 const noSkirt = [[3.55, 4.30, 5.66, 8.83], [4.17, 7.32, 8.12, 8.83], [-.04, .64, -.04, 2.82], [-3.94, -2.32, -1.44, -.76], [-1.00, .82, -2.09, -1.41],
   [-3.87, -2.32, -.54, .13], [6.97, 8.96, -5.05, -4.37], [8.28, 8.96, -4.45, -3.19], [-3.87, -3.39, .43, 1.37]];
 const hasWall = (x, z) => wallBoxes.some(([a, b, c, d]) => x > a && x < b && z > c && z < d) && !noSkirt.some(([a, b, c, d]) => x > a && x < b && z > c && z < d);
@@ -967,7 +983,7 @@ doorFrame('z', -4.06, -3.36, 6.85, 7.01, DOORH);          // master bath (from t
 // entrance: dark steel frame on the inside face
 [[1.535, 1.585], [2.555, 2.605]].forEach(([a, b]) => B(a, b, 5.475, 5.50, 0, DOORH + .05, mat.entryDoor, { cast: false })); B(1.535, 2.605, 5.474, 5.50, DOORH, DOORH + .05, mat.entryDoor, { cast: false });
 // switches by the doors
-[['n', -.145, 0.18], ['s', -1.245, 1.86], ['n', -.19, 3.02], ['n', 5.50, 2.66], ['s', .125, -1.10], ['s', -3.105, 8.40], ['e', 1.45, 3.0], ['n', 5.50, 4.11]].forEach(([f, w, c]) => plate(f, w, c, 1.1));
+[['n', -.145, 0.18], ['s', -1.245, 1.86], ['n', -.19, 3.18], ['n', 5.50, 2.66], ['s', .125, -1.10], ['s', -3.105, 8.40], ['e', 1.45, 3.0], ['n', 5.50, 4.17]].forEach(([f, w, c]) => plate(f, w, c, 1.1));
 [['n', -1.425, -2.18], ['n', -1.45, 0.80], ['s', -1.245, 4.42]].forEach(([f, w, c]) => plate(f, w, c, 1.1));
 
 // =====================================================================
@@ -1005,7 +1021,7 @@ function slider(z1, z2, y1, y2, panes) {
   const zp = panes > 1 ? z1 + (z2 - z1) / panes - .06 : z2 - .07, yp = Math.max(y1 + .3, 1.0);   // flush pull, black (estimate)
   B(x - .055, x - .035, zp - .012, zp + .012, yp, yp + .3, mat.blackMetal, { round: .006, cast: false });
 }
-slider(.78, 3.45, 0, HEAD, 2); slider(4.26, 6.88, 0, HEAD, 2); slider(7.70, 8.39, 1.0, HEAD, 1);
+slider(.79, 3.49, 0, HEAD, 2); slider(4.29, 6.99, 0, HEAD, 2); slider(7.75, 8.45, 1.20, HEAD, 1);
 B(FX - .02, FX + .03, 7.67, 8.42, .97, 1.0, mat.sill, { cast: false });
 const sheerTex = canvasTex(256, 256, (g, w, h) => { const r = rnd(29); g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
   for (let x = 0; x < w; x += 2) { g.fillStyle = `rgba(200,198,192,${.10 + r() * .12})`; g.fillRect(x, 0, 1, h); }
@@ -1038,7 +1054,7 @@ function zebraTex(closed) {
   });
 }
 {
-  const bx = FX + .07, z1 = 7.715, z2 = 8.375, top = 2.20, bot = 1.045, per = .13;
+  const bx = FX + .07, z1 = 7.765, z2 = 8.435, top = 2.25, bot = 1.245, per = .13;
   B(FX + .02, FX + .115, z1 - .01, z2 + .01, top, HEAD - .005, mat.whitePlate, { round: .01 });          // cassette
   [false, true].forEach(closed => {
     const t = zebraTex(closed), m = new THREE.MeshStandardMaterial({ map: t, color: '#ffffff', roughness: .95, transparent: true, side: THREE.DoubleSide, depthWrite: false });
@@ -1056,7 +1072,7 @@ function zebraTex(closed) {
 // =====================================================================
 // LIVING ROOM
 // =====================================================================
-// MEDIA WALL (390 cm built-in, symmetric on the TV, starts 8 cm past the corridor passage at 2.97): floating anthracite base with
+// MEDIA WALL (390 cm built-in, symmetric on the TV, starts 5 cm past the corridor passage at 3.00): floating anthracite base with
 // stone top and an open lit device bay, two 90 cm fluted walnut storage towers with two lit niches each, a bridge cabinet over the
 // TV with a down-light strip, floating slab with LED halo, and a ceiling wall-washer
 const MX1 = 3.05, MX2 = 6.95, CD = .36, BD = .48, BT = .645, CL = [[MX1, 3.95], [6.05, MX2]];
@@ -1107,7 +1123,7 @@ C(4.22, .32, BT, BT + .26, .05, mat.ceramicVase, { r2: .035 }); books({ g: root 
 // AC bulkhead along the whole north wall of the living room (contractor's AC plan: ducts 8"-10" in a 35 cm drop, about
 // 80 cm wide, two 90x15 linear supply grilles blowing into the room). The media wall and the storage wall now stop under it.
 B(0, 7.06, 0, .80, DROP, H, mat.ceil, { parent: ceilGroup, cast: false });
-[2.20, 5.75].forEach(c => { B(c - .45, c + .45, .80, .812, DROP + .05, DROP + .20, grilleM, { cast: false });
+[2.20, 5.90].forEach(c => { B(c - .45, c + .45, .80, .812, DROP + .05, DROP + .20, grilleM, { cast: false });
   for (let x = c - .43; x < c + .43; x += .03) B(x, x + .01, .812, .815, DROP + .065, DROP + .185, mat.slot, { cast: false }); });
 // ceiling wall-washer slot along the feature wall (in the bulkhead soffit)
 B(MX1, MX2, BD + .02, BD + .07, DROP - .006, DROP, mat.ledWall, { parent: ceilGroup, cast: false });
@@ -1293,7 +1309,7 @@ B(3.98, 3.982, 8.198, 8.202, 1.63, H - .01, mat.black, { cast: false });
 [SK1, SK2, DW2, HB2].forEach(x => B(x - .002, x + .002, 8.438, 8.44, 1.63, H - .01, mat.black, { cast: false }));
 B(3.98, 4, 7.64, 8.42, 1.618, 1.622, mat.led, { cast: false }); B(4, 7.23, 8.42, 8.44, 1.618, 1.622, mat.led, { cast: false });
 B(DW2 + .04, HB2 - .04, 8.48, 8.75, 1.615, 1.62, mat.slot, { cast: false });                       // hood intake
-B(4.28, FX, 8.775, 8.79, .92, 1.62, mat.quartz, { cast: false }); B(3.63, 3.645, 7.62, 8.79, .92, 1.62, mat.quartz, { cast: false });
+B(4.28, FX, 8.775, 8.79, .92, 1.62, mat.splash, { cast: false }); B(3.63, 3.645, 7.62, 8.79, .92, 1.62, mat.splash, { cast: false });
 C(3.88, 8.58, .92, 1.08, .09, mat.ceramicVase); B(4.4, 4.8, 8.45, 8.62, .92, .935, mat.greyStone, { round: .005 });
 // ISLAND 160 x 90, ends near the fridge line (19 cm past it). Seats 2 + 2: two on the fridge side, two on the balcony side,
 // each with a 35 cm knee recess either side of a 20 cm graphite spine. Storage: a drawer block at the hob end with 3 full-width
@@ -1345,18 +1361,17 @@ B(4.93, 6.09, -3.195, -3.16, 1.15, 1.80, mat.screen, { round: .006 });   // TV o
 plate('s', -3.195, 5.50, 1.0, .14, .08);
 });
 // no sideboard: the west wall stays clear (the walk-in closet holds the clothes)
-// linen curtains (full height, ceiling track) along the east wall, window per plan z -2.27..-1.31
+// linen curtains (full height, ceiling track) along the east wall, window per plan z -2.17..-1.27
 // sheer voile curtain over the window only (same see-through fabric as the living room): ceiling track 20 cm past the window on
-// each side (-2.47..-1.11). Open: two 24 cm stacks at the ends of the track. Closed (with the "curtains closed" button): the two
+// each side (-2.37..-1.07). Open: two 24 cm stacks at the ends of the track. Closed (with the "curtains closed" button): the two
 // panels meet in the middle with an 8 cm overlap, and the view still shows through.
 mat.curtLinen = sheer;
-curtainPair(curtOpen, 'z', -2.47, -2.23, 8.83, .02, H - .03, mat.curtLinen, 14, .05); curtainPair(curtOpen, 'z', -1.35, -1.11, 8.83, .02, H - .03, mat.curtLinen, 14, .05);
-curtainPair(curtClosed, 'z', -2.47, -1.75, 8.835, .02, H - .03, mat.curtLinen, 6, .035); curtainPair(curtClosed, 'z', -1.83, -1.11, 8.815, .02, H - .03, mat.curtLinen, 6, .035);
+curtainPair(curtOpen, 'z', -2.37, -2.13, 8.83, .02, H - .03, mat.curtLinen, 14, .05); curtainPair(curtOpen, 'z', -1.31, -1.07, 8.83, .02, H - .03, mat.curtLinen, 14, .05);
+curtainPair(curtClosed, 'z', -2.37, -1.68, 8.835, .02, H - .03, mat.curtLinen, 6, .035); curtainPair(curtClosed, 'z', -1.76, -1.07, 8.815, .02, H - .03, mat.curtLinen, 6, .035);
 curtClosed.forEach(c => c.visible = false);
-windowZ(-2.27, -1.31, 8.92, 9.30, 0, 2.20, 2);                                  // floor-length window (as in the plan)
-B(9.08, 9.14, -2.27, -1.31, .95, 1.0, mat.frame);                                // fixed transom bar at railing height
-B(9.31, 9.35, -2.27, -1.31, 1.02, 1.06, mat.blackMetal); for (let z = -2.21; z < -1.33; z += .12) B(9.32, 9.34, z - .01, z + .01, .05, 1.02, mat.blackMetal);   // outside safety bars
-B(8.79, 8.81, -2.495, -1.08, H - .04, H - .02, mat.frame, { cast: false });   // curtain track over the window only
+windowZ(-2.17, -1.27, 8.92, 9.30, .15, 2.35, 1);                                // one sash, sill 15, head 235 (construction plan)
+B(9.31, 9.35, -2.17, -1.27, 1.02, 1.06, mat.blackMetal); for (let z = -2.11; z < -1.29; z += .12) B(9.32, 9.34, z - .01, z + .01, .05, 1.02, mat.blackMetal);   // outside safety bars
+B(8.79, 8.81, -2.395, -1.04, H - .04, H - .02, mat.frame, { cast: false });   // curtain track over the window only
 
 // CLOSET (190 x 175): x 7.01..8.92, z -5.01..-3.23, open to the bedroom at x 7.54..8.32
 { const P = place(7.01, 8.31, -4.995, -4.395, 's'); wardrobe(P, { h: H, front: mat.greyFront, doors: 3 }); }
@@ -1366,14 +1381,14 @@ B(7.46, 7.88, -4.395, -4.37, .10, .52, mat.oatDark, { round: .01 }); B(7.62, 7.7
 B(7.02, 8.3, -4.395, -4.375, 2.42, 2.45, mat.led, { cast: false });
 rug(7.24, 8.19, -4.3, -3.4, mat.rug);
 
-// MASTER BATH (222 x 172 net; x 4.60..6.88, z -5.01..-3.23): enclosed 100x91 shower in the NW corner (ends 39 cm before the
+// MASTER BATH (222 x 172 net; x 4.63..6.85, z -4.98..-3.26): enclosed 100x91 shower in the NW corner (ends 39 cm before the
 // window), 70 cm vanity, wall-hung WC under the window (as drawn in the plan), door from the closet
-tileX(-5.01, -4.10, 4.60, 1, 0, H, mat.sage); tileX(-4.10, -3.23, 4.60, 1, 0, H, mat.bathWall);
-tileZ(4.60, 5.60, -5.01, 1, 0, H, mat.sage); tileZ(5.60, 5.99, -5.01, 1, 0, H, mat.bathWall);
-tileZ(5.99, 6.58, -5.01, 1, 0, 1.5, mat.bathWall); tileZ(5.99, 6.58, -5.01, 1, 2.2, H, mat.bathWall); tileZ(6.58, 6.88, -5.01, 1, 0, H, mat.bathWall);
-tileX(-5.01, -4.06, 6.88, -1, 0, H, mat.bathWall); tileX(-4.06, -3.36, 6.88, -1, DOORH, H, mat.bathWall); tileX(-3.36, -3.23, 6.88, -1, 0, H, mat.bathWall);
-tileZ(4.60, 6.88, -3.23, -1, 0, H, mat.bathWall);
-windowX(5.99, 6.58, -5.01, -5.39, 1.5, 2.2);
+tileX(-4.98, -4.10, 4.63, 1, 0, H, mat.sage); tileX(-4.10, -3.26, 4.63, 1, 0, H, mat.bathWall);
+tileZ(4.63, 5.60, -4.98, 1, 0, H, mat.sage); tileZ(5.60, 5.99, -4.98, 1, 0, H, mat.bathWall);
+tileZ(6.015, 6.615, -4.98, 1, 0, 1.25, mat.bathWall); tileZ(6.015, 6.615, -4.98, 1, 2.35, H, mat.bathWall); tileZ(6.615, 6.85, -4.98, 1, 0, H, mat.bathWall);
+tileX(-4.98, -4.06, 6.85, -1, 0, H, mat.bathWall); tileX(-4.06, -3.36, 6.85, -1, DOORH, H, mat.bathWall); tileX(-3.36, -3.26, 6.85, -1, 0, H, mat.bathWall);
+tileZ(4.63, 6.85, -3.26, -1, 0, H, mat.bathWall);
+windowX(6.015, 6.615, -4.98, -5.39, 1.25, 2.35);
 // enclosure (see below)
 const gl = (x1, x2, z1, z2) => B(x1, x2, z1, z2, .02, 2.0, mat.showerGlass, { cast: false });
 withShift(.19, 0, () => {
@@ -1385,7 +1400,7 @@ gl(5.495, 5.505, -5.0, -4.10); B(5.49, 5.51, -4.97, -4.10, 1.98, 2.0, mat.blackM
 B(4.94, 4.96, -4.045, -4.03, .85, 1.35, mat.blackMetal); B(4.94, 4.96, -4.085, -4.07, .85, 1.35, mat.blackMetal);   // pull on the sliding panel
 B(4.92, 5.02, -4.53, -4.43, .005, .012, mat.blackMetal, { cast: false });                       // point drain at the tray centre (plan)
 B(4.72, 5.22, -5.004, -4.998, 1.05, 1.40, mat.nicheBack, { cast: false }); B(4.72, 5.22, -5.004, -4.95, 1.03, 1.05, mat.nicheStone);   // niche panel on the tile, ledge
-C(4.97, -4.52, 2.05, 2.06, .15, mat.blackMetal); C(4.97, -4.52, 2.06, H, .008, mat.blackMetal, { seg: 6 });
+B(4.446, 4.80, -4.595, -4.575, 2.09, 2.11, mat.blackMetal); C(4.80, -4.585, 2.04, 2.05, .15, mat.blackMetal);   // wall arm, head at 2.10 (plumbing plan); arm length an estimate
 B(4.446, 4.466, -4.77, -4.74, .90, 1.75, mat.blackMetal); B(4.46, 4.5, -4.78, -4.73, 1.38, 1.56, mat.blackMetal); // hand shower on a rail
 B(4.446, 4.48, -4.53, -4.45, 1.0, 1.1, mat.blackMetal);                                          // mixer
 spot(4.97, -4.27);
@@ -1408,14 +1423,14 @@ B(4.46, 4.57, -4.05, -3.49, 1.144, 1.15, mat.led, { cast: false });
 ladder('x', 5.40, 5.90, -3.23, -1, .55, 1.25); B(5.49, 5.87, -3.315, -3.295, .78, 1.12, mat.linenGrey, { cast: false });
 // (master bath door: see the hinged doors above)
 
-// FAMILY BATH (245 x 238 net; x 1.98..4.49, z -3.80..-1.37), laid out as the plan: WC and 100 cm vanity on the west wall,
+// FAMILY BATH (245 x 238 net; x 2.01..4.46, z -3.775..-1.395), laid out as the plan: WC and 100 cm vanity on the west wall,
 // washer niche in the NE corner, 160 cm bathtub along the east wall below a stub wall, window to the laundry niche, door at the SE.
-tileX(-3.80, -1.37, 1.98, 1, 0, H, mat.bathWall);
-tileX(-2.98, -1.37, 4.49, -1, 0, H, mat.bathWall); tileX(-3.80, -3.09, 4.49, -1, 1.80, H, mat.bathWall);
-tileZ(1.98, 2.37, -3.80, 1, 0, H, mat.bathWall); tileZ(2.37, 3.55, -3.80, 1, 0, 1.05, mat.bathWall); tileZ(2.37, 3.55, -3.80, 1, 2.10, H, mat.bathWall); tileZ(3.55, 3.69, -3.80, 1, 0, H, mat.bathWall);
-tileZ(1.98, 2.86, -1.37, -1, 0, H, mat.bathWall); tileZ(2.86, 3.69, -1.37, -1, DOORH, H, mat.bathWall); tileZ(3.69, 4.49, -1.37, -1, 0, H, mat.bathWall);
-tileZ(3.69, 4.49, -2.98, 1, 0, H, mat.bathWall); tileX(-3.09, -2.98, 3.69, -1, 0, H, mat.bathWall);
-windowX(2.37, 3.55, -3.80, -3.99, 1.05, 2.10);
+tileX(-3.775, -1.395, 2.01, 1, 0, H, mat.bathWall2);
+tileX(-2.98, -1.395, 4.46, -1, 0, H, mat.bathWall2); tileX(-3.775, -3.09, 4.46, -1, 1.80, H, mat.bathWall2);
+tileZ(2.01, 2.375, -3.775, 1, 0, H, mat.bathWall2); tileZ(2.375, 3.575, -3.775, 1, 0, 1.10, mat.bathWall2); tileZ(2.375, 3.575, -3.775, 1, 2.10, H, mat.bathWall2); tileZ(3.575, 3.69, -3.775, 1, 0, H, mat.bathWall2);
+tileZ(2.01, 2.86, -1.395, -1, 0, H, mat.bathWall2); tileZ(2.86, 3.69, -1.395, -1, DOORH, H, mat.bathWall2); tileZ(3.69, 4.46, -1.395, -1, 0, H, mat.bathWall2);
+tileZ(3.69, 4.46, -2.98, 1, 0, H, mat.bathWall2); tileX(-3.09, -2.98, 3.69, -1, 0, H, mat.bathWall2);
+windowX(2.375, 3.575, -3.775, -3.99, 1.10, 2.10);
 // washer + dryer stacked in the niche (dashed circle in the plan), cabinet above for detergents
 const appl = M('#efeeea', .45);
 withShift(.20, -.12, () => {
@@ -1464,7 +1479,7 @@ B(3.67, 4.45, -3.765, -3.10, LB - .004, LB, mat.led, { cast: false });
 // glass screen and rain head at that (south) end
 { const X1 = 3.76, X2 = 4.46, Z1 = -2.98, Z2 = -1.395, x1 = 3.84, x2 = 4.38, z1 = -2.89, z2 = -1.485, t = .006,    // hollow: apron and rim around a 54 x 140 basin, floor at .40
     ring = (a, b, c, d, y1, y2, m, o) => { B(a, x1, c, d, y1, y2, m, o); B(x2, b, c, d, y1, y2, m, o); B(x1, x2, c, z1, y1, y2, m, o); B(x1, x2, z2, d, y1, y2, m, o); };
-  B(X1, X2, Z1, Z2, 0, .40, mat.bathWall); ring(X1, X2, Z1, Z2, .40, .56, mat.bathWall); ring(X1, X2, Z1, Z2, .56, .58, mat.ceramic);
+  B(X1, X2, Z1, Z2, 0, .40, mat.bathWall2); ring(X1, X2, Z1, Z2, .40, .56, mat.bathWall2); ring(X1, X2, Z1, Z2, .56, .58, mat.ceramic);
   B(x1, x2, z1, z2, .40, .41, mat.ceramicIn, { cast: false }); B(x1, x1 + t, z1, z2, .41, .56, mat.ceramicIn, { cast: false }); B(x2 - t, x2, z1, z2, .41, .56, mat.ceramicIn, { cast: false });
   B(x1, x2, z1, z1 + t, .41, .56, mat.ceramicIn, { cast: false }); B(x1, x2, z2 - t, z2, .41, .56, mat.ceramicIn, { cast: false });
   C(4.11, -1.58, .41, .414, .022, mat.blackMetal, { seg: 20, cast: false }); }                                   // drain at the tap end
@@ -1476,7 +1491,7 @@ C(4.11, -1.72, 1.95, 1.96, .1, mat.blackMetal); C(4.11, -1.72, 1.96, BC, .008, m
 B(4.448, 4.454, -2.055, -1.505, 1.0, 1.30, mat.nicheBack, { cast: false }); B(4.40, 4.454, -2.055, -1.505, .98, 1.0, mat.nicheStone);   // niche panel on the tile, ledge
 // WC on a concealed-cistern ledge (centre 42 cm from the window wall), paper holder (the cabinet above is part of the run at the laundry niche)
 withShift(.14, -.13, () => {
-B(1.87, 2.05, -3.635, -2.825, 0, 1.08, mat.bathWall); B(1.87, 2.07, -3.635, -2.825, 1.08, 1.10, mat.quartz);
+B(1.87, 2.05, -3.635, -2.825, 0, 1.08, mat.bathWall2); B(1.87, 2.07, -3.635, -2.825, 1.08, 1.10, mat.quartz);
 { const P = place(2.05, 2.6, -3.385, -3.025, 'e'); lb(P, -.18, .18, -.27, .26, .24, .42, mat.ceramic, { round: .09 }); lb(P, -.18, .18, -.27, .27, .42, .445, mat.ceramic, { round: .02 }); }
 B(2.05, 2.055, -3.305, -3.105, .86, .98, mat.blackMetal, { cast: false });
 B(1.87, 1.95, -2.775, -2.695, .70, .72, mat.blackMetal);
@@ -1500,7 +1515,7 @@ Sph(2.175, 1.215, -2.145, .011, knobM); Sph(2.175, 1.215, -2.085, .011, knobM);
 B(2.02, 2.14, -2.515, -1.715, 1.144, 1.15, mat.led, { cast: false });
 cornice('e', 2.15, -2.535, -1.695, 1.89);
 // towel hooks at kids' height
-B(2.01, 2.20, -1.605, -1.395, 0, H, mat.bathWall);   // pipe box in the corner (plan), 19 x 21 cm
+B(2.01, 2.20, -3.775, -3.575, 1.10, UB, mat.bathWall2);   // riser box in the NW corner (plumbing + construction plans), 19 x 20; the WC ledge hides it below, the cabinet above
 [2.32, 2.47, 2.62].forEach(x => { B(x - .008, x + .008, -1.41, -1.395, 1.08, 1.12, knobM); Sph(x, 1.125, -1.425, .011, knobM); });
 // towel ladder by the door, bath mat in front of the tub
 ladder('x', 2.42, 2.76, -1.37, -1, .55, 1.25); B(2.51, 2.73, -1.45, -1.43, .78, 1.12, mat.sageFab, { cast: false });
@@ -1511,17 +1526,19 @@ C(3.85, -4.31, .002, .006, .05, mat.blackMetal, { seg: 20, cast: false });   // 
 for (let y = .1; y < H; y += .10) B(2.15, 3.65, -5.30, -5.26, y, y + .008, mat.louver, { cast: false }).rotation.x = -.45;   // "80% open" (AC plan): thin blades every 10 cm, about 75% clear
 C(2.21, -5.02, 0, H, .055, M('#d9d6cf', .6), { seg: 16 });   // 4" niche drain riser in the NW corner (plumbing plan, scaled)
 withShift(.22, -.45, () => {
-B(2.08, 2.97, -4.80, -4.46, .03, .66, M('#e9e8e4', .6), { round: .01 }); { const f = C(0, 0, -.01, .01, .22, mat.slot, { seg: 32, cast: false }); f.rotation.x = Math.PI / 2; f.position.set(2.42, .35, -4.455); }
+B(2.08, 3.08, -4.60, -4.15, .03, .98, M('#e9e8e4', .6), { round: .01 }); { const f = C(0, 0, -.01, .01, .28, mat.slot, { seg: 32, cast: false }); f.rotation.x = Math.PI / 2; f.position.set(2.48, .50, -4.605); }   // 100 x 45 (AC plan), fan toward the screen; height an estimate
 const fanGrille = M('#9a9c9e', .5, { metalness: .4 });
-[.06, .1, .14, .18, .215].forEach(r => mesh(new THREE.TorusGeometry(r, .003, 4, 40), fanGrille, root, false).position.set(2.42, .35, -4.452));
-B(2.417, 2.423, -4.456, -4.448, .13, .57, fanGrille, { cast: false }); B(2.20, 2.64, -4.456, -4.448, .347, .353, fanGrille, { cast: false });
-for (let y = .08; y < .62; y += .025) B(2.70, 2.95, -4.46, -4.455, y, y + .008, M('#c9c8c3', .6), { cast: false });   // side grille slots
-C(2.92, -4.70, .66, 2.35, .016, mat.black, { seg: 10 }); C(2.85, -4.70, .66, 2.35, .012, mat.black, { seg: 10 });   // insulated refrigerant pair
-{ const t = mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(2.15, .1, -4.62), new THREE.Vector3(2.0, .04, -4.6), new THREE.Vector3(1.95, .006, -4.40)]), 12, .007, 6), M('#e8e6df', .5)); }
+[.08, .13, .18, .23, .275].forEach(r => mesh(new THREE.TorusGeometry(r, .003, 4, 40), fanGrille, root, false).position.set(2.48, .50, -4.608));
+B(2.477, 2.483, -4.612, -4.604, .22, .78, fanGrille, { cast: false }); B(2.20, 2.76, -4.612, -4.604, .497, .503, fanGrille, { cast: false });
+for (let y = .08; y < .94; y += .025) B(2.84, 3.04, -4.605, -4.60, y, y + .008, M('#c9c8c3', .6), { cast: false });   // side grille slots
+C(2.92, -4.30, .98, 2.35, .016, mat.black, { seg: 10 }); C(2.85, -4.30, .98, 2.35, .012, mat.black, { seg: 10 });   // insulated refrigerant pair
+{ const t = mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(2.15, .1, -4.30), new THREE.Vector3(2.0, .04, -4.28), new THREE.Vector3(1.95, .006, -4.10)]), 12, .007, 6), M('#e8e6df', .5)); }
 [2.06, 3.38].forEach(x => B(x - .03, x + .03, -4.82, -4.40, 1.95, 2.05, mat.steel));
 for (let z = -4.78; z < -4.42; z += .08) { const l = C(0, 0, -.66, .66, .003, mat.steel, { seg: 4, cast: false }); l.rotation.z = Math.PI / 2; l.position.set(2.72, 2.0, z); }
 C(3.82, -4.24, 1.0, 2.25, .27, M('#f3f2ee', .35), { seg: 36 }); C(3.82, -4.24, .7, 1.0, .015, mat.steel, { seg: 8 }); C(3.92, -4.24, .7, 1.0, .015, mat.steel, { seg: 8 });   // z from both MEP sheets
 });
+B(2.15, 2.20, -4.94, -4.82, 1.10, 1.24, M('#8e9194', .5), { round: .008 });   // AC isolator 3x16A IP65 (electrical plan; height an estimate)
+B(4.32, 4.37, -4.90, -4.78, 1.10, 1.24, M('#8e9194', .5), { round: .008 });   // water heater switch IP65 (electrical plan; height an estimate)
 
 // =====================================================================
 // ROOM 1 (274 x 361; x -3.90..-1.14, z -5.01..-1.45): single bed east, desk west, wardrobe in the niche
@@ -1542,8 +1559,8 @@ art('s', -4.825, -2.95, 1.55, .5, .65, 501, ['#e8e2d6', '#4b6b7f', '#d39b52'], '
 ceilingFan(-2.6, -3.0, H, mat.oak);
 });
 { const P = place(-3.81, -2.36, -1.40, -.80, 'n'); wardrobe(P, { h: H, front: mat.whiteFront, doors: 3 }); }
-windowZ(-2.92, -1.93, -3.90, -4.28, .95, 2.20, 2);
-curtain('z', -3.04, -2.70, -3.82, .02, H - .03, mat.linenGrey, 4, .04); curtain('z', -2.15, -1.81, -3.82, .02, H - .03, mat.linenGrey, 4, .04);
+windowZ(-2.81, -1.91, -3.90, -4.28, .15, 2.35, 1);
+curtain('z', -2.93, -2.59, -3.82, .02, H - .03, mat.linenGrey, 4, .04); curtain('z', -2.13, -1.79, -3.82, .02, H - .03, mat.linenGrey, 4, .04);
 
 // ROOM 2 (282 x 356; x -0.98..1.86, z -5.01..-1.45): single bed west, desk by the window, wardrobe on the corridor wall
 withShift(.15, -.20, () => {
@@ -1551,7 +1568,7 @@ withShift(.15, -.20, () => {
 { const P = place(-.13, .12, -4.80, -4.42, 's'); nightstand(P, { m: mat.whiteFront, lampOn: false }); }
 { const P = place(1.09, 1.69, -4.78, -3.58, 'w'); desk(P, { top: mat.whiteFront, seed: 6 }); }
 officeChair(.88, -4.18, Math.PI / 2, mat.sageFab);
-curtain('x', .10, .34, -4.72, .02, H - .03, mat.linen, 3, .035); curtain('x', .90, 1.10, -4.72, .02, H - .03, mat.linen, 3, .035);
+curtain('x', .195, .435, -4.72, .02, H - .03, mat.linen, 3, .035); curtain('x', .915, 1.115, -4.72, .02, H - .03, mat.linen, 3, .035);
 B(-1.11, -.31, -4.80, -4.58, 1.45, 1.47, mat.oak); books({ g: root }, -1.05, 1.47, -4.69, .5, 'x', 10, 11);
 rug(-.29, .99, -3.4, -2.1, mat.rugKid);
 // tall bookcase on the free part of the east wall: closed below, open shelves above
@@ -1563,7 +1580,7 @@ art('e', -1.12, -3.75, 1.55, .6, .45, 601, ['#f0e9dc', '#c7a046', '#7b8c74', '#e
 ceilingFan(.3, -3.0, H, mat.oak);
 });
 { const P = place(-.95, .78, -2.05, -1.45, 'n'); wardrobe(P, { h: H, front: mat.whiteFront, doors: 3 }); }
-windowX(.27, 1.25, -5.01, -5.39, .95, 2.20);
+windowX(.365, 1.265, -5.01, -5.39, .15, 2.35, 1);
 
 // ROOM 3 / MAMAD (355 x 262; x -3.83..-0.22, z 0.09..2.78): professional workstation in the window corner (L desk along the south wall
 // + return under the window side), single bed along the east wall with its head on the south wall, bookcase, window seat, wardrobe niche
@@ -1617,8 +1634,8 @@ B(-3.69, -3.3, .855, 1.675, .45, .55, mat.dusty, { round: .03 });
 });
 B(-3.79, -3.74, .505, 1.475, 1.72, 2.0, mat.linenGrey, { round: .01 });
 { const P = place(-3.8, -2.36, -.465, .125, 's'); wardrobe(P, { h: H, front: mat.whiteFront, doors: 3 }); }
-windowZ(.47, 1.44, -3.83, -4.28, 1.0, 2.0, 1);
-[[.41, .47], [1.44, 1.50]].forEach(([a, b]) => B(-3.805, -3.78, a, b, .96, 2.04, mat.blastDoor, { cast: false })); B(-3.805, -3.78, .41, 1.50, 2.0, 2.04, mat.blastDoor, { cast: false }); // steel blast-window frame
+windowZ(.48, 1.48, -3.83, -4.28, 1.10, 2.10, 1);
+[[.42, .48], [1.48, 1.54]].forEach(([a, b]) => B(-3.805, -3.78, a, b, 1.06, 2.14, mat.blastDoor, { cast: false })); B(-3.805, -3.78, .42, 1.54, 2.10, 2.14, mat.blastDoor, { cast: false }); // steel blast-window frame
 
 // =====================================================================
 // BALCONY 275 x 884 as written on the plan (x 7.70..10.45, z -0.13..8.71). North wall stops at the master facade (x 9.30), open beyond
@@ -1718,7 +1735,7 @@ outlets('s', -5.035, -2.22, .65, 'sk'); outlets('e', -3.89, -1.80, 1.10, 'r');
 // ROOM 2: bed-head light switch + socket + shutter switch h=65 on the north wall, socket+phone h=40 and TV point h=180 on the east wall
 outlets('s', -5.01, .02, .65, 'ksr'); outlets('w', 1.85, -4.55, .40, 'sd'); outlets('w', 1.85, -2.86, 1.80, 'dst');
 // MAMAD: TV point h=180 and socket+phone h=40 on the east wall, socket + switch h=65 by the blast window, socket h=220 for the filter
-outlets('w', -.25, .80, 1.80, 'dst'); outlets('w', -.25, 2.235, .40, 'sd'); outlets('e', -3.8, 1.66, .65, 'sk');
+outlets('w', -.25, .89, 1.80, 'dst'); outlets('w', -.25, 2.33, .40, 'sd'); outlets('e', -3.8, 1.59, .65, 'sk');
 // civil-defence air filter (family unit, e.g. Rainbow 54R) on the west wall: steel sleeves 4" at 150 cm and 30 cm under the ceiling
 B(-3.8, -3.59, 2.085, 2.585, 1.22, 1.78, M('#d9dbd7', .5, { metalness: .2 }), { round: .012 });
 for (let y = 1.30; y < 1.52; y += .03) B(-3.59, -3.587, 2.145, 2.525, y, y + .012, M('#9fa29f', .6), { cast: false });   // intake louvres
@@ -1726,17 +1743,19 @@ B(-3.587, -3.57, 2.395, 2.455, 1.61, 1.67, mat.black, { round: .01 }); B(-3.59, 
 [[2.335, 1.50], [2.335, H - .30]].forEach(([z, y]) => { const c = C(0, 0, 0, .03, .065, mat.steel, { seg: 24 }); c.rotation.z = -Math.PI / 2; c.position.set(-3.80, y, z); });
 outlets('n', 2.745, -3.63, 2.20, 's');
 // CORRIDOR: socket h=40; apartment electrical panel, the communications box under it and the digital consumption display
-outlets('n', -.145, .72, .40, 's');
+outlets('n', -.145, .65, .40, 's');
 // panel at x 3.33..3.78 as located on the plan (recessed, door flush with the wall); heights are not on the plans
 B(3.33, 3.78, -.197, -.19, 1.45, 2.05, mat.whitePlate, { round: .002 }); B(3.35, 3.76, -.199, -.197, 1.47, 2.03, M('#e7e6e1', .45), { cast: false });
 B(3.73, 3.74, -.201, -.199, 1.70, 1.80, mat.slot, { cast: false });
 B(3.35, 3.73, -.205, -.19, .35, .85, mat.whitePlate, { round: .004 }); B(3.69, 3.70, -.207, -.205, .55, .65, mat.slot, { cast: false });
-B(3.14, 3.26, -.202, -.19, 1.47, 1.55, mat.whitePlate); B(3.155, 3.245, -.2035, -.202, 1.485, 1.535, mat.screen, { cast: false });
-// MASTER: wall split for the bedroom (12,300 BTU on the AC plan) high on the west wall by the door, condensate drain to the corridor
-B(4.61, 4.83, -2.295, -1.395, 2.24, 2.52, M('#f4f4f2', .35), { round: .03 }); B(4.83, 4.833, -2.255, -1.435, 2.27, 2.31, mat.slot, { cast: false });
+B(3.80, 3.92, -.202, -.19, 1.47, 1.55, mat.whitePlate); B(3.815, 3.905, -.2035, -.202, 1.485, 1.535, mat.screen, { cast: false });
+outlets('n', -.19, 3.57, 1.15, 'ss');   // double socket between the comms box and the panel (electrical plan; height an estimate)
+outlets('n', -.19, 3.99, .40, 'd');     // fibre point (electrical plan; height an estimate)
+// MASTER: wall split (12,300 BTU on the AC plan) over the door on the room face of the door wall, blowing east (AC plan; size an estimate)
+B(4.26, 4.46, -1.14, -0.30, 2.24, 2.52, M('#f4f4f2', .35), { round: .03 }); B(4.46, 4.463, -1.10, -0.34, 2.27, 2.31, mat.slot, { cast: false });
 // bed-head sockets + phone h=60 either side of the bed (on the slatted wall), TV point h=180 on the bathroom wall as drawn
 outlets('s', -1.245, 2.66, 1.10, 'kkk'); outlets('e', 7.01, -4.20, 1.10, 'kk');
-outlets('n', -3.26, 4.72, 1.10, 's'); outlets('n', -1.605, 2.105, 1.10, 's');                                            // splash-proof sockets h=110 (master bath, family bath on the pipe box)
+outlets('n', -3.26, 4.72, 1.10, 's'); outlets('n', -1.395, 2.105, 1.10, 's');                                            // splash-proof sockets h=110 (master bath, family bath)
 outlets('w', 4.46, -3.61, 1.40, 's'); outlets('w', 4.46, -3.34, 1.40, 's');                                              // washer and dryer h=140
 B(6.77, 6.85, -4.46, -4.08, 1.90, 2.10, mat.whitePlate, { round: .01 }); B(2.45, 2.85, -1.475, -1.395, 1.90, 2.10, mat.whitePlate, { round: .01 });   // bath wall heaters 13 and 12, h=200 (size estimated)
 outlets('n', -.19, 5.78, .60, 'ds'); outlets('n', -.19, 8.02, .60, 'ksd');   // bed heads, two-way switch 2a on the east side
@@ -1751,17 +1770,17 @@ function shutterX(x1, x2, zr, y1, y2) {
   B(x1, x1 + .025, zr - .015, zr + .015, y1, y2, mat.frame); B(x2 - .025, x2, zr - .015, zr + .015, y1, y2, mat.frame);
   B(x1 + .02, x2 - .02, zr - .012, zr + .012, y2 - .05, y2, mat.frame);
 }
-shutterZ(-2.92, -1.93, -4.20, .95, 2.20);            // room 1
-shutterX(.27, 1.25, -5.30, .95, 2.20);               // room 2
-shutterZ(-2.27, -1.31, 9.21, 0, 2.20);               // master
-shutterZ(.78, 3.45, FO - .08, 0, HEAD); shutterZ(4.26, 6.88, FO - .08, 0, HEAD); shutterZ(7.70, 8.39, FO - .08, 1.0, HEAD);   // balcony doors A, B + kitchen window
-outlets('w', FX, 3.85, 1.10, 'krr'); outlets('w', FX, 7.20, 1.10, 'r'); outlets('w', FX, 3.85, .40, 's');        // shutter switches A+B and a socket on the pier
+shutterZ(-2.81, -1.91, -4.20, .15, 2.35);            // room 1
+shutterX(.365, 1.265, -5.30, .15, 2.35);               // room 2
+shutterZ(-2.17, -1.27, 9.21, .15, 2.35);               // master
+shutterZ(.79, 3.49, FO - .08, 0, HEAD); shutterZ(4.29, 6.99, FO - .08, 0, HEAD); shutterZ(7.75, 8.45, FO - .08, 1.20, HEAD);   // balcony doors A, B + kitchen window
+outlets('w', FX, 3.89, 1.10, 'krr'); outlets('w', FX, 7.20, 1.10, 'r'); outlets('w', FX, 3.89, .40, 's');        // shutter switches A+B and a socket on the pier
 // BALCONY: two ceiling lights in the soffit, waterproof socket on the pier, gas point (h=30) and garden tap (h=60) at the south wall
-[[8.05, 2.2], [8.05, 5.7]].forEach(([x, z]) => { C(x, z, 2.66, 2.70, .13, mat.whitePlate, { seg: 32, parent: ceilGroup }); C(x, z, 2.655, 2.66, .11, mat.lamp, { seg: 32, parent: ceilGroup, cast: false }); });
-B(FO, FO + .05, 3.80, 3.90, .34, .46, M('#8e9194', .5), { round: .008 });
+[[7.96, 2.14], [7.96, 5.73]].forEach(([x, z]) => { C(x, z, 2.66, 2.70, .13, mat.whitePlate, { seg: 32, parent: ceilGroup }); C(x, z, 2.655, 2.66, .11, mat.lamp, { seg: 32, parent: ceilGroup, cast: false }); });
+B(FO, FO + .05, 3.84, 3.94, .34, .46, M('#8e9194', .5), { round: .008 });
 B(8.27, 8.33, BZ2 - .05, BZ2, .24, .36, M('#d8b23a', .45)); B(8.29, 8.31, BZ2 - .09, BZ2 - .05, .29, .31, M('#d8b23a', .45));   // gas valve
 B(8.47, 8.53, BZ2 - .04, BZ2, .57, .63, mat.steel, { round: .01 }); C(8.50, BZ2 - .08, .54, .60, .012, mat.steel, { seg: 12 });   // garden tap
-[[9.05, 1.5], [9.08, 7.3]].forEach(([x, z]) => C(x, z, BY, BY + .003, .06, mat.blackMetal, { seg: 24, cast: false }));            // floor drains
+[[8.89, 1.63], [8.89, 7.36]].forEach(([x, z]) => C(x, z, BY, BY + .003, .06, mat.blackMetal, { seg: 24, cast: false }));            // floor drains
 
 [[FO, 3.82], [FO, 7.3]].forEach(([x, z]) => { B(x, x + .06, z - .05, z + .05, 1.9, 2.1, mat.blackMetal); B(x + .06, x + .065, z - .04, z + .04, 1.92, 2.08, mat.led, { cast: false }); });
 
@@ -2042,11 +2061,11 @@ function winLight(x, z, w, h, y, lookX, lookZ, k) {
   k *= .91;
   const l = new THREE.RectAreaLight(0xeaf1fb, k, w, h); l.position.set(x, y, z); l.lookAt(lookX, y, lookZ); l.userData.k = k; scene.add(l); windowLights.push(l);
 }
-winLight(FX - .02, 2.115, 2.67, HEAD, HEAD / 2, 0, 2.115, 5);
-winLight(FX - .02, 5.57, 2.62, HEAD, HEAD / 2, 0, 5.57, 5);
-winLight(FX - .02, 8.045, .69, 1.3, 1.65, 0, 8.045, 2.5);
-winLight(-3.88, -2.425, .99, 1.25, 1.57, 0, -2.425, 4);     // room 1
-winLight(.76, -4.99, .98, 1.25, 1.57, .76, 0, 4);           // room 2
+winLight(FX - .02, 2.14, 2.70, HEAD, HEAD / 2, 0, 2.14, 5);
+winLight(FX - .02, 5.64, 2.70, HEAD, HEAD / 2, 0, 5.64, 5);
+winLight(FX - .02, 8.10, .70, 1.15, 1.775, 0, 8.10, 2.5);
+winLight(-3.88, -2.36, .90, 2.20, 1.25, 0, -2.36, 4);     // room 1
+winLight(.815, -4.99, .90, 2.20, 1.25, .815, 0, 4);           // room 2
 winLight(-3.81, .955, .97, 1.0, 1.5, 0, .955, 3.5);         // mamad
 winLight(8.90, -1.79, .96, 2.15, 1.10, 0, -1.79, 5.5);       // master
 winLight(6.285, -4.99, .59, .7, 1.85, 6.285, 0, 2.5);       // master bath
@@ -2455,6 +2474,326 @@ function tick(now) {
   frameNo++; frame();
   requestAnimationFrame(tick);
 }
+// =====================================================================
+// Ceramics from the developer's spec ("מפרט מוצרים - סטנדרט", סטודיו קרמיקה, 10/02/2026). Each space can show any product
+// the spec allows there. The tiles are drawn here from the catalog swatch (colour, size, finish, pattern): approximations,
+// not scans of the product. Names are kept exactly as printed so the owners can quote them to the designer.
+// =====================================================================
+// item: [name, hex, pattern, opts]. pattern = base texture, optionally "+relief". opts: f finish, v vein colour, c2 motif colour,
+// n motif variant. Finish: g gloss, l lappato, s silk, m matte, r anti-slip, u not written in the catalog, b matte or gloss.
+const CER = {
+  f80a: { t: 'ריצוף 80×80', size: '80×80', page: 3, w: .8, h: .8, nx: 2, ny: 2, fin: 'm', items: [
+    ['מונטריאל אפור', '#d0cac7', 'cem'], ['מונטריאל לבן', '#ebeae8', 'cem'], ["אידרה בז' משי", '#c9bcab', 'cem'], ['אידרה אפור משי', '#e6e6e7', 'cem'],
+    ['דקו אנטרציט', '#676862', 'cem'], ['דקו בטון אפור', '#c5c5bf', 'cem'], ['דקו בטון לבן', '#e7e6e1', 'cem'], ['דקו בטון אייבורי', '#d9d5cc', 'cem'],
+    ['אמאני אפור', '#cdc5bc', 'cloud'], ['אמאני לבן', '#e6e6e6', 'cloud'], ['מלרוז אפור', '#b9b4b1', 'cem'], ['מלרוז לבן', '#d4d5d0', 'cem'],
+    ['סווידן בלנקו', '#dcd8cf', 'stone'], ["לילה בז' משי", '#e2e0dd', 'marble'], ['לילה אפור משי', '#ababa9', 'marble'],
+    ['דקו סטון אפור', '#d0cbc5', 'stone'], ['דקו סטון סביה', '#e7dacd', 'stone'], ['ארק סילבר', '#b5b1a9', 'stone'], ['ארק אייבורי', '#e3d5c9', 'stone'],
+    ['ארק לבן', '#ebe8e5', 'cem'], ['סונורה טאופה', '#d8cab7', 'marble'], ['סונורה לבן', '#ece8e2', 'marble']] },
+  f80b: { t: 'ריצוף 80×80', size: '80×80', page: 4, w: .8, h: .8, nx: 2, ny: 2, fin: 'm', items: [
+    ['קררה מט משי', '#e4e4e2', 'marble', { v: '#8f8f8d' }], ['פלזה אפור', '#a8a7a5', 'marble'], ['פלזה לבן', '#dcdbd9', 'marble'],
+    ['מרפיל אפור', '#c5bdb5', 'stone'], ["מרפיל בז'", '#efe3d3', 'stone'], ['סטריפ אפור לאפטו', '#bab7b4', 'marble'], ['סטריפ אייבורי לאפטו', '#d2d2cc', 'marble'],
+    ['דקוטה אפור משי', '#ddd9d4', 'marble'], ['דולמיט אפור', '#e8e7e5', 'marble'], ["ארטיק בז'", '#d0c7c2', 'stone'],
+    ['ספוט קלאוד ביאנקו', '#f2ede8', 'cloud'], ['ספוט קלאוד גריי', '#cdc4bb', 'cloud'], ['אושן אפור', '#bbb1ac', 'stone'], ['אושן אייבורי', '#efe4da', 'stone'],
+    ['בנטון לבן', '#f5f0ea', 'cem'], ['בנטון אפור', '#dedad8', 'cem'], ['נטורל אפור משי', '#bab9b6', 'onyx'],
+    ['קיילין סאנד מט', '#e6e1db', 'stone'], ['לייט סטון ביאנקו מט', '#e6e1da', 'stone']] },
+  f60: { t: 'ריצוף 60×60', size: '60×60', page: 5, w: .6, h: .6, nx: 2, ny: 2, fin: 'm', items: [
+    ['דקו סטון אפור', '#d1cac3', 'stone'], ['דקו סטון סביה', '#e9d8ce', 'stone'], ['דקו בטון אפור', '#c6c5c0', 'cem'], ['דקו בטון איבורי', '#e2d4c1', 'cem'],
+    ['אמאני אפור', '#cfc7be', 'cloud'], ['אמאני לבן', '#e4e4e4', 'cloud'], ['מונטריאול אפור', '#d0cac7', 'cem'], ['מונטריאול לבן', '#eaeae8', 'cem'],
+    ['ארק סילבר', '#b5b1a9', 'stone'], ['ארק אייבורי', '#cfc4b5', 'stone'], ['ארק בלאק', '#504f4d', 'stone'], ['ארק לבן', '#ebe8e5', 'cem'],
+    ['מלרוז אפור', '#b9b5b3', 'cem'], ['מלרוז לבן', '#d4d5d0', 'cem'], ['לים סטון איבורי', '#eadccd', 'stone'], ['לים סטון אפור', '#ccc3be', 'stone'],
+    ['מטיס בלאק', '#4a3f3c', 'marble', { v: '#e8e4de' }], ['פיאטרה גרי', '#b4b7ba', 'marble', { v: '#eef0f2' }]] },
+  w30: { t: 'ריצוף 30×30 / 33×33, אנטי סליפ', size: '30×30 / 33×33', page: 8, w: .33, h: .33, nx: 4, ny: 4, fin: 'r', items: [
+    ['פורטו איבורי', '#c0b69b', 'stone'], ['ורונה סטון', '#5a5e63', 'gran'], ['לוגנו סטון', '#d5d5d5', 'chips'],
+    ['דקו בטון אפור', '#c5c5bf', 'cem'], ['דקו בטון איבורי', '#e8dbd0', 'cem'], ['דקו פורטו אנטרציט', '#676762', 'stone'], ['אגורה אנטרציט', '#848583', 'cem'],
+    ['דקו סטון סביה', '#e7dacd', 'stone'], ['דקו סטון אפור', '#d1cbc3', 'stone'], ['קולור שחור', '#292a2e', 'plain'], ['קולור לבן', '#dededc', 'plain'],
+    ['מלרוז לבן', '#d3d4ce', 'cem'], ['מלרוז אפור', '#b8b4b1', 'cem'], ['אמאני אפור', '#c0c0be', 'cloud'], ['טרה טאופה', '#a19584', 'marble'],
+    ['פרימו', '#e9e7e2', 'enc:med', { c2: '#8b8d8f', n: 0 }], ['וינטי', '#ecebe7', 'enc:med', { c2: '#2b2b2b', n: 1 }], ["דיאצ'י", '#eceae4', 'enc:med', { c2: '#3f5f86', n: 2 }],
+    ["צ'ייו", '#e8e6e1', 'enc:med', { c2: '#3a3a3a', n: 3 }], ['אמורה', '#d8d2c8', 'enc:med', { c2: '#7b6a5a', n: 4 }], ['רוסה', '#ebe9e4', 'enc:pet', { c2: '#2d2d2d' }],
+    ['סירקל סקיי', '#eef1f3', 'enc:pet', { c2: '#8fb3cc' }], ['פלורה בולט', '#e8e1d2', 'enc:pet', { c2: '#8a8780' }],
+    ['מדרה לבן', '#d8d9d3', 'madera'], ['מדרה אוק', '#c6c2b9', 'madera'], ['מדרה טיק', '#938e8b', 'madera'], ['מדרה אגוז', '#9e7f64', 'madera']] },
+  w1560: { t: 'ריצוף 15×60, אנטי סליפ', size: '15×60', page: 7, w: .15, h: .6, nx: 6, ny: 3, bond: 'c3', fin: 'r', items: [
+    ['אושן אפור', '#aeaba8', 'stone'], ['אושן אייבורי', '#e6e5e1', 'stone'], ['אושן סמוק', '#cac6c2', 'stone'], ['בלטימור לבן', '#e9e9e5', 'wood'],
+    ['פורסט ווד אפור', '#aca49a', 'wood'], ['פורסט ווד לבן', '#d7d0c5', 'wood'], ['פורסט ווד נטורל', '#bea689', 'wood'], ['פורסט ווד מיסט', '#826852', 'wood'],
+    ["בלטימור בז'", '#cab292', 'wood'], ['בלטימור גריי', '#dad8d3', 'wood'], ['בלטימור וונגה', '#745b46', 'wood'], ['בלטימור טאופה', '#b1a08e', 'wood']] },
+  c2575a: { t: 'חיפוי 25×75', size: '25×75', page: 10, w: .75, h: .25, nx: 2, ny: 4, fin: 'u', items: [
+    ['לבן', '#efefec', 'plain', { f: 'm' }], ['לבן דקור', '#efefec', 'plain+wave', { f: 'm' }], ['לבן', '#f4f4f2', 'plain', { f: 'g' }], ['לבן קוביות דקור', '#f2f1ef', 'plain+cube', { f: 'g' }],
+    ["דאלקי בז' ברילו", '#f0e6d4', 'marble'], ["דאלקי בז' ברילו דקור", '#efe4d2', 'marble+facet'], ['דאלקי פרלה ברילו', '#e5e1d3', 'marble'], ['דאלקי פרלה ברילו דקור', '#e4dfd1', 'marble+facet'],
+    ['רוקין אייס', '#dbcabf', 'stone'], ['רוקין אייס דקור', '#dccbc0', 'stone+tri'], ['רוקין גריי', '#bba8a0', 'stone'],
+    ['דבלין גריס', '#c6b8ab', 'cem'], ['דבלין דקור', '#ccbeb1', 'cem+lines'], ['דבלין גריס עץ', '#c8b19b', 'slats'],
+    ['גיתית גריי', '#b7b8b2', 'cem'], ['גיתית גריי דקור', '#b9bab4', 'cem+bands'], ['גיתית לייט גריי', '#ebe6e0', 'cem'], ['גיתית לייט גריי דקור', '#e9e4de', 'cem+bands'],
+    ['סמפר קררה', '#eeedeb', 'marble', { f: 'g', v: '#9a9a98' }], ['סמפר שחור', '#3f3c36', 'marble', { v: '#d8d4cc' }]] },
+  c2575b: { t: 'חיפוי 25×75', size: '25×75', page: 11, w: .75, h: .25, nx: 2, ny: 4, fin: 'm', items: [
+    ["סירקו בז'", '#d9cbbb', 'cem'], ["סירקו בז' דקור", '#d9cbbb', 'cem+wave'], ['סירקו אפור', '#cccccc', 'cem'], ['סירקו אפור דקור', '#cccccc', 'cem+wave'],
+    ['פיורי אש', '#c0bdb8', 'stone'], ['פיורי סמוק', '#e1e0de', 'stone'], ['מיסטרל אייבורי', '#e2dedc', 'marble'], ['מיסטרל אייבורי דקור', '#e2dedc', 'marble+tri'],
+    ['סהרה אייבורי', '#ede5da', 'stone'], ['סהרה אייבורי דקור', '#ede5da', 'stone+lines'], ['סהרה חולי', '#e4dbd2', 'stone'], ['סהרה חולי דקור', '#e4dbd2', 'stone+lines'],
+    ['אריזונה לבן', '#eaebee', 'marble', { f: 'b' }], ['אריזונה לבן דקור', '#eaebee', 'marble+bands', { f: 'b' }], ['אריזונה אפור', '#9f9fa9', 'marble', { f: 'b' }]] },
+  c3060a: { t: 'חיפוי 30×60', size: '30×60', page: 12, w: .6, h: .3, nx: 2, ny: 4, fin: 'm', items: [
+    ['רפאל לבן', '#efefef', 'stone', { f: 'g' }], ['רפאל אפור', '#c9c7c9', 'stone', { f: 'g' }], ['יוטה אפור', '#c8c5b9', 'cem'], ['יוטה אפור דקור', '#c8c5b9', 'cem+tri'],
+    ['קאזה פרלה', '#d9d3d2', 'stone'], ['קאזה פרלה דקור', '#d9d3d2', 'stone+bands'], ['אלסקה ביאנקו', '#dcdcda', 'cloud'], ['אלסקה ביאנקו דקור', '#dcdcda', 'cloud+ribs'],
+    ['אמאני אפור', '#bfbfbd', 'cloud', { f: 'u' }], ['אמאני לבן', '#e2e2e2', 'cloud', { f: 'u' }]] },
+  c3060b: { t: 'חיפוי 30×60', size: '30×60', page: 13, w: .6, h: .3, nx: 2, ny: 4, fin: 'm', items: [
+    ['דאנטה לבן', '#f0f1f1', 'cem'], ['דאנטה לבן דקור', '#eeefef', 'cem+mosaic'], ['דאנטה אפור', '#959591', 'cem'],
+    ['למיניה אפור', '#d4d8e2', 'cem'], ['למיניה אפור רילייב', '#e9eaee', 'plain+wave'], ['למיניה לבן', '#f1f1f0', 'cem'],
+    ['בלויו אפור', '#c8c2b8', 'stone'], ['בלויו איוורי', '#e5dfd2', 'stone'], ['בלויו לבן', '#e6e4df', 'stone'],
+    ['בלויו אפור דקור', '#c8c2b8', 'stone+cube'], ['בלויו איוורי דקור', '#e5dfd2', 'stone+cube'], ['בלויו לבן דקור', '#e6e4df', 'stone+cube']] },
+  c3060c: { t: 'חיפוי 30×60', size: '30×60', page: 14, w: .6, h: .3, nx: 2, ny: 4, fin: 'u', items: [
+    ['קררה', '#eae7e4', 'marble', { v: '#8d8d8b' }], ['קררה דקור', '#eae7e4', 'marble+bands', { v: '#8d8d8b' }], ["מונה בז'", '#eeece8', 'stone', { f: 'm' }], ["מונה בז' רלייף", '#eeece8', 'stone+wave', { f: 'm' }],
+    ['וינה אפור', '#b2b7ba', 'stone', { f: 'g' }], ['ליסה קרם', '#ddcdbe', 'stone', { f: 'g' }], ['לבן', '#f4f4f2', 'plain', { f: 'g' }], ['לבן', '#efefec', 'plain', { f: 'm' }],
+    ['מילניום 7.5/15', '#f3f3f1', 'plain+mill', { f: 'g' }], ['אוריגמי לבן', '#eeeeec', 'plain+origami'], ['דקור לבן ריבועים', '#eeedeb', 'marble+squares']] },
+  c2060: { t: 'חיפוי 20×60', size: '20×60', page: 15, w: .6, h: .2, nx: 2, ny: 6, fin: 'm', items: [
+    ['מרידיאן לבן', '#f0f0ee', 'plain'], ['קאסל לבן', '#f5f5f3', 'plain', { f: 'g' }], ['לאורי בלנקו', '#f3f0eb', 'hand'], ['לאורי בלנקו דקור', '#f1eee9', 'hand+lace'],
+    ['לאורי פרלה', '#dcdbd5', 'hand'], ["לאורי רוג'ו", '#bc5b5a', 'hand'], ['לאורי סקאי', '#bfcdd8', 'hand'], ['לאורי קוראל', '#e5a99b', 'hand'],
+    ['לאורי אזול', '#748091', 'hand'], ['לאורי נאוד', '#e2e0d4', 'hand'], ['לאורי סילבר', '#81807b', 'hand'], ['לאורי טאופה', '#7d6b5e', 'hand']] },
+  k1030: { t: 'חיפוי מטבח 10×30', size: '10×30', page: 16, w: .3, h: .1, nx: 4, ny: 8, bond: 'r', fin: 'm', items: [
+    ['פסטל לבן', '#f4f4f2', 'plain', { f: 'g' }], ['פסטל שחור', '#232325', 'plain', { f: 'g' }], ['פסטל אפור', '#b5b5b5', 'plain'], ['פסטל איבורי', '#ede4dd', 'plain'],
+    ['פסטל לבן', '#efefec', 'plain'], ['וראנו לבן', '#f2f1ec', 'hand', { f: 'g' }], ['וראנו טאופה', '#aea69f', 'hand', { f: 'g' }],
+    ['וראנו גרפיט', '#3a3a3a', 'hand', { f: 'g' }], ['וראנו טורקיז', '#3d6a90', 'hand', { f: 'g' }]] },
+  k2020: { t: 'חיפוי מטבח 20×20', size: '20×20', page: 16, w: .2, h: .2, nx: 6, ny: 6, fin: 'm', items: [['פלייגראונד', '#e9e4da', 'patch']] },
+};
+const CER_FIN = { g: ['מבריק', [.05, .14]], l: ['לאפטו', [.16, .34]], s: ['משי', [.36, .56]], m: ['מט', [.55, .78]], r: ['אנטי סליפ', [.7, .9]],
+  u: ['גימור לא כתוב בקטלוג', [.4, .62]], b: ['מט או מבריק', [.3, .5]] };
+const cerFin = (cat, it) => (it[3] && it[3].f) || (/מבריק|ברילו/.test(it[0]) ? 'g' : /לאפטו/.test(it[0]) ? 'l' : /משי/.test(it[0]) ? 's' : CER[cat].fin);
+const cerKey = (cat, it) => `${cat}|${it[0]}|${cerFin(cat, it)}`;
+function cerItem(key) { const [cat] = key.split('|'); return CER[cat] && CER[cat].items.find(it => cerKey(cat, it) === key); }
+function cerDesc(key, html) {   // "name · size · finish · page"
+  const cat = key.split('|')[0], it = cerItem(key); if (!it) return '';
+  const f = CER_FIN[cerFin(cat, it)][0], name = html ? `<b>${it[0]}</b>` : it[0];
+  return [name, CER[cat].size, it[0].includes(f) ? null : f, `עמ׳ ${CER[cat].page}`].filter(Boolean).join(' · ');
+}
+
+const cerHex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const cerRGB = (c, k = 1, a = 1) => `rgba(${c.map(v => Math.max(0, Math.min(255, Math.round(v * k)))).join(',')},${a})`;
+const cerHash = s => { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return (h >>> 0) % 2147483646 + 1; };
+function cerNoise(g, x, y, w, h, cells, alpha, R, mode = 'soft-light') {   // smooth value noise: a few random greys scaled up
+  const n = document.createElement('canvas'), s = cells / Math.max(w, h);
+  n.width = Math.max(2, Math.round(w * s)); n.height = Math.max(2, Math.round(h * s));
+  const ng = n.getContext('2d'), d = ng.createImageData(n.width, n.height);
+  for (let i = 0; i < d.data.length; i += 4) { d.data[i] = d.data[i + 1] = d.data[i + 2] = R() * 255; d.data[i + 3] = 255; }
+  ng.putImageData(d, 0, 0);
+  g.save(); g.globalAlpha = alpha; g.globalCompositeOperation = mode; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(n, x, y, w, h); g.restore();
+}
+function cerVeins(g, x, y, w, h, col, n, wid, alpha, R) {
+  const L = Math.max(w, h);
+  for (let k = 0; k < n; k++) {
+    let px = x + R() * w, py = y + R() * h, ang = R() * Math.PI * 2; g.beginPath(); g.moveTo(px, py);
+    for (let s = 0; s < 22; s++) { ang += (R() - .5) * .6; px += Math.cos(ang) * L * .06; py += Math.sin(ang) * L * .06; g.lineTo(px, py); }
+    g.lineJoin = 'round'; g.strokeStyle = cerRGB(col, 1, alpha * .3); g.lineWidth = wid * 6; g.stroke();
+    g.strokeStyle = cerRGB(col, 1, alpha); g.lineWidth = wid; g.stroke();
+  }
+}
+function cerSpots(g, x, y, w, h, n, rMin, rMax, cols, alpha, R) {
+  for (let i = 0; i < n; i++) {
+    g.fillStyle = cerRGB(cols[Math.floor(R() * cols.length)], 1, alpha * (.5 + R() * .5)); g.beginPath();
+    const r = rMin + R() * (rMax - rMin); g.ellipse(x + R() * w, y + R() * h, r, r * (.5 + R() * .5), R() * 3.14, 0, 7); g.fill();
+  }
+}
+function cerWood(g, x, y, w, h, c, R) {   // one plank, grain along its long side
+  const vert = h > w, L = vert ? h : w, D = vert ? w : h;
+  g.fillStyle = cerRGB(c, .9 + R() * .18); g.fillRect(x, y, w, h);
+  cerNoise(g, x, y, w, h, 10, .3, R);
+  for (let i = 0, n = Math.round(D / 1.4); i < n; i++) {
+    const off = R() * D, amp = R() * D * .05, ph = R() * 6, fr = (1 + R() * 2) * 6.28 / L;
+    g.strokeStyle = cerRGB(c, R() < .6 ? .75 : 1.12, .06 + R() * .14); g.lineWidth = .5 + R() * 1.3; g.beginPath();
+    for (let s = 0; s <= 24; s++) { const t = s / 24 * L, o = off + Math.sin(t * fr + ph) * amp; if (vert) s ? g.lineTo(x + o, y + t) : g.moveTo(x + o, y + t); else s ? g.lineTo(x + t, y + o) : g.moveTo(x + t, y + o); }
+    g.stroke();
+  }
+  if (R() < .4) { const t = R() * L, o = D * (.25 + R() * .5); g.fillStyle = cerRGB(c, .6, .5); g.beginPath(); vert ? g.ellipse(x + o, y + t, D * .05, D * .09, 0, 0, 7) : g.ellipse(x + t, y + o, D * .09, D * .05, 0, 0, 7); g.fill(); }
+}
+function cerEnc(g, x, y, w, h, c, c2, kind, v) {   // encaustic: motif in the second colour, meeting the neighbours at the edges
+  const s = Math.min(w, h), cx = x + w / 2, cy = y + h / 2, ink = cerRGB(c2), star = (r1, r2, n, rot = 0) => {
+    g.beginPath(); for (let i = 0; i < n * 2; i++) { const r = i % 2 ? r2 : r1, a = rot + i * Math.PI / n; g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); } g.closePath(); g.fill();
+  };
+  g.fillStyle = g.strokeStyle = ink; g.lineWidth = s * .025;
+  if (kind === 'pet') {
+    for (let k = 0; k < 4; k++) { g.save(); g.translate(cx, cy); g.rotate(k * Math.PI / 2 + Math.PI / 4); g.beginPath(); g.ellipse(0, -s * .2, s * .075, s * .19, 0, 0, 7); g.fill(); g.restore(); }
+    for (const [ex, ey] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) { g.beginPath(); g.arc(ex, ey, s * .34, 0, 7); g.stroke(); g.beginPath(); g.arc(ex, ey, s * .12, 0, 7); g.fill(); }
+    g.beginPath(); g.arc(cx, cy, s * .045, 0, 7); g.fillStyle = cerRGB(c); g.fill();
+    return;
+  }
+  const n = [8, 4, 6, 8, 12][v % 5];
+  g.beginPath(); g.arc(cx, cy, s * .3, 0, 7); g.stroke(); star(s * .26, s * .11, n, v * .3);
+  g.fillStyle = cerRGB(c); g.beginPath(); g.arc(cx, cy, s * .06, 0, 7); g.fill(); g.fillStyle = ink;
+  for (const [ex, ey] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) { g.beginPath(); g.arc(ex, ey, s * .16, 0, 7); g.fill(); }
+  if (v % 2) { g.strokeRect(x + s * .04, y + s * .04, w - s * .08, h - s * .08); }
+  else for (const [ax, ay] of [[cx, y], [cx, y + h], [x, cy], [x + w, cy]]) { g.beginPath(); g.arc(ax, ay, s * .07, 0, 7); g.fill(); }
+}
+const CER_PATCH = ['#2f5d7c', '#c9a227', '#9c3d2e', '#5c7f6d', '#3a3a3a', '#d9cfbd', '#7a8fa3'].map(cerHex);
+// relief height (0..1 above the tile face, may dip below) at tile-local metres (u, v) on a tile of w x h metres; k = colour factor
+function cerRelief(kind, u, v, w, h, cell) {
+  const fr = t => t - Math.floor(t), tri = t => 1 - Math.abs(2 * fr(t) - 1);
+  switch (kind) {
+    case 'wave': return [.5 + .5 * Math.sin(6.283 * (v / .012 + .5 * Math.sin(6.283 * u / .25))), 1];
+    case 'lines': return [fr(v / .02) < .12 ? -.6 : 0, fr(v / .02) < .12 ? .94 : 1];
+    case 'bands': { const b = fr(v / (h / 4)) < .03; return [b ? -.8 : 0, b ? .9 : 1]; }
+    case 'ribs': { const r = Math.floor(v / .015), on = ((cell * 31 + r * 17 + Math.floor(u / (.08 + (r % 5) * .03))) % 7) > 1; return [on ? .5 + .5 * Math.sin(3.14 * fr(v / .015)) : 0, 1]; }
+    case 'cube': { const s = h / 3, a = 1 - Math.pow(Math.abs(2 * fr(u / s) - 1), 4), b = 1 - Math.pow(Math.abs(2 * fr(v / s) - 1), 4); return [a * b, 1]; }
+    case 'facet': { const s = h / 2, a = Math.abs(2 * fr(u / s) - 1), b = Math.abs(2 * fr(v / s) - 1), flip = (Math.floor(u / s) + Math.floor(v / s)) % 2; return [1 - Math.max(a, b) * (flip ? .7 : 1), flip ? .97 : 1]; }
+    case 'tri': { const s = h / 2, row = Math.floor(v / s); return [tri(u / s + (row % 2) * .5) * (1 - fr(v / s)), 1]; }
+    case 'mosaic': { const s = .025, gr = fr(u / s) < .08 || fr(v / s) < .08, id = Math.floor(u / s) * 7 + Math.floor(v / s) * 13 + cell; return [gr ? -1 : 0, gr ? .8 : [1, .97, .9, 1.02, .85, 1, .94][((id % 7) + 7) % 7]]; }
+    case 'slats': { const s = .025, id = Math.floor(u / s) + cell * 5, gr = fr(u / s) < .06; return [gr ? -1 : .3 * ((id * 7) % 3), gr ? .7 : [.92, 1.06, .98, 1.1, .88][((id % 5) + 5) % 5]]; }
+    case 'mill': { const a = fr(u / .075), b = fr(v / .15), e = Math.min(a, 1 - a, (b) / 2, (1 - b) / 2); return [Math.min(1, e * 12), 1]; }
+    case 'origami': { const s = h / 2, a = fr(u / s), b = fr(v / s), r = Math.hypot(a, b); return [r < 1 ? .5 + .5 * Math.cos(Math.atan2(b, a) * 8) * (1 - r) : 0, 1]; }
+    case 'squares': { const s = h / 2, gr = fr(u / s) < .01 || fr(v / s) < .02; return [gr ? -.8 : 0, gr ? .92 : 1]; }
+    case 'lace': { const d1 = Math.abs(fr((u + v) / .03) - .5), d2 = Math.abs(fr((u - v) / .03) - .5); return [(d1 < .08 || d2 < .08) ? .6 : 0, 1]; }
+    case 'hand': return [.35 + .35 * Math.sin(6.283 * (u / .21 + cell * .37)) * Math.sin(6.283 * (v / .17 + cell * .19)), 1];
+  }
+  return [0, 1];
+}
+// Builds colour, roughness and height canvases for one product: cat.nx x cat.ny tiles with grout, one texture repeat.
+function cerTex(cat, it) {
+  const C = CER[cat], [name, hex, pattern, o = {}] = it, [base, relief] = pattern.split('+'), [kind, sub] = base.split(':');
+  const c = cerHex(hex), lum = (.3 * c[0] + .59 * c[1] + .11 * c[2]) / 255, rg = CER_FIN[cerFin(cat, it)][1];
+  const cu = C.w * C.nx, cv = C.h * C.ny, ppm = Math.min(isPhone ? 360 : 700, (isPhone ? 512 : 1024) / Math.max(cu, cv));
+  const W = Math.round(cu * ppm), Hh = Math.round(cv * ppm), tw = W / C.nx, th = Hh / C.ny, gp = Math.max(1.5, ppm * (C.w < .2 || C.h < .2 ? .002 : .003));
+  const cnv = document.createElement('canvas'); cnv.width = W; cnv.height = Hh; const g = cnv.getContext('2d');
+  const grout = lum > .45 ? c.map(v => v * .6 + 164 * .4 - 18) : c.map(v => v * .6 + 74 * .4);
+  g.fillStyle = cerRGB(grout); g.fillRect(0, 0, W, Hh);
+  const R0 = rnd(cerHash(cat + name + pattern)), tiles = [];
+  for (let i = 0; i < C.nx; i++) for (let j = 0; j < C.ny; j++) {
+    let x = i * tw, y = j * th;
+    if (C.bond === 'r') x += (j % 2) * tw / 2; if (C.bond === 'c3') y += (i % 3) * th / 3;
+    tiles.push([x, y, Math.floor(R0() * 1e9) + 1, i * C.ny + j]);
+  }
+  const vein = o.v ? cerHex(o.v) : c.map(v => v * (lum > .5 ? .8 : 1.3));
+  for (const [tx, ty, seed, cell] of tiles) for (const dx of [0, -W]) for (const dy of [0, -Hh]) {
+    const x = tx + dx + gp / 2, y = ty + dy + gp / 2, w = tw - gp, h = th - gp;
+    if (x > W || y > Hh || x + w < 0 || y + h < 0) continue;
+    const R = rnd(seed); g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+    g.fillStyle = cerRGB(c, 1 + (R() - .5) * (kind === 'hand' ? .1 : .035)); g.fillRect(x, y, w, h);
+    const big = Math.max(w, h) / ppm;   // tile size in metres, so noise scales with the product
+    switch (kind) {
+      case 'cem': cerNoise(g, x, y, w, h, 3 + big * 6, .2, R); cerNoise(g, x, y, w, h, big * 40, .22, R); cerSpots(g, x, y, w, h, big * big * 260, .4, 1.4, [c.map(v => v * .7)], .5, R); break;
+      case 'stone': cerNoise(g, x, y, w, h, 2 + big * 4, .25, R); cerNoise(g, x, y, w, h, big * 30, .18, R); cerSpots(g, x, y, w, h, big * big * 120, .6, 2.5, [c.map(v => v * .82), c.map(v => v * 1.08)], .45, R); break;
+      case 'marble': cerNoise(g, x, y, w, h, 3, .22, R); cerVeins(g, x, y, w, h, vein, 2 + Math.floor(R() * 3), Math.max(.6, ppm * .0015), .32, R); cerVeins(g, x, y, w, h, vein, 3, Math.max(.4, ppm * .0007), .18, R); break;
+      case 'cloud': cerNoise(g, x, y, w, h, 3, .36, R); cerNoise(g, x, y, w, h, 8, .22, R); break;
+      case 'onyx': cerNoise(g, x, y, w, h, 3, .35, R); for (let k = 0; k < 8; k++) cerVeins(g, x, y, w, h, c.map(v => v * (k % 2 ? 1.15 : .8)), 1, ppm * .004, .18, R); break;
+      case 'chips': cerNoise(g, x, y, w, h, 8, .2, R); cerSpots(g, x, y, w, h, big * big * 2400, ppm * .001, ppm * .005, [[40, 40, 42], [90, 90, 92], [150, 150, 150], [245, 245, 243], [120, 112, 104]], .9, R); break;
+      case 'gran': cerSpots(g, x, y, w, h, big * big * 9000, ppm * .0006, ppm * .0022, [[30, 31, 34], [140, 142, 146], [210, 210, 212], [70, 74, 80]], .85, R); break;
+      case 'wood': cerWood(g, x, y, w, h, c, R); break;
+      case 'madera': for (let k = 0; k < 4; k++) cerWood(g, x, y + k * h / 4, w, h / 4 - Math.max(1, gp / 2), c, R); break;
+      case 'plain': cerNoise(g, x, y, w, h, 4, .08, R); break;
+      case 'hand': { cerNoise(g, x, y, w, h, 5, .3, R); const e = Math.min(w, h) * .18;
+        for (const [gx0, gy0, gx1, gy1, rx, ry, rw, rh] of [[x, 0, x + e, 0, x, y, e, h], [x + w, 0, x + w - e, 0, x + w - e, y, e, h], [0, y, 0, y + e, x, y, w, e], [0, y + h, 0, y + h - e, x, y + h - e, w, e]]) {
+          const gr = g.createLinearGradient(gx0, gy0, gx1, gy1); gr.addColorStop(0, cerRGB(c, lum > .5 ? .86 : 1.18, .5)); gr.addColorStop(1, cerRGB(c, 1, 0)); g.fillStyle = gr; g.fillRect(rx, ry, rw, rh);
+        } break; }
+      case 'slats': cerNoise(g, x, y, w, h, 20, .3, R); break;
+      case 'enc': cerNoise(g, x, y, w, h, 6, .12, R); cerEnc(g, x, y, w, h, c, cerHex(o.c2), sub, o.n || 0); cerNoise(g, x, y, w, h, 12, .15, R); break;
+      case 'patch': { const bg = CER_PATCH[Math.floor(R() * 7)], fg = CER_PATCH[Math.floor(R() * 7)], m = Math.floor(R() * 3);
+        g.fillStyle = cerRGB(R() < .4 ? c : bg); g.fillRect(x, y, w, h);
+        if (m < 2) cerEnc(g, x, y, w, h, R() < .4 ? c : bg, fg, m ? 'pet' : 'med', Math.floor(R() * 5));
+        else { g.fillStyle = cerRGB(fg); for (let k = 0; k < 4; k++) g.fillRect(x, y + (k + .25) * h / 4, w, h / 8); }
+        cerNoise(g, x, y, w, h, 10, .2, R); break; }
+    }
+    g.restore();
+  }
+  // per pixel: relief height and its shading, grain, roughness. Tile id per pixel comes from the same layout.
+  const img = g.getImageData(0, 0, W, Hh), px = img.data, hb = new Float32Array(W * Hh), kb = new Float32Array(W * Hh).fill(1);
+  const reliefKind = relief || (kind === 'hand' ? 'hand' : kind === 'slats' ? 'slats' : null), bev = Math.max(1, ppm * .0015);
+  for (const [tx, ty, , cell] of tiles) {
+    for (let yy = 0; yy < th; yy++) for (let xx = 0; xx < tw; xx++) {
+      const e = Math.min(xx, tw - 1 - xx, yy, th - 1 - yy) - gp / 2; if (e < 0) continue;
+      const X = Math.floor(tx + xx) % W, Y = Math.floor(ty + yy) % Hh, i = Y * W + X;
+      let hgt = Math.min(1, e / bev) * (kind === 'hand' ? Math.min(1, e / (bev * 4)) : 1), k = 1;
+      if (reliefKind) { const [r, f] = cerRelief(reliefKind, xx / ppm, yy / ppm, tw / ppm, th / ppm, cell); hgt *= 1 + r * (kind === 'hand' && !relief ? .25 : .6); k = f; }
+      hb[i] = hgt; kb[i] = k;
+    }
+  }
+  const rc = document.createElement('canvas'), hc = document.createElement('canvas'); rc.width = hc.width = W; rc.height = hc.height = Hh;
+  const rimg = rc.getContext('2d').createImageData(W, Hh), himg = hc.getContext('2d').createImageData(W, Hh), rd = rimg.data, hd = himg.data;
+  const shadeK = reliefKind ? (kind === 'hand' && !relief ? .9 : 2.2) : .6, grain = kind === 'plain' || CER_FIN[cerFin(cat, it)][0] === 'מבריק' ? 4 : 9, Rg = rnd(cerHash(name) + 7);
+  for (let Y = 0; Y < Hh; Y++) for (let X = 0; X < W; X++) {
+    const i = Y * W + X, p = i * 4, hgt = hb[i];
+    const sx = hb[Y * W + (X + 1) % W] - hb[Y * W + (X + W - 1) % W], sy = hb[((Y + 1) % Hh) * W + X] - hb[((Y + Hh - 1) % Hh) * W + X];
+    const k = kb[i] * (1 + shadeK * .25 * (-sx + sy)), n = (Rg() - .5) * grain;
+    for (let ch = 0; ch < 3; ch++) px[p + ch] = Math.max(0, Math.min(255, px[p + ch] * k + n));
+    const tile = hgt > .02, l = (px[p] + px[p + 1] + px[p + 2]) / 765;
+    rd[p] = rd[p + 1] = rd[p + 2] = 255 * (tile ? Math.max(0, Math.min(1, rg[0] + (rg[1] - rg[0]) * (.5 + (lum - l) * 2.5 + (Rg() - .5) * .35))) : .93); rd[p + 3] = 255;
+    hd[p] = hd[p + 1] = hd[p + 2] = Math.max(0, Math.min(255, 60 + hgt * 150)); hd[p + 3] = 255;
+  }
+  g.putImageData(img, 0, 0); rc.getContext('2d').putImageData(rimg, 0, 0); hc.getContext('2d').putImageData(himg, 0, 0);
+  const tex = (cv, srgb) => { const t = new THREE.CanvasTexture(cv); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; };
+  return { map: tex(cnv, true), rough: tex(rc), bump: tex(hc), cu, cv, bumpScale: reliefKind ? 1.1 : .55 };
+}
+
+// Spaces: which material each one drives, which catalog pages the spec allows there, and my pick. o = grid origin [u, v] in
+// metres (floors: x, z; walls: along the wall, height), so a grout line falls on the room edge or the counter.
+const CER_WALL = ['c2575a', 'c2575b', 'c3060a', 'c3060b', 'c3060c', 'c2060'];
+const CER_SPACES = [
+  { id: 'floor', name: 'ריצוף: סלון, מטבח, כניסה ומסדרון', m: mat.tile, cats: ['f80a', 'f80b', 'f60'], def: 'f80a|מלרוז אפור|m', view: 'entry', o: [2.555, 5.70],
+    cur: 'הריצוף שעיצבנו עד היום (120×120 בגוון בטון, לא מהמפרט)' },
+  { id: 'rooms', name: 'ריצוף: חדרי השינה וחדר הארונות', m: mat.planks, cats: ['f80a', 'f80b', 'f60'], def: 'cur', view: 'master', o: [4.60, -3.11],
+    cur: 'דמוי פרקט אלון, כמו שעיצבנו (לא מהמפרט)' },
+  { id: 'bathF', name: 'ריצוף: חדר הרחצה', m: mat.terrazzo, cats: ['w30', 'w1560'], def: 'w30|לוגנו סטון|r', view: 'bath', o: [2.01, -3.775], cur: 'טרצו בהיר (לא מהמפרט)' },
+  { id: 'bathW', name: 'חיפוי: חדר הרחצה', m: mat.bathWall2, cats: CER_WALL, def: 'c2575b|סהרה אייבורי|m', view: 'bath', o: [2.01, 0], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
+  { id: 'ensF', name: 'ריצוף: מקלחת ההורים', m: mat.bathFloor, cats: ['w30', 'w1560'], def: 'w30|מלרוז אפור|r', view: 'mbath', o: [4.63, -4.98], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
+  { id: 'ensW', name: 'חיפוי: מקלחת ההורים', m: mat.bathWall, cats: CER_WALL, def: 'c2575b|מיסטרל אייבורי|m', view: 'mbath', o: [4.63, 0], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
+  { id: 'ensA', name: 'חיפוי: שני קירות המקלחון', m: mat.sage, cats: CER_WALL, def: 'c2575b|מיסטרל אייבורי דקור|m', view: 'shower', o: [4.63, 0],
+    cur: 'זליג׳ ירוק מרווה 7.5×30 (לא מהמפרט)' },
+  { id: 'kitB', name: 'חיפוי: בין ארונות המטבח', m: mat.splash, cats: ['k1030', 'k2020', 'c3060a', 'c3060b', 'c3060c', 'c2060'], def: 'k1030|וראנו לבן|g', view: 'kitchen3', o: [4.28, .92],
+    cur: 'לוח קוורץ כמו המשטח (לא מהמפרט)' },
+  { id: 'balc', name: 'ריצוף: מרפסת השמש', m: mat.deck, cats: ['w30', 'w1560'], def: 'w30|מלרוז אפור|r', view: 'balcony', o: [BX1, BZ1], cur: 'דק עץ (לא מהמפרט)',
+    note: 'במפרט ה-15×60 מיועד למרפסות עד 20 מ״ר. המרפסת כ-24 מ״ר, כדאי לברר עם הסטודיו.' },
+];
+const CER_FIXTURES = [   // chosen from the same spec; listed only, the 3D fixtures are not swapped
+  ['ברזי הכיורים', 'סדרת אומגה שחור, פרח פיה קצרה (עמ׳ 23)'],
+  ['אמבטיה, ברז', 'סדרת אומגה שחור, סוללה (עמ׳ 23), עם מוט אומגה שחור (עמ׳ 21)'],
+  ['מקלחת ההורים', 'סדרת אומגה שחור, 3 דרך (עמ׳ 23); ראש טוש אומגה שחור, זרוע אומגה שחור, מוט אומגה שחור (עמ׳ 21)'],
+  ['אמבטיה', 'אמבטיה אקרילית מלבנית 160×70, לבן (עמ׳ 20), כמו בדגם'],
+  ['אסלות', 'נובה, תלויה, עם מיכל הדחה סמוי גיבריט ולחצן לבן מרובע (עמ׳ 19)'],
+  ['כיור מטבח', 'נירוסטה (עמ׳ 25)'],
+  ['ברז מטבח', 'אומגה, שחור (עמ׳ 26)'],
+  ['ארונות אמבטיה', 'ארון סטודיו, אפוקסי לבן (עמ׳ 28): 80 בחדר הרחצה, 100 במקלחת ההורים. בדגם הארונות 100 ו-70 ס״מ, והמפרט נותן 60/80 ו-100/120'],
+];
+const cerState = {};
+function cerApply(sp, key) {
+  const m = sp.m, u = m.userData;
+  if (!u.cerOrig) u.cerOrig = { map: m.map, roughnessMap: m.roughnessMap, bumpMap: m.bumpMap, normalMap: m.normalMap, bumpScale: m.bumpScale, roughness: m.roughness, color: m.color.clone() };
+  if (u.cerTex) { u.cerTex.forEach(t => t.dispose()); u.cerTex = null; }
+  const it = key !== 'cur' && cerItem(key);
+  if (!it) { const { color, ...rest } = u.cerOrig; Object.assign(m, rest); m.color.copy(color); key = 'cur'; }
+  else {
+    const t = cerTex(key.split('|')[0], it), s = u.uv || 1, [u0, v0] = sp.o || [0, 0], fr = a => a - Math.floor(a);
+    for (const x of [t.map, t.rough, t.bump]) { x.repeat.set(s / t.cu, s / t.cv); x.offset.set(fr(-u0 / t.cu), fr(-v0 / t.cv)); }
+    Object.assign(m, { map: t.map, roughnessMap: t.rough, bumpMap: t.bump, normalMap: null, bumpScale: t.bumpScale, roughness: 1 }); m.color.set('#ffffff');
+    u.cerTex = [t.map, t.rough, t.bump];
+  }
+  m.needsUpdate = true; cerState[sp.id] = key; dirty = 1;
+  if (ptOn && pt) pt.updateMaterials();
+}
+const cerList = document.getElementById('cerList'), cerSaved = (() => { try { return JSON.parse(localStorage.getItem('ali-cer') || '{}'); } catch (e) { return {}; } })();
+const cerSave = () => { try { localStorage.setItem('ali-cer', JSON.stringify(cerState)); } catch (e) { } };
+const cerUI = {};
+for (const sp of CER_SPACES) {
+  const row = document.createElement('div'); row.className = 'cer-row';
+  const opts = [`<option value="cur">${sp.cur}</option>`].concat(sp.cats.map(cat => `<optgroup label="${CER[cat].t} · עמ׳ ${CER[cat].page}">` +
+    CER[cat].items.map(it => { const k = cerKey(cat, it), f = CER_FIN[cerFin(cat, it)][0]; return `<option value="${k}">${it[0]}${it[0].includes(f) || /^[ub]$/.test(cerFin(cat, it)) ? '' : ` (${f})`}</option>`; }).join('') + '</optgroup>'));
+  row.innerHTML = `<div class="label">${sp.name}</div><div class="cer-ctl"><button class="icon-btn" data-d="-1" aria-label="הקודם">›</button>` +
+    `<select aria-label="${sp.name}">${opts.join('')}</select><button class="icon-btn" data-d="1" aria-label="הבא">‹</button><button class="icon-btn" data-v>הצג</button></div>` +
+    `<div class="cer-info"></div>${sp.note ? `<div class="cer-info cer-note">${sp.note}</div>` : ''}`;
+  cerList.appendChild(row);
+  const sel = row.querySelector('select'), info = row.querySelector('.cer-info');
+  const set = key => { sel.value = key; if (sel.value !== key) sel.value = key = 'cur'; info.innerHTML = key === 'cur' ? sp.cur : cerDesc(key, true) + (key === sp.def ? ' · ההמלצה שלי' : '');
+    photoReady.then(() => { if (sel.value === key) { cerApply(sp, key); cerSave(); } }); };
+  sel.onchange = () => set(sel.value);
+  row.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const n = sel.options.length; set(sel.options[(sel.selectedIndex + +b.dataset.d + n) % n].value); });
+  row.querySelector('[data-v]').onclick = () => setView(sp.view);
+  cerUI[sp.id] = set;
+}
+function cerSet(id, key) { if (cerUI[id]) cerUI[id](key); }
+function cerReset() { CER_SPACES.forEach(sp => cerSet(sp.id, sp.def)); }
+function cerText() {
+  return ['קרמיקה (מפרט מוצרים סטנדרט, סטודיו קרמיקה, עלי מוהר 6-8, 10/02/2026):']
+    .concat(CER_SPACES.map(sp => `${sp.name}: ${(cerState[sp.id] || 'cur') === 'cur' ? sp.cur : cerDesc(cerState[sp.id])}`), ['', 'כלים וברזים:'], CER_FIXTURES.map(([a, b]) => `${a}: ${b}`)).join('\n');
+}
+document.getElementById('cerFix').innerHTML = CER_FIXTURES.map(([a, b]) => `<li><b>${a}:</b> ${b}</li>`).join('');
+document.getElementById('cerReset').onclick = cerReset;
+document.getElementById('cerCopy').onclick = async e => {
+  const b = e.currentTarget, txt = cerText();
+  try { await navigator.clipboard.writeText(txt); } catch (err) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  b.textContent = 'הועתק'; setTimeout(() => b.textContent = 'העתקת הבחירות', 1500);
+};
+CER_SPACES.forEach(sp => cerSet(sp.id, cerSaved[sp.id] || sp.def));
+
 setHQ(hq);
 setPanel(true);
 const start = (location.hash || '#entry').slice(1);
@@ -2462,5 +2801,5 @@ setView(views[start] ? start : 'entry', true);
 document.getElementById('loading').hidden = true;
 requestAnimationFrame(tick);
 LM.ready = LM.load();
-window.__app = { LM, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls, mirrors };
+window.__app = { LM, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls, mirrors, CER, CER_SPACES, cerSet, cerReset, cerText, cerState };
 </script>

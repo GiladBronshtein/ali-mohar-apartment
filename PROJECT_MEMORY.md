@@ -7,6 +7,8 @@ session; remove entries that are no longer true.
 
 - The GitHub Pages site is the canonical version (owner's decision, 2026-10-04). The claude.ai artifact is frozen at
   an older state and is no longer updated; Claude Code cannot write to it (HTML artifacts refuse docs-connector access).
+- Third re-check against the owner's vector PDFs, including the construction plan (new), plus ceramics from the
+  studio spec, 2026-10-04: `audit/recheck3/APPLIED.md`, `CERAMICS.md`.
 - Blueprint re-check committed and pushed as 9baf415 (2026-10-04).
 - Commit and push after each reviewed fix without asking (owner, 2026-10-04).
 - Local checkout: `/Users/Gilad.Bronshtein/AliMohar`. Node deps and Playwright Chromium installed in `source/`.
@@ -21,6 +23,7 @@ session; remove entries that are no longer true.
 
 | Date | Event |
 |---|---|
+| 2026-10-04 | Third re-check against the owner's vector PDFs (`materials/plans/vector/`, the construction plan is new), four reports in `audit/recheck3/` (summary `APPLIED.md`). Window and door sills and heads now written: `HEAD` 2.35, bedroom windows one sash with sill .15, baths 1.10/1.25, mamad 1.10..2.10, kitchen window C sill 1.20; living facade openings re-centred. Corridor-to-living passage 120 (was 98). Family bath riser box to the NW corner, master split over the master door, shower on a wall arm, return grille, condenser 100x45, balcony drains, 9 electrical items. Bath tile skins found buried 2.5 to 3 cm inside the moved walls, moved onto the faces. Ceramics from the studio spec (`CERAMICS.md`, names exact), with a per-space picker in the panel ("קרמיקה מהמפרט", saved in localStorage `ali-cer`, copy button). The vendor catalog PDF stays out of the repo. `roomdims` +0, `clearance_audit` 0, `sitetest` no issues. |
 | 2026-10-04 | Second re-check, five parallel reports in `audit/recheck2/` (summary `APPLIED.md`). Corridor and living-strip drop 25 to 35 cm (AC sheet "h=35cm (netto)", Latin written mirrored, misread before), TV bridge now 2.19 to the drop; entry wall by the kitchen; 13 electrical items (socket heights 1.80/1.10/1.40/2.20, bed heads, bath heaters, entry plate); niche louvres 80% open, water heater z, kids' WC axis 44, niche drain riser. Interior: GTAO retune and transparent meshes off the AO pass, hollow tub, recessed niches, steel sink, gooseneck faucet, eve hotspots, slat grain, skirting, condenser, hob, handles. Environment from the balcony photos: tower moved SE, block rings, lit windows in eve, lot cut to z 9..22 with retaining wall and driveway, street parking, red pavers, street lights, school details, north plot. `roomdims` +0, `clearance_audit` 0, `sitetest` no issues. |
 | 2026-10-04 | Wave pendant moved from the mamad to the living room, 60 cm in front of the storage wall and parallel to it (diffuser bottom about 2.06, estimate); the four cables now drop straight out of a canopy as long as the bar. Mamad back to its fan and spots. Then centred between the AC bulkhead and the south wall, and the ceiling LED grazer over the arch picture removed (owner). `clearance_audit` 0, `roomdims` +0, `sitetest` no issues. |
 | 2026-10-04 | Owners' current furniture and lamps, from their photos (sizes estimated): living sofa as dark leather with flip-up headrests and chrome legs, shaggy rug with a diamond lattice (`T.berber`), rotating slab coffee table; balcony sofa on a slim aluminium frame with loose cushions, teak-top table; egg chair rebuilt as an open rattan teardrop on a C-stand. Lamps: frames pendant over the island (replaces the two cones), wave pendant (moved later the same day), flush three-frame light over the coffee table, black cylinder downlights in the corridor and entry (replace 5 recessed spots); three warm point lights moved under them. Footprints unchanged: `clearance_audit` 0, `roomdims` +0, `sitetest` no issues. |
@@ -77,9 +80,19 @@ writes 90x15 only for the two living grilles; rooms 1 and 2 get a combined 80x20
 
 ## Open issues
 
+- **Open from the third re-check** (`audit/recheck3/APPLIED.md`): ceiling height (heads 2.35 plus a 35 cm shutter
+  box point to 2.70 or more, model keeps 2.60); boxed "א" marks in the bedrooms and mamad; blue "1" over the entry
+  door; living-room cones and "S" box; window C shutter with no motor; second condenser 84x40 not modelled; balcony
+  upstand height; room interiors on the construction plan are 5 to 8 cm larger than the sales plan (model stays on the
+  sales plan).
+- **Ceramics** (`CERAMICS.md`): tiles are drawn from the catalog images, not photos; baked mode (`?baked=1`) does not
+  follow the swaps. Ask the studio: balcony 15x60 limit (20 sqm, ours about 24), vanity sizes (spec 60/80 and 100/120,
+  model 100 and 70), unwritten finishes.
 - **Open from the second re-check** (`audit/recheck2/APPLIED.md`): soil colour (photos show orange hamra, the model
-  keeps the neutral colour until the owner confirms); passage width (120 scaled on both MEP sheets, 98 in the model);
-  master split position; kids' bath pipe box corner; boxed "א 25" marks; condenser 137x55 outline; cisterns.
+  keeps the neutral colour until the owner confirms); cisterns. Passage width, master split, kids' bath pipe box and
+  the condenser outline were resolved in the third re-check.
+- **Renders stale (third re-check):** `room1`, master, living facade views (`sofa`, `kitchen`, `balcony`), `bath`,
+  `shower` and the niche predate the new windows, passage, tiles and the bath tile fix.
 - **Renders stale (second re-check):** every exterior render (`view`, `balcony`, `balcony2`, bird views) predates
   the new tower, blocks and street; `tvwall`, `sofa`, `entry` predate the 35 cm drop; `bath`, `shower`, `kitchen`
   predate the tub, niche, sink and hob changes.
@@ -122,8 +135,10 @@ writes 90x15 only for the two living grilles; rooms 1 and 2 get a combined 80x20
 
 ## Estimates (not on any plan)
 
-Ceiling 2.60 m; window sills 0.95 / 1.0 / 1.05 / 1.5 / 1.0 / 0; window heads 2.0 to 2.2; door heads 2.10 interior,
-2.30 balcony, 2.0 mamad; electrical panel height; railings; surroundings (from balcony photos, off by a few metres).
+Ceiling 2.60 m (the construction plan hints at 2.70 or more); interior door heads 2.10; electrical panel height;
+heights of the new panel socket, fibre point and niche switches; condenser height; railings; surroundings (from
+balcony photos, off by a few metres). Window sills and heads are written on the construction plan since the third
+re-check.
 
 ## Next steps
 
@@ -132,4 +147,6 @@ Ceiling 2.60 m; window sills 0.95 / 1.0 / 1.05 / 1.5 / 1.0 / 0; window heads 2.0
 - CC0 sofas and sanitaryware from another source (ambientCG has none; check licences elsewhere).
 - Fix `render_all.sh` paths before the next render run; re-render the 4 stale images.
 - Refresh `audit/report.md` from `audit/recheck/` (its line numbers are stale).
-- Ask the contractor: column 2, panel position, ceiling height (2.63 near the mamad?), mamad relief sleeve.
+- Ask the contractor: column 2, panel position, ceiling height (2.63 near the mamad? heads 2.35 plus the shutter box
+  imply 2.70 or more), mamad relief sleeve, the boxed "א" marks.
+- Ask the studio: balcony 15x60, vanity sizes (see `CERAMICS.md`).

@@ -21,9 +21,9 @@ code at load time, so the whole apartment is diffable text.
 - Meters. `x` = east (toward the balcony), `z` = south (toward the kitchen), `y` = up. True north is `-z`; the
   balcony faces east onto Ali Mohar street.
 - Origin: living-room face of the TV wall, at the inner west face of the dining alcove.
-- `H = 2.60` ceiling (estimate), `HEAD = 2.30` opening head, `DOORH = 2.10`, `FX = 7.28` inner living facade,
+- `H = 2.60` ceiling (estimate), `HEAD = 2.35` opening head (written on the construction plan), `DOORH = 2.10`, `FX = 7.28` inner living facade,
   `FO = 7.70` outer facade, `LZ = 8.79`, `FT = 2.70` facade top.
-- `DROP = H - .25` corridor and AC bulkhead drop ceiling; `BC = H - .50` kids' bath ceiling (AC unit above).
+- `DROP = H - .35` corridor and AC bulkhead drop ceiling; `BC = H - .50` kids' bath ceiling (AC unit above).
 - Balcony: `BX1 = FO`, `BX2 = 10.45`, `BZ1 = .30`, `BZ2 = 8.71`, deck `BY = -.04`, north wall stops at `BN = 9.30`.
 - Street level `GY = -6.6` (floor 2).
 - Walls are gross dimensions, brick to brick, as on the architect's plan.
@@ -77,6 +77,13 @@ interior dimensions, e.g. חדר הורים 430×296.
   veneer (colour), laminate (normal and roughness only, so the procedural plank layout stays), white stucco on walls,
   caban and rough linen on fabrics. `photoReady` resolves when all are applied. A missing file leaves the procedural
   material untouched, so the claude.ai artifact (no `assets/`) keeps the old look.
+- Ceramics picker: `CER` holds every tile in the developer's ceramics spec per catalog page (exact Hebrew name, swatch
+  hex, base pattern plus optional relief, finish). `cerTex()` draws one texture repeat (nx x ny tiles with grout) as
+  colour, roughness and height canvases; `cerApply(space, key)` swaps them onto the space's material in place (the
+  merged meshes share it), saving the originals in `userData.cerOrig` for the "cur" option, and offsets the repeat so a
+  grout line starts at `space.o` (a room corner or the counter). `CER_SPACES` maps each space to its material and the
+  catalog pages the spec allows there. Applied after `photoReady`. The baked mode (`?baked=1`) clones materials and
+  does not follow the swaps. Item key: `cat|name|finish` (names repeat across pages and finishes).
 - glTF props (site only): `GLTFLoader` + `MeshoptDecoder` load `assets/models/potted_plant_0{1,2}.glb` onto the
   balcony (`propGroup`); the procedural plants (`procPlants`, a separate group added to `scene` so `mergeGroup` keeps
   it swappable) are hidden only when both models load.
@@ -140,13 +147,17 @@ interior dimensions, e.g. חדר הורים 430×296.
 - Gallery: `RENDERS` list of 17 `[slug, Hebrew caption]`; shows entries also in `renders/status.json` `done`. Keyboard
   and swipe navigation; opening it pauses the 3D loop.
 - Panel hides with the H / ח key; on phones it is a 48% bottom sheet and the view shifts up with `setViewOffset`.
+- "קרמיקה מהמפרט" `<details id="cer">`: per space a select with one optgroup per catalog page, prev/next, a button to
+  the space's view, the name/size/finish/page line, copy-to-clipboard and reset. Choices persist in localStorage
+  `ali-cer`.
 - A `<details>` notes block in the panel states the estimates and stale renders in Hebrew.
 
 ## Test hooks
 
 `window.__app` exposes the scene graph groups, materials (`mat`), warm lights, `setView`, `setMode`, `setDims`,
 `setCeil`, `setHQ`, `setDoors`, `setCurtains`, `setPT`, `renderOnce`, `views`, renderer, scene, camera, controls,
-`THREE`, and `LM` (lightmaps). `window.__pause` stops the loop; `window.__nobake` blocks the bake load.
+`THREE`, `LM` (lightmaps), and the ceramics API (`CER`, `CER_SPACES`, `cerSet(id, key)`, `cerReset`, `cerText`,
+`cerState`). `window.__pause` stops the loop; `window.__nobake` blocks the bake load.
 `exportglb.mjs` and `sitetest.mjs` depend on these names: rename them in both places or not at all.
 
 ## Site build
