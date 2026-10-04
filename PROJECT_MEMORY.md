@@ -7,8 +7,8 @@ session; remove entries that are no longer true.
 
 - The GitHub Pages site is the canonical version (owner's decision, 2026-10-04). The claude.ai artifact is frozen at
   an older state and is no longer updated; Claude Code cannot write to it (HTML artifacts refuse docs-connector access).
-- Uncommitted (2026-10-04): the blueprint re-check fixes in `salon.html` and `clearance_audit.py`, `audit/recheck/`,
-  `materials/plans/originals/`.
+- Blueprint re-check committed and pushed as 9baf415 (2026-10-04).
+- Commit and push after each reviewed fix without asking (owner, 2026-10-04).
 - Local checkout: `/Users/Gilad.Bronshtein/AliMohar`. Node deps and Playwright Chromium installed in `source/`.
 - Verified locally: `build_site.py` rebuild is byte-identical; `sitetest.mjs` "no issues" on desktop and phone;
   `clearance_audit.py` 0 issues; `roomdims.py` +0 on all rooms except the closet probe artifact.
