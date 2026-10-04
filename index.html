@@ -553,7 +553,7 @@ const mat = {
   rug: fab('#cfc5b5', 14, 1), anthracite: M('#3a3b3d', .45), rugGrey: fab('#9aa0a3', 15, 1), rugKid: fab('#d9cdb4', 16, 1), rugBlue: fab('#a7b6c2', 17, 1), berber: TM(T.berber, 1, .6),
   mattress: M('#f4f3ef', 0.95),
   leaf: M('#4c6a39', 0.7, { side: THREE.DoubleSide }), leaf2: M('#6b8a47', 0.7, { side: THREE.DoubleSide }), leaf3: M('#3e5a33', 0.7, { side: THREE.DoubleSide }), pot: M('#cdbda7', 0.92), potDark: M('#4a4642', 0.9), terracotta: M('#b97a57', 0.9),
-  concrete: M('#e9e7e2', 0.95), ground: M('#a7a49a', 1), asphalt: M('#55585b', 0.95, {}, 4), soil: M('#c98a52', 1), turf: M('#6f9a4c', 1, {}, 3), pv: M('#24364f', 0.3, { metalness: 0.4 }),
+  concrete: M('#e9e7e2', 0.95), stucco: M('#ecebe6', 0.95, {}, 1.5), ground: M('#a7a49a', 1), asphalt: M('#55585b', 0.95, {}, 4), soil: M('#c98a52', 1), turf: M('#6f9a4c', 1, {}, 3), pv: M('#24364f', 0.3, { metalness: 0.4 }),
   louver: M('#d9d6cf', 0.6, { metalness: 0.3 }),
   book1: M('#7b6a58', 0.8), book2: M('#c9b99f', 0.8), book3: M('#46505a', 0.8), book4: M('#a65e3e', 0.8), book5: M('#e6e1d6', 0.8),
   ceramicVase: M('#e8e2d6', 0.6), stoneVase: M('#8b8277', 0.8),
@@ -622,6 +622,7 @@ const photoReady = Promise.all([   // the baked-light materials are clones: LM.l
   photoPBR([mat.oak], 'oak_veneer_01', 1.83, { color: true, normal: .5 }),
   photoPBR([mat.slatOak], 'oak_veneer_01', .6, { color: true, normal: .5 }).then(() => mat.slatOak.color.multiply(new THREE.Color(.93, .9, .9))),
   photoPBR([mat.wall], 'white_stucco', 2.0, { normal: .35 }),
+  photoPBR([mat.stucco], 'white_stucco', 1.5, { normal: .5 }),   // exterior plaster on our shell (finish is an estimate)
   photoPBR([mat.sofaGrey, mat.oat, mat.oatDark, mat.charcoal, mat.blackFab], 'caban', .27),
   photoPBR([mat.linen, mat.linenGrey, mat.olive, mat.rust, mat.dusty, mat.mustard, mat.sageFab, mat.clay], 'rough_linen', .27)]);
 
@@ -1694,9 +1695,9 @@ windowZ(.48, 1.48, -3.80, -4.28, 1.10, 2.10, 1);
 // =====================================================================
 const BX1 = FO, BX2 = 10.45, BZ1 = .34, BZ2 = 8.71, BY = -.04, BN = 9.30, BS = 10.07, BZN = -.13;
 floor(BX1, BX2, BZ1, BZ2, mat.deck, BY); floor(BN, BX2, BZN, BZ1, mat.deck, BY);
-B(BX1, BX2, BZN, 9.20, 2.70, 2.95, mat.concrete, { parent: ceilGroup });
-B(BX1, BN + .002, BZN - .015, BZ1, BY, 2.70, mat.concrete); B(BX1, BS, BZ2, 9.20, BY, 2.70, mat.concrete);
-B(BX2 - .15, BX2, BZN, BZ2, BY, .45, mat.concrete); B(BN, BX2 - .15, BZN, BZN + .15, BY, .45, mat.concrete);   // upstand about knee high (site photos, estimate) B(BX1, BX2, BZN, 9.20, -.40, BY - .012, mat.concrete);
+B(BX1, BX2, BZN, 9.20, 2.70, 2.95, mat.stucco, { parent: ceilGroup });
+B(BX1, BN + .002, BZN - .015, BZ1, BY, 2.70, mat.stucco); B(BX1, BS, BZ2, 9.20, BY, 2.70, mat.stucco);
+B(BX2 - .15, BX2, BZN, BZ2, BY, .45, mat.stucco); B(BN, BX2 - .15, BZN, BZN + .15, BY, .45, mat.stucco);   // upstand about knee high (site photos, estimate) B(BX1, BX2, BZN, 9.20, -.40, BY - .012, mat.concrete);
 for (let z = BZN + .07; z < BZ2 - .05; z += .12) B(BX2 - .10, BX2 - .08, z - .01, z + .01, .47, 1.05, mat.blackMetal);
 B(BX2 - .12, BX2 - .06, BZN, BZ2, 1.05, 1.09, mat.blackMetal); B(BX2 - .11, BX2 - .07, BZN, BZ2, .45, .49, mat.blackMetal);
 for (let x = BN + .07; x < BX2 - .12; x += .12) B(x - .01, x + .01, BZN + .08, BZN + .10, .47, 1.05, mat.blackMetal);
@@ -1857,11 +1858,21 @@ function building(x1, x2, z1, z2, h, kind = 'white') {
 // building A itself: the rest of the building south of the apartment (7 storeys), its stacked east balconies, and the floors below us
 building(-4.28, 7.70, 9.11, 38, 23.1);
 for (let f = 0; f < 7; f++) [[9.25, 13.2], [26, 30.8]].forEach(([a, b]) => { const y = GY + f * 3.3 + 3.2;          // separate balcony boxes, about 4.4 m long (keyplan)
-  B(7.70, 10.2, a, b, y - .25, y, mat.concrete, { cast: false, parent: outside }); B(10.05, 10.2, a, b, y, y + .45, mat.concrete, { cast: false, parent: outside });
-  B(7.70, 10.2, a, a + .15, y, y + .45, mat.concrete, { cast: false, parent: outside }); B(7.70, 10.2, b - .15, b, y, y + .45, mat.concrete, { cast: false, parent: outside });
+  B(7.70, 10.2, a, b, y - .25, y, mat.stucco, { cast: false, parent: outside }); B(10.05, 10.2, a, b, y, y + .45, mat.stucco, { cast: false, parent: outside });
+  B(7.70, 10.2, a, a + .15, y, y + .45, mat.stucco, { cast: false, parent: outside }); B(7.70, 10.2, b - .15, b, y, y + .45, mat.stucco, { cast: false, parent: outside });
   B(10.1, 10.14, a, b, y + .45, y + 1.05, mGlassRailN, { cast: false, parent: outside }); });
-building(-4.28, 9.30, -5.39, 9.11, 6.6 - .45 - .6);                                                                    // floors 0-1 under the apartment
-B(BX1, BX2, BZN, BZ2, GY, GY + 6.6 - .45, mat.concrete, { cast: false, parent: outside });
+// floors 0-1 under the apartment: plaster, with floor 2's outer windows repeated one and two storeys down (same plan
+// assumed; flush dark glass in a frame with a sill, an estimate)
+B(-4.28, 9.30, -5.39, 9.11, GY, GY + 6.15, mat.stucco, { cast: false, parent: outside }); sunBoxes.push([-4.28, 9.30, -5.39, 9.11, 6.15]);
+{ const mDark = new THREE.MeshStandardMaterial({ color: '#2b3137', roughness: .08, metalness: .2 }), o = { cast: false, parent: outside };
+  for (const dy of [-3.3, -6.6]) [['x', 6.015, 6.615, -5.39, -1, 1.25, 2.35], ['x', .365, 1.265, -5.39, -1, .15, 2.35], ['z', -2.81, -1.91, -4.28, -1, .15, 2.35],
+    ['z', .48, 1.48, -4.28, -1, 1.10, 2.10], ['z', -2.17, -1.27, 9.30, 1, .15, 2.35]].forEach(([ax, a1, a2, f, s, sill, head]) => {
+    const P = (b1, b2, d, y1, y2, m) => ax === 'x' ? B(b1, b2, f, f + s * d, y1 + dy, y2 + dy, m, o) : B(f, f + s * d, b1, b2, y1 + dy, y2 + dy, m, o);
+    P(a1, a2, .01, sill, head, mDark);
+    P(a1, a2, .04, head - .05, head, mat.frame); P(a1, a2, .04, sill, sill + .05, mat.frame); P(a1, a1 + .05, .04, sill, head, mat.frame); P(a2 - .05, a2, .04, sill, head, mat.frame);
+    if (sill > .1) P(a1 - .03, a2 + .03, .05, sill - .03, sill, mat.sill);
+  }); }
+B(BX1, BX2, BZN, BZ2, GY, GY + 6.6 - .45, mat.stucco, { cast: false, parent: outside });
 // --- STREETSCAPE, laid out from the user's photos taken on the balcony (positions estimated from the photos, +-several metres) ---
 // Ali Mohar street runs north-south below the balcony. Directly below: the floor-1 terrace (white tiles, glass railing) that
 // sticks out about 2.3 m past our balcony, then a narrow sidewalk, parallel parking, the road, perpendicular parking bays on the
