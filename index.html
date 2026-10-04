@@ -56,6 +56,7 @@ html, body { height: 100%; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); overflow: hidden; -webkit-tap-highlight-color: transparent; }
 #stage { position: fixed; inset: 0; }
 #stage canvas { display: block; touch-action: none; }
+#stage::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 62%, rgba(0,0,0,.16) 100%); }   /* soft lens vignette, no GPU cost */
 #labels { position: fixed; inset: 0; pointer-events: none; }
 .dim { font: 600 12px/1 var(--font-ui); color: #fff; background: #1f4f6b; padding: 3px 6px; border-radius: 3px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .zone { font: 500 13px/1.2 var(--font-ui); color: #1b3f55; background: rgba(255,255,255,.9); padding: 3px 7px; border-radius: 4px; white-space: nowrap; text-align: center; direction: rtl; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
@@ -285,6 +286,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, isPhone ? 1.5 : 1.5));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;   // static sun shadow: redrawn only when a caster changes (doors, curtains, ceiling, fans, loaded models), not for every TAA, AO and mirror pass
 renderer.toneMapping = THREE.ACESFilmicToneMapping;   // AgX (r160) tested: too desaturated for this palette
 renderer.toneMappingExposure = EXPO.day;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -296,7 +298,8 @@ RectAreaLightUniformsLib.init();
 const scene = new THREE.Scene();
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
-scene.fog = new THREE.Fog(0xdfe6ec, 90, 460);
+scene.fog = new THREE.Fog(0xcfd9e3, 35, 420);   // aerial haze from 35 m: rooms untouched, the far blocks and the ground fade into the horizon
+const fogCol = { day: new THREE.Color(0xcfd9e3), eve: new THREE.Color(0x3a3f4f) };
 const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.06, 900);   // near plane kept off zero for depth precision (no floor flicker)
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = 0.2;
@@ -310,8 +313,8 @@ const renderPass = new RenderPass(scene, camera); composer.addPass(renderPass);
 const taa = new TAARenderPass(scene, camera); taa.sampleLevel = 0; taa.accumulate = true; taa.enabled = false; composer.addPass(taa);
 let dirty = 1;
 const gtao = new GTAOPass(scene, camera, window.innerWidth, window.innerHeight);
-gtao.updateGtaoMaterial({ radius: 0.3, distanceExponent: 1.4, thickness: 0.4, scale: 1.2, samples: 16 });   // small radius and thickness: no grey halos around thin frames and cables
-gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 4, normalPhi: 3, radius: 8, rings: 2, samples: 16 });
+gtao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.2, thickness: 0.25, scale: 1.0, samples: 24 });   // small radius and thickness: no grey halos around thin frames and cables
+gtao.updatePdMaterial({ lumaPhi: 6, depthPhi: 2, normalPhi: 4, radius: 6, rings: 4, samples: 24 }); gtao.blendIntensity = .85;
 composer.addPass(gtao);
 // GTAO draws depth and normals with one override material that ignores alphaTest, so a tree card would darken the full quad
 // behind it: cards listed here are hidden from that pass
@@ -529,7 +532,7 @@ const mat = {
   sage: TM(T.sage, 0.25, 0.6), terrazzo: TM(T.terrazzo, 0.35, 0.8), deck: TM(T.deck, 0.8, 1.4), service: M('#c9c4bb', 0.9),
   oak: TM(T.oak, 0.55, 0.8), slatOak: TM(T.oak, 0.55, 0.8), walnut: TM(T.walnut, 0.5, 0.8), quartz: TM(T.quartz, 0.22, 1.6), trav: TM(T.trav, 0.6, 0.6),
   frame: M('#2e3134', 0.45, { metalness: 0.6 }), black: M('#1d1f21', 0.5), blackMetal: M('#202224', 0.35, { metalness: 0.8 }),
-  glass: new THREE.MeshStandardMaterial({ color: '#d4e3ea', roughness: 0.02, metalness: 0.1, transparent: true, opacity: 0.15, depthWrite: false }),
+  glass: new THREE.MeshStandardMaterial({ color: '#d4e3ea', roughness: 0, metalness: 0, transparent: true, opacity: 0.08, depthWrite: false }),
   showerGlass: new THREE.MeshStandardMaterial({ color: '#e2eef0', roughness: 0.02, metalness: 0.1, transparent: true, opacity: 0.22, depthWrite: false }),
   mirror: M('#e4eaec', 0.1, { metalness: 0.92 }),
   sill: M('#ece9e2', 0.35),
@@ -555,6 +558,7 @@ const mat = {
   limewash: TM(T.lime, 0.95, 1.6), graphite: M('#4b4e51', 0.62), sinkSteel: M('#c9cdcf', 0.3, { metalness: 0.25 }), nicheStone: M('#d9d3c6', .4), nicheBack: M('#ada596', .55), fanBlade: M('#8e9194', 0.5), fanBody: M('#6e7174', 0.4, { metalness: 0.4 }), fluteGrey: M('#45484b', 0.55), fluteBack: M('#26282a', 0.7), matteBlack: M('#1f2123', 0.6), greyFront: M('#8e9194', 0.6),
   fridge: M('#2d3034', 0.32, { metalness: 0.55 }), blackFab: fab('#2b2c2e', 19), nicheGrey: M('#d9dadb', 0.7), greyStone: TM(T.greyStone, 0.45, 1.2), greyStoneDark: M('#5e6163', 0.6),
 };
+Object.values(mat).forEach(m => { m.dithering = true; });   // no 8-bit banding on smooth wall and ceiling gradients
 // PBR detail: a roughness map and a relief (bump) map derived from each procedural colour texture, so joints, grain and
 // speckle change how glossy the surface is. Roughness variation is what makes tile, wood and stone read as real
 // instead of flat plastic (ra100 blender-shader-nodes + web3d-realism-performance "realism" notes).
@@ -781,7 +785,8 @@ function art(face, wall, c, y, w, h, seed, palette, style, frameM = mat.black) {
 function curtain(axis, a1, a2, at, y1, y2, m, folds = 9, amp = .045) {
   const len = a2 - a1, seg = Math.max(48, Math.round(len * 90));
   const g = new THREE.PlaneGeometry(len, y2 - y1, seg, 1), p = g.attributes.position;
-  for (let i = 0; i < p.count; i++) { const u = (p.getX(i) + len / 2) / len; p.setZ(i, Math.sin(u * Math.PI * 2 * folds * len / 1.2) * amp); }
+  for (let i = 0; i < p.count; i++) { const u = (p.getX(i) + len / 2) / len, f = u * Math.PI * 2 * folds * len / 1.2, a = amp * (p.getY(i) < 0 ? 1.12 : 1);   // second harmonic and a slight hem flare: folds not perfectly regular
+    p.setZ(i, (Math.sin(f) + .35 * Math.sin(f * 2.7 + 1.3)) * a); }
   g.computeVertexNormals();
   if (axis === 'x') g.translate((a1 + a2) / 2, (y1 + y2) / 2, at); else { g.rotateY(Math.PI / 2); g.translate(at, (y1 + y2) / 2, (a1 + a2) / 2); }
   const c = mesh(g, m, root, true); c.userData.keepUV = true; return c;
@@ -1058,9 +1063,9 @@ function slider(z1, z2, y1, y2, panes) {
 slider(.79, 3.49, 0, HEAD, 2); slider(4.29, 6.99, 0, HEAD, 2); slider(7.75, 8.45, 1.20, HEAD, 1);
 B(FX - .02, FX + .03, 7.67, 8.42, .97, 1.0, mat.sill, { cast: false });
 const sheerTex = canvasTex(256, 256, (g, w, h) => { const r = rnd(29); g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
-  for (let x = 0; x < w; x += 2) { g.fillStyle = `rgba(200,198,192,${.10 + r() * .12})`; g.fillRect(x, 0, 1, h); }
-  for (let y = 0; y < h; y += 3) { g.fillStyle = `rgba(210,208,202,${.05 + r() * .06})`; g.fillRect(0, y, w, 1); } });
-const sheer = new THREE.MeshStandardMaterial({ map: sheerTex, color: '#fbfaf7', roughness: 1, transparent: true, opacity: 0.72, side: THREE.DoubleSide, depthWrite: false });
+  for (let i = 0; i < 9000; i++) { g.fillStyle = `rgba(196,194,188,${.04 + r() * .05})`; g.fillRect(Math.floor(r() * w), Math.floor(r() * h), 1, 1); }   // fine weave, no stripes
+  for (let x = 0; x < w; x += 2) { g.fillStyle = `rgba(200,198,192,${.03 + r() * .03})`; g.fillRect(x, 0, 1, h); } });
+const sheer = new THREE.MeshStandardMaterial({ map: sheerTex, color: '#fbfaf7', roughness: 1, transparent: true, opacity: 0.62, side: THREE.DoubleSide, depthWrite: false, emissive: '#fffaf2', emissiveIntensity: .12 });   // emissive by day: backlit voile glows
 // one wave-fold sheer per balcony opening on a ceiling track; it opens to the left (north end of each opening)
 // open: ~2.6 m of fabric gathered into a 55 cm stack; closed: soft 20 cm waves across the whole opening, 1 cm above the floor
 const curtOpen = [], curtClosed = [];
@@ -1743,7 +1748,7 @@ plant(8.15, 6.10, { potR: .24, potH: .45, h: 1.0, seed: 82, spread: .35, base: B
     res(o); }, undefined, () => res(null)));
   Promise.all([load('potted_plant_01.glb', 8.10, 8.25, 1.5, .4), load('potted_plant_02.glb', 8.15, 6.10, .95, 2.1)]).then(os => {
     if (os.some(o => !o)) return;
-    propGroup.add(...os); procPlants.visible = false; dirty = 1; }); }
+    propGroup.add(...os); procPlants.visible = false; dirty = 1; renderer.shadowMap.needsUpdate = true; captureContact(); }); }
 
 // =====================================================================
 // FROM THE CONTRACTOR'S TECHNICAL PLANS (HADA 2579-2: electrical, plumbing, AC). Positions read off the drawings
@@ -2035,15 +2040,31 @@ Promise.all(['tree_small_02', 'jacaranda_tree', 'island_tree_02'].map(f => asset
   card(street, streetTrees); card(jac, yardTrees.filter((_, i) => i % 2)); card(isl, yardTrees.filter((_, i) => !(i % 2)));
   procTrees.visible = false; dirty = 1; });
 const sky = new THREE.Mesh(new THREE.SphereGeometry(650, 32, 16), new THREE.MeshBasicMaterial({ map: skyDay, side: THREE.BackSide, fog: false }));
-scene.add(sky);
+sky.renderOrder = 10; scene.add(sky);   // drawn after the opaque scene: only the uncovered pixels are shaded
 // photo skies (Poly Haven puresky HDRIs, tonemapped): upper 1152 of 2048 rows, turned so the day sun matches the sun light (ESE)
 // and the sunset sits in the west behind the building
+const extEnv = { day: null, eve: null }, extMats = new Set();   // exterior-only materials reflect the photo sky; the interior keeps the room environment
 const skies = { day: { map: skyDay, rot: 0, k: 1 }, eve: { map: skyEve, rot: 0, k: 1 } };
 const setSky = eve => { const s = eve ? skies.eve : skies.day; sky.material.map = s.map; sky.rotation.y = s.rot; sky.material.color.setScalar(s.k); sky.material.needsUpdate = true; dirty = 1; };
 Promise.all([assetTex('sky/day.webp'), assetTex('sky/eve.webp')]).then(([d, e]) => {
   if (!d || !e) return;
   [d, e].forEach(t => { t.repeat.set(1, 2048 / 1152); t.offset.set(0, 1 - 2048 / 1152); });
-  skies.day = { map: d, rot: -1.11, k: 1 }; skies.eve = { map: e, rot: -3.53, k: .35 }; setSky(isEve);
+  skies.day = { map: d, rot: -1.11, k: 1.8 }; skies.eve = { map: e, rot: -3.53, k: .35 }; setSky(isEve);   // day k 1.8: the view through the glass is brighter than the room, as in an interior photo
+  // haze colour = the sky just above the horizon (rows 990-1020 of 1152), in linear light times the sky's own scale
+  const horizon = (img, k) => { const c = document.createElement('canvas'); c.width = 64; c.height = 4; c.getContext('2d').drawImage(img, 0, 990, img.width, 30, 0, 0, 64, 4);
+    const px = c.getContext('2d').getImageData(0, 0, 64, 4).data, lin = v => v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4), m = [0, 0, 0];
+    for (let i = 0; i < px.length; i += 4) for (let j = 0; j < 3; j++) m[j] += lin(px[i + j] / 255) / 256;
+    return new THREE.Color().setRGB(m[0] * k, m[1] * k, m[2] * k, THREE.LinearSRGBColorSpace); };
+  fogCol.day.copy(horizon(d.image, skies.day.k)); fogCol.eve.copy(horizon(e.image, skies.eve.k)); scene.fog.color.copy(isEve ? fogCol.eve : fogCol.day);
+  // equirect copy for PMREM: three's equirect u is mirrored against the sphere's, and the sphere is turned by rot
+  const equi = (img, rot, gnd) => { const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d'), sh = 256 * 1152 / 2048;
+    g.fillStyle = gnd; g.fillRect(0, 0, 512, 256);
+    for (let i = 0; i < 512; i++) { const u = (((1 - (i + .5) / 512 - rot / (2 * Math.PI)) % 1) + 1) % 1; g.drawImage(img, Math.floor(u * img.width), 0, 1, img.height, i, 0, 1, sh); }
+    const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; const r = pmrem.fromEquirectangular(t).texture; t.dispose(); return r; };
+  extEnv.day = equi(d.image, skies.day.rot, '#8a877f'); extEnv.eve = equi(e.image, skies.eve.rot, '#26262a');
+  const inside = new Set(); [root, ceilGroup, curtGroup].forEach(g => g.traverse(o => { if (o.isMesh) inside.add(o.material); }));
+  outside.traverse(o => { if (o.isMesh && !inside.has(o.material) && o.material.isMeshStandardMaterial) extMats.add(o.material); });
+  extMats.forEach(m => { m.envMap = isEve ? extEnv.eve : extEnv.day; m.needsUpdate = true; }); dirty = 1;
 });
 
 // =====================================================================
@@ -2080,13 +2101,74 @@ function mergeGroup(group) {
 mergeGroup(root); mergeGroup(ceilGroup); mergeGroup(outside); mergeGroup(procPlants); mergeGroup(procTrees);
 scene.traverse(o => { if (o.isMesh && o.material.transparent) noAO.push(o); });   // sheers and glass: the AO override pass would draw them opaque
 
+// contact shadows: an orthographic camera just above the floor looks up and draws everything within 35 cm as darkness by
+// height (a back face means the camera is inside a wall or cabinet: full dark), blurred on the CPU (about 2 and 10 cm) into a black alpha plane on the floor. A second camera looking down masks
+// it to where there is floor. Interior and balcony floors sit at different heights, hence two regions. Re-captured when
+// doors, curtains or the potted plants change.
+const contactShader = f => new THREE.ShaderMaterial({ side: THREE.DoubleSide, fragmentShader: f,
+  vertexShader: 'void main() { vec4 p = vec4(position, 1.);\n#ifdef USE_INSTANCING\np = instanceMatrix * p;\n#endif\ngl_Position = projectionMatrix * modelViewMatrix * p; }' });
+const contactRule = solid => contactShader('void main() { float d = max(0., 1. - gl_FragCoord.z * 3. / .35); gl_FragColor = vec4(' + (solid ? 'gl_FrontFacing ? d * d : 1.' : 'd * d') + ', 0., 0., 1.); }');
+const contactMat = contactRule(false), contactSolidMat = contactRule(true), contactMaskMat = contactShader('void main() { gl_FragColor = vec4(1.); }');
+const CELL = isPhone ? .02 : .012;   // metres per texel; phones capture a third of the pixels
+const contacts = [{ x1: -4.4, x2: FX + .02, z1: -5.5, z2: 8.9, y: .015 }, { x1: FX, x2: 10.5, z1: -.2, z2: 8.8, y: BY + .006 }].map(r => {
+  const w = r.x2 - r.x1, d = r.z2 - r.z1, W = Math.round(w / CELL), Hh = Math.round(d / CELL), cx = r.x1 + w / 2, cz = r.z1 + d / 2;
+  const cam = new THREE.OrthographicCamera(-w / 2, w / 2, d / 2, -d / 2, 0, 3), mcam = new THREE.OrthographicCamera(-w / 2, w / 2, d / 2, -d / 2, 0, .06);
+  cam.position.set(cx, r.y, cz); cam.rotation.x = Math.PI / 2; cam.updateMatrixWorld();          // looking up: image rows run south (+z)
+  mcam.position.set(cx, r.y + .005, cz); mcam.rotation.x = -Math.PI / 2; mcam.updateMatrixWorld(); // looking down: rows run north, like the plane's v
+  const tex = new THREE.DataTexture(new Uint8Array(W * Hh * 4), W, Hh); tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter; tex.generateMipmaps = true;
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0, map: tex, transparent: true, opacity: .6, depthWrite: false, toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+  plane.position.set(cx, r.y - .001, cz); plane.renderOrder = -1; scene.add(plane); noAO.push(plane);
+  return { ...r, W, H: Hh, cam, mcam, tex, plane, rt: new THREE.WebGLRenderTarget(W, Hh), px: new Uint8Array(W * Hh * 4), mask: null };
+});
+function boxBlur(a, W, H, r) {   // three separable box passes, close to a gaussian
+  const t = new Float32Array(a.length), n = 2 * r + 1;
+  for (let pass = 0; pass < 3; pass++) {
+    for (let y = 0; y < H; y++) { const o = y * W; let s = 0;
+      for (let i = -r; i <= r; i++) s += a[o + Math.min(W - 1, Math.max(0, i))];
+      for (let x = 0; x < W; x++) { t[o + x] = s / n; s += a[o + Math.min(W - 1, x + r + 1)] - a[o + Math.max(0, x - r)]; } }
+    for (let x = 0; x < W; x++) { let s = 0;
+      for (let i = -r; i <= r; i++) s += t[Math.min(H - 1, Math.max(0, i)) * W + x];
+      for (let y = 0; y < H; y++) { a[y * W + x] = s / n; s += t[Math.min(H - 1, y + r + 1) * W + x] - t[Math.max(0, y - r) * W + x]; } }
+  }
+  return a;
+}
+function captureContact() {
+  const vis = scene.children.map(o => o.visible), su = renderer.shadowMap.needsUpdate, cc = renderer.getClearColor(new THREE.Color()), ca = renderer.getClearAlpha();
+  const only = list => scene.children.forEach((o, i) => o.visible = vis[i] && list.includes(o));
+  renderer.shadowMap.needsUpdate = false; renderer.setClearColor(0, 0);
+  contacts.forEach(c => {
+    const { W, H, px } = c, n = W * H;
+    renderer.setRenderTarget(c.rt);
+    if (!c.mask) {
+      only([root]); scene.overrideMaterial = contactMaskMat; renderer.clear(); renderer.render(scene, c.mcam);
+      renderer.readRenderTargetPixels(c.rt, 0, 0, W, H, px); c.mask = new Float32Array(n); for (let i = 0; i < n; i++) c.mask[i] = px[i * 4] / 255;
+    }
+    const a = new Float32Array(n);
+    [[[root, curtGroup, doorGroup], contactSolidMat], [[procPlants, propGroup], contactMat]].forEach(([list, m]) => {   // plants: leaf cards are not solids
+      only(list); scene.overrideMaterial = m; renderer.clear(); renderer.render(scene, c.cam); renderer.readRenderTargetPixels(c.rt, 0, 0, W, H, px);
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = (H - 1 - y) * W + x; a[i] = Math.max(a[i], px[(y * W + x) * 4] / 255); }
+    });
+    wallBoxes.forEach(([x1, x2, z1, z2]) => {   // wall tops meet their caps face to face, so walls are painted in from the list
+      const sx = W / (c.x2 - c.x1), sz = H / (c.z2 - c.z1), c1 = Math.max(0, Math.round((x1 - c.x1) * sx)), c2 = Math.min(W, Math.round((x2 - c.x1) * sx));
+      const r1 = Math.max(0, Math.round((c.z2 - z2) * sz)), r2 = Math.min(H, Math.round((c.z2 - z1) * sz));
+      for (let y = r1; y < r2; y++) a.fill(1, y * W + c1, y * W + Math.max(c1, c2));
+    });
+    const tight = boxBlur(a.slice(), W, H, 1), wide = boxBlur(a, W, H, Math.round(.1 / CELL)), out = c.tex.image.data;
+    for (let i = 0; i < n; i++) out[i * 4 + 3] = Math.min(255, (tight[i] * .5 + wide[i] * .5) * c.mask[i] * 255);
+    c.tex.needsUpdate = true;
+  });
+  scene.overrideMaterial = null; scene.children.forEach((o, i) => o.visible = vis[i]);
+  renderer.setRenderTarget(null); renderer.setClearColor(cc, ca); renderer.shadowMap.needsUpdate = su; dirty = 1;
+}
+captureContact();
+
 // =====================================================================
 // LIGHTING
 // =====================================================================
 const HEMI = .22, ENV = .3;
 const hemi = new THREE.HemisphereLight(0xdfe9f6, 0xcdc4b2, HEMI); scene.add(hemi);
 const SUN = 3.0, sun = new THREE.DirectionalLight(0xfff1dc, SUN);
-sun.target.position.set(2.4, 0, 1.5); sun.position.set(2.4 + 25, 24, 1.5 + 14);   // ~10:00 in autumn: east-south-east, ~45 deg up
+sun.target.position.set(2.4, 0, 1.5); sun.position.set(2.4 + 25, 24, 1.5 + 14);   // ~10:00 in autumn: east-south-east, ~40 deg up
 sun.castShadow = true; sun.shadow.mapSize.set(isPhone ? 2048 : 4096, isPhone ? 2048 : 4096);
 Object.assign(sun.shadow.camera, { left: -13, right: 13, top: 13, bottom: -13, near: 1, far: 80 });
 sun.shadow.bias = -.0004; sun.shadow.normalBias = .02;
@@ -2105,8 +2187,9 @@ winLight(-3.81, .955, .97, 1.0, 1.5, 0, .955, 3.5);         // mamad
 winLight(8.90, -1.79, .96, 2.15, 1.10, 0, -1.79, 5.5);       // master
 winLight(6.285, -4.99, .59, .7, 1.85, 6.285, 0, 2.5);       // master bath
 const warm = [];
-[[1.2, 1.79, 2.5, 1.95], [4.7, 2.2, 5, H - .25], [5.99, 6.31, 2.8, 2.3], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 2.8], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 2, BC - .3]]   // kids' bath: under its lowered ceiling
+[[1.2, 1.79, 2.5, 1.95], [4.7, 2.2, 5, H - .25], [5.99, 6.31, 2.8, 2.3], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 2.8], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 1.2, BC - .55]]   // kids' bath: well under its lowered ceiling, so the ceiling does not blow out
   .forEach(([x, z, k, y = H - .3]) => { const p = new THREE.PointLight(0xffd3a1, 0, 6, 2); p.position.set(x, y, z); p.userData.k = k; scene.add(p); warm.push(p); });
+if (!isPhone) [[5.64, -.48], [7.92, -.48]].forEach(([x, z]) => { const p = new THREE.PointLight(0xffc98a, 0, 2.2, 2); p.position.set(x, 1.05, z); p.userData.k = 1.2; scene.add(p); warm.push(p); });   // bedside globes light the bed and wall (desktop)
 
 // =====================================================================
 // BAKED LIGHT. Daylight (sun + sky through the real window openings) and the evening lamps were path traced offline in
@@ -2273,7 +2356,7 @@ function setView(key, instant = false) {
   if (instant) { camera.position.copy(pos); controls.target.copy(tgt); camera.fov = fov; camera.updateProjectionMatrix(); controls.update(); return; }
   anim = { fp: camera.position.clone(), ft: controls.target.clone(), ff: camera.fov, tp: pos, tt: tgt, tf: fov, t0: performance.now(), dur: 900 };
 }
-function setCeil(on) { dirty = 1; const changed = ceilOn !== on; ceilOn = on; ceilGroup.visible = on; if (changed && ptOn && pt) setTimeout(() => pt.setScene(scene, camera), 0); document.getElementById('btnCeil').setAttribute('aria-pressed', on); }
+function setCeil(on) { dirty = 1; renderer.shadowMap.needsUpdate = true; const changed = ceilOn !== on; ceilOn = on; ceilGroup.visible = on; if (changed && ptOn && pt) setTimeout(() => pt.setScene(scene, camera), 0); document.getElementById('btnCeil').setAttribute('aria-pressed', on); }
 // wheel = walk forward/back when inside
 renderer.domElement.addEventListener('wheel', e => {
   if (mode !== 'inside') return; e.preventDefault();
@@ -2358,9 +2441,9 @@ function setMode(eve) { dirty = 1;
   hemi.intensity = eve ? .1 : HEMI; hemi.color.set(eve ? 0x6a7aa8 : 0xdfe9f6);
   windowLights.forEach(l => l.intensity = eve ? .12 : l.userData.k);
   warm.forEach(p => p.intensity = eve ? p.userData.k : 0);
-  setSky(eve);
-  scene.fog.color.set(eve ? 0x3a3f4f : 0xdfe6ec);
-  mat.spot.emissiveIntensity = eve ? 1.8 : 0; mat.lamp.emissiveIntensity = eve ? 1.5 : 0; mat.led.emissiveIntensity = eve ? 2.0 : 0; mat.ledWall.emissiveIntensity = eve ? 3.0 : .9;
+  setSky(eve); if (extEnv.day) extMats.forEach(m => m.envMap = eve ? extEnv.eve : extEnv.day);
+  scene.fog.color.copy(eve ? fogCol.eve : fogCol.day);
+  sheer.emissiveIntensity = eve ? 0 : .12; mat.spot.emissiveIntensity = eve ? 1.8 : 0; mat.lamp.emissiveIntensity = eve ? 1.5 : 0; mat.led.emissiveIntensity = eve ? 2.0 : 0; mat.ledWall.emissiveIntensity = eve ? 3.0 : .9;
   renderer.toneMappingExposure = eve ? EXPO.eve : EXPO.day;
   LM.eve = eve; LM.apply();
   scene.traverse(o => { if (o.isMesh && o.material && o.material !== sky.material && 'envMapIntensity' in o.material) o.material.envMapIntensity = eve ? .12 : (o.material.userData.envDay ?? ENV); }); mat.mirror.envMapIntensity = eve ? .3 : 1.2;
@@ -2404,6 +2487,7 @@ function ptScene(on) {
   renderer.toneMappingExposure = on ? (isEve ? 1.6 : 2.4) : (isEve ? EXPO.eve : EXPO.day);
   warm.forEach(p => p.visible = !on || isEve);
   dimGroup.traverse(o => o.visible = on ? false : o.visible);
+  contacts.forEach(c => c.plane.visible = !on);   // the path tracer finds its own contact shadows
   scene.environment = on ? (isEve ? envEve : envDay) : envRoom;
   scene.background = on ? scene.environment : null;
   scene.fog = on ? null : fogRef;
@@ -2466,8 +2550,8 @@ galStatus(null);
 fetch('renders/status.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).then(galStatus).catch(() => galStatus(null));
 btnGal.onclick = () => { if (!GAL.length) return; gal.hidden = false; window.__pause = true; showGal(gi); };
 // doors and curtains: open or closed
-function setDoors(closed) { doors.forEach(d => d.g.rotation.y = closed ? d.closed : d.open); document.getElementById('btnDoors').setAttribute('aria-pressed', closed); dirty = 1; if (ptOn && pt) pt.setScene(scene, camera); }
-function setCurtains(closed) { curtOpen.forEach(c => c.visible = !closed); curtClosed.forEach(c => c.visible = closed); document.getElementById('btnCurt').setAttribute('aria-pressed', closed); dirty = 1; if (ptOn && pt) pt.setScene(scene, camera); }
+function setDoors(closed) { renderer.shadowMap.needsUpdate = true; doors.forEach(d => d.g.rotation.y = closed ? d.closed : d.open); captureContact(); document.getElementById('btnDoors').setAttribute('aria-pressed', closed); dirty = 1; if (ptOn && pt) pt.setScene(scene, camera); }
+function setCurtains(closed) { renderer.shadowMap.needsUpdate = true; curtOpen.forEach(c => c.visible = !closed); curtClosed.forEach(c => c.visible = closed); captureContact(); document.getElementById('btnCurt').setAttribute('aria-pressed', closed); dirty = 1; if (ptOn && pt) pt.setScene(scene, camera); }
 let doorsClosed = false, curtClosedOn = false;
 document.getElementById('btnDoors').onclick = () => setDoors(doorsClosed = !doorsClosed);
 document.getElementById('btnCurt').onclick = () => setCurtains(curtClosedOn = !curtClosedOn);
@@ -2506,7 +2590,7 @@ function tick(now) {
   if (window.__pause) { requestAnimationFrame(tick); return; }
   walkTick(now);
   const dt = Math.min(.1, (now - lastT) / 1000); lastT = now;
-  if (fansOn && !ptOn) rotors.forEach(r => r.rotation.y -= dt * 7);
+  if (fansOn && !ptOn) { rotors.forEach(r => r.rotation.y -= dt * 7); renderer.shadowMap.needsUpdate = true; }
   if (anim) {
     const t = Math.min(1, (now - anim.t0) / anim.dur), e = ease(t);
     camera.position.lerpVectors(anim.fp, anim.tp, e); controls.target.lerpVectors(anim.ft, anim.tt, e);
@@ -2846,7 +2930,7 @@ setView(views[start] ? start : 'entry', true);
 document.getElementById('loading').hidden = true;
 requestAnimationFrame(tick);
 LM.ready = LM.load();
-window.__app = { LM, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls, mirrors, CER, CER_SPACES, cerSet, cerReset, cerText, cerState };
+window.__app = { LM, contacts, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls, mirrors, CER, CER_SPACES, cerSet, cerReset, cerText, cerState };
 </script>
 
 </body>
