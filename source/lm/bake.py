@@ -5,7 +5,7 @@ import numpy as np
 from mathutils import Vector
 argv = sys.argv[1:]
 work = argv[0]
-opt = {'samples': 64, 'size': 2048, 'texel': 0.03, 'only': '', 'stop': ''}
+opt = {'samples': 64, 'size': 2048, 'texel': 0.03, 'only': '', 'stop': '', 'device': 'CPU', 'hdri': ''}
 for i, a in enumerate(argv):
     if a.startswith('--'): opt[a[2:]] = type(opt.get(a[2:], ''))(argv[i + 1])
 SIZE, SAMPLES, TEXEL = int(opt['size']), int(opt['samples']), float(opt['texel'])
@@ -22,6 +22,10 @@ scene = bpy.context.scene
 scene.render.engine = 'CYCLES'
 cy = scene.cycles
 cy.device = 'CPU'
+if opt['device'] == 'GPU':   # Apple silicon: Cycles on Metal
+    prefs = bpy.context.preferences.addons['cycles'].preferences; prefs.compute_device_type = 'METAL'; prefs.get_devices()
+    for d in prefs.devices: d.use = d.type == 'METAL'
+    cy.device = 'GPU'
 cy.samples = SAMPLES
 cy.use_denoising = False
 cy.max_bounces = 6; cy.diffuse_bounces = 4; cy.glossy_bounces = 2; cy.transmission_bounces = 2; cy.transparent_max_bounces = 8
@@ -265,7 +269,7 @@ L = scene_json['lights']
 sunL = next(x for x in L if x['type'] == 'DirectionalLight')
 d3 = np.array(sunL['position']) - np.array(sunL['target']); d3 /= np.linalg.norm(d3)
 SUN = Vector((d3[0], -d3[2], d3[1])).normalized()
-SUN_STRENGTH = 2.3
+SUN_STRENGTH = sunL['intensity'] or 2.3   # same as the viewer's sun
 world = bpy.data.worlds.new('sky'); scene.world = world
 wn = world.node_tree.nodes; bg = next(n for n in wn if n.type == 'BACKGROUND')
 def sky_image(w=512, h=256):
@@ -282,7 +286,20 @@ def sky_image(w=512, h=256):
     c = np.where(z[..., None] > 0, c, gnd)
     img = bpy.data.images.new('sky', w, h, float_buffer=True)
     img.pixels.foreach_set(np.concatenate([c, np.ones((h, w, 1))], -1).astype(np.float32).ravel()); return img
-env = wn.new('ShaderNodeTexEnvironment'); env.image = sky_image(); world.node_tree.links.new(env.outputs['Color'], bg.inputs['Color'])
+def hdri_sky(path, ref):
+    # the viewer's photo sky (Poly Haven puresky HDRI): turned so its sun sits at the sun light's azimuth, the sun disc clipped
+    # (the sun lamp supplies it), scaled to the same upper-hemisphere mean as the gradient sky so the bake balance holds
+    im = bpy.data.images.load(path); w, h = im.size
+    px = np.array(im.pixels[:], dtype=np.float32).reshape(h, w, 4)[..., :3]
+    j, i = np.unravel_index(px.sum(2).argmax(), (h, w))
+    u_target = .5 - math.atan2(SUN.y, SUN.x) / (2 * math.pi)
+    px = np.roll(px, int(round((u_target - i / w) * w)) % w, axis=1)
+    px = np.minimum(px, 8.0); up = px[h // 2:]; px[:h // 2] = np.array([.30, .29, .27]) * .35   # ground as in sky_image
+    rp = np.array(ref.pixels[:], dtype=np.float32).reshape(ref.size[1], ref.size[0], 4)[ref.size[1] // 2:, :, :3]
+    px[h // 2:] = up * (rp.mean() / up.mean())
+    img = bpy.data.images.new('hdri', w, h, float_buffer=True)
+    img.pixels.foreach_set(np.concatenate([px, np.ones((h, w, 1), np.float32)], -1).ravel()); return img
+env = wn.new('ShaderNodeTexEnvironment'); env.image = hdri_sky(opt['hdri'], sky_image()) if opt['hdri'] else sky_image(); world.node_tree.links.new(env.outputs['Color'], bg.inputs['Color'])
 SKY_STRENGTH = .35
 sun_data = bpy.data.lights.new('sun', 'SUN'); sun_data.energy = SUN_STRENGTH; sun_data.angle = math.radians(.6)
 sun_data.color = tuple(sunL['color'])
@@ -306,20 +323,37 @@ def lamps_on(on):
             bsdf.inputs['Emission Strength'].default_value = mat['estrength'] if on else 0.0
 # ---------------- bake ----------------
 atlases = sorted({ob['atlas'] for ob in targets})
+# Cycles re-syncs the whole scene for every object it bakes (about 5 s each on the M4, so 150 targets x 3 bakes took most
+# of an hour). Each atlas is baked through one joined copy of its targets instead; the targets are hidden from render
+# meanwhile and keep their own LM UVs for the export below.
+def bake_proxies():
+    out = []
+    for a in atlases:
+        copies = []
+        for ob in targets:
+            if ob['atlas'] != a: continue
+            c = ob.copy(); c.data = ob.data.copy(); scene.collection.objects.link(c); copies.append(c)
+        bpy.ops.object.select_all(action='DESELECT')
+        for c in copies: c.select_set(True)
+        bpy.context.view_layer.objects.active = copies[0]
+        bpy.ops.object.join()
+        j = bpy.context.view_layer.objects.active; j['atlas'] = a; out.append(j)
+    for ob in targets: ob.hide_render = True
+    return out
 def bake(kind):
     imgs = {a: bpy.data.images.new(f'{kind}-{a}', SIZE, SIZE, float_buffer=True, alpha=True) for a in atlases}
     for img in imgs.values(): img.generated_color = (0, 0, 0, 0)
-    for ob in targets:
-        # Each target gets its own material copy holding its atlas image as the active bake node.
-        mat = ob.data.materials[0]
-        nt = mat.node_tree
-        node = nt.nodes.get('LMBAKE') or nt.nodes.new('ShaderNodeTexImage'); node.name = 'LMBAKE'
-        uvn = nt.nodes.get('LMUV') or nt.nodes.new('ShaderNodeUVMap'); uvn.name = 'LMUV'; uvn.uv_map = 'LM'
-        nt.links.new(uvn.outputs['UV'], node.inputs['Vector'])
-        node.image = imgs[ob['atlas']]; nt.nodes.active = node; node.select = True
+    for ob in proxies:
+        for mat in ob.data.materials:
+            # Each target has its own material, holding its atlas image as the active bake node.
+            nt = mat.node_tree
+            node = nt.nodes.get('LMBAKE') or nt.nodes.new('ShaderNodeTexImage'); node.name = 'LMBAKE'
+            uvn = nt.nodes.get('LMUV') or nt.nodes.new('ShaderNodeUVMap'); uvn.name = 'LMUV'; uvn.uv_map = 'LM'
+            nt.links.new(uvn.outputs['UV'], node.inputs['Vector'])
+            node.image = imgs[ob['atlas']]; nt.nodes.active = node; node.select = True
     bpy.ops.object.select_all(action='DESELECT')
-    for ob in targets: ob.select_set(True)
-    bpy.context.view_layer.objects.active = targets[0]
+    for ob in proxies: ob.select_set(True)
+    bpy.context.view_layer.objects.active = proxies[0]
     # No margin from Cycles: it grows each object's islands against that object alone, so with every target in one
     # image a neighbour's margin painted over texels already baked (triangular patches on a large sign panel). The
     # margin is grown afterwards over empty texels only (dilate).
@@ -376,6 +410,7 @@ def denoise(img, name):
 
 for ob in objects.values(): ob.select_set(False)
 if opt['stop'] != 'maps':  # --stop maps: skip the three bakes (to test the probe)
+    proxies = bake_proxies()
     natural(True); lamps_on(False); bake('natural')
     natural(False); lamps_on(True); bake('lamps')
     natural(True); lamps_on(False)

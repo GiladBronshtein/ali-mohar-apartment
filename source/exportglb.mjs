@@ -2,10 +2,10 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 const src = fs.readFileSync('salon.html','utf8').replaceAll('https://cdn.jsdelivr.net/npm/three@0.160.0/','/node_modules/three/').replaceAll('https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.6/','/node_modules/three-mesh-bvh/').replaceAll('https://cdn.jsdelivr.net/npm/three-gpu-pathtracer@0.0.23/','/node_modules/three-gpu-pathtracer/');
 fs.writeFileSync('local.html', '<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0">'+src+'</body></html>');
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH, args: ['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 800, height: 500 } });
 page.on('pageerror', e => console.log('ERR', e.message));
-await page.addInitScript(() => { window.__pause = true; });
+await page.addInitScript(() => { window.__pause = true; window.__nobake = true; });   // Cycles relights the scene itself
 await page.goto('http://localhost:8765/local.html');
 await page.waitForFunction(() => window.__app, null, { timeout: 120000 });
 const b64 = await page.evaluate(async () => {

@@ -5,3 +5,4 @@ source/local.html
 source/lm_local.html
 source/lm/work*/
 __pycache__/
+source/.venv-bpy/

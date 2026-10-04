@@ -5,7 +5,7 @@ const work = process.argv[2] || 'lm/work';
 fs.mkdirSync(work, { recursive: true });
 let src = fs.readFileSync(process.env.SRC || 'salon.html', 'utf8').replaceAll('https://cdn.jsdelivr.net/npm/three@0.160.0/', '/node_modules/three/').replaceAll('https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.6/', '/node_modules/three-mesh-bvh/').replaceAll('https://cdn.jsdelivr.net/npm/three-gpu-pathtracer@0.0.23/', '/node_modules/three-gpu-pathtracer/');
 fs.writeFileSync('lm_local.html', '<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0">' + src.replace('?baked', '?nobake'));
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 400, height: 300 } });
 page.on('pageerror', e => console.log('ERR', e.message));
 await page.addInitScript(() => { window.__pause = true; window.__nobake = true; });

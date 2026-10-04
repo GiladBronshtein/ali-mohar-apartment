@@ -216,12 +216,15 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 // =====================================================================
 // Plan coordinates in meters. x = east (toward balcony), z = south (toward kitchen), y = up.
 // Origin: living-room side of the master-bedroom wall (TV wall), at the dining-room inner west face.
 // =====================================================================
 const H = 2.60, HEAD = 2.30, DOORH = 2.10, FX = 7.28, LZ = 8.79;
+const EXPO = { day: .85, eve: 1.2 };   // day: less ambient fill and stronger sun/window light than before, for contrast
 const isPhone = Math.min(window.innerWidth, window.innerHeight) < 640 || /Mobi|Android/i.test(navigator.userAgent);
 
 const stage = document.getElementById('stage');
@@ -230,8 +233,8 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, isPhone ? 1.5 : 1.5));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.70;   // day exposure kept low so white walls and the floor do not glare
+renderer.toneMapping = THREE.ACESFilmicToneMapping;   // AgX (r160) tested: too desaturated for this palette
+renderer.toneMappingExposure = EXPO.day;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 stage.appendChild(renderer.domElement);
 const labelRenderer = new CSS2DRenderer({ element: document.getElementById('labels') });
@@ -262,6 +265,11 @@ const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.in
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 let hq = !isPhone;
+// Optional assets (site only): CC0 photo textures, sky and models from Poly Haven under assets/ (built by assets.py). When a file
+// is missing (the claude.ai artifact) the loader resolves null and the procedural version stays.
+const texLoader = new THREE.TextureLoader();
+const assetTex = (f, color = true) => new Promise(res => texLoader.load('assets/' + f, t => {
+  t.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); res(t); }, undefined, () => res(null)));
 
 // =====================================================================
 // Procedural textures
@@ -449,7 +457,7 @@ function TM(map, rough, uv, extra = {}) { return M('#ffffff', rough, { map, ...e
 const fab = (c, s, rough = 0.98) => TM(fabricTex(c, s), rough, 0.25);
 const matSlab = TM(T.slab, 0.18, null); matSlab.userData.uv = null;
 const mat = {
-  wall: M('#efeeea', 0.95), ceil: M('#f1f0ec', 0.97, { side: THREE.DoubleSide }), cap: M('#4a4f54', 0.9),
+  wall: M('#efeeea', 0.95, {}, 2.0), ceil: M('#f1f0ec', 0.97, { side: THREE.DoubleSide }), cap: M('#4a4f54', 0.9),
   tile: TM(T.tile, 0.58, 2.4), planks: TM(T.planks, 0.6, 1.2), bathFloor: TM(T.bath, 0.4, 1.2), bathWall: TM(T.bath, 0.32, 1.2),
   sage: TM(T.sage, 0.25, 0.6), terrazzo: TM(T.terrazzo, 0.35, 0.8), deck: TM(T.deck, 0.8, 1.4), service: M('#c9c4bb', 0.9),
   oak: TM(T.oak, 0.55, 0.8), walnut: TM(T.walnut, 0.5, 0.8), quartz: TM(T.quartz, 0.22, 1.6), trav: TM(T.trav, 0.6, 0.6),
@@ -507,6 +515,31 @@ function pbrDetail(m, rough, bump, invert = false) {
  [mat.terrazzo, [.28, .5], .15], [mat.deck, [.68, .92], .6], [mat.oak, [.45, .7], .4], [mat.walnut, [.42, .66], .4], [mat.quartz, [.14, .3], .05],
  [mat.trav, [.5, .82], .5], [mat.limewash, [.84, 1], .6], [mat.greyStone, [.34, .6], .2], [matSlab, [.12, .28], .05]]
   .forEach(([m, rgh, b]) => { if (m && m.map && m.map.image) pbrDetail(m, rgh, b); });
+// Photo PBR sets (assets/tex, Poly Haven CC0) replace the derived maps when present. Full-colour sets are tinted to the mean of the
+// procedural texture they replace, so the palette stays as designed; detail-only sets keep the material's own colour and add the
+// photo's normal and roughness. World UVs are written at merge time in metres / userData.uv, so repeat = userData.uv / coverage.
+function meanLin(img) {
+  const c = document.createElement('canvas'); c.width = c.height = 16; const g = c.getContext('2d'); g.drawImage(img, 0, 0, 16, 16);
+  const d = g.getImageData(0, 0, 16, 16).data, s = [0, 0, 0], lin = v => v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4);
+  for (let i = 0; i < d.length; i += 4) for (let k = 0; k < 3; k++) s[k] += lin(d[i + k] / 255);
+  return s.map(v => v / 256);
+}
+async function photoPBR(mats, id, metres, { color = false, normal = 1 } = {}) {
+  const [diff, nor, rough] = await Promise.all([color ? assetTex(`tex/${id}/diff.webp`) : null, assetTex(`tex/${id}/nor.webp`, false), assetTex(`tex/${id}/rough.webp`, false)]);
+  if (!nor || !rough || (color && !diff)) return;
+  for (const m of mats) {
+    const r = (m.userData.uv || 1) / metres, fit = t => { t = t.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(r, r); t.needsUpdate = true; return t; };
+    if (color) { const a = meanLin(m.map.image), b = meanLin(diff.image); m.color.setRGB(a[0] / b[0], a[1] / b[1], a[2] / b[2]); m.map = fit(diff); }
+    m.normalMap = fit(nor); m.normalScale.setScalar(normal); m.roughnessMap = fit(rough); m.roughness = 1; m.bumpMap = null; m.needsUpdate = true;
+  }
+  dirty = 1;
+}
+const photoReady = Promise.all([   // the baked-light materials are clones: LM.load waits for these
+  photoPBR([mat.planks], 'laminate_floor_02', 1.7, { normal: .3 }),
+  photoPBR([mat.oak], 'oak_veneer_01', 1.83, { color: true, normal: .5 }),
+  photoPBR([mat.wall], 'white_stucco', 2.0, { normal: .35 }),
+  photoPBR([mat.sofaGrey, mat.oat, mat.oatDark, mat.charcoal, mat.blackFab], 'caban', .27),
+  photoPBR([mat.linen, mat.linenGrey, mat.olive, mat.rust, mat.dusty, mat.mustard, mat.sageFab, mat.clay], 'rough_linen', .27)]);
 
 // =====================================================================
 // Geometry helpers
@@ -645,16 +678,16 @@ function stool(x, z) {
 }
 const leafGeo = (() => { const s = new THREE.Shape(); s.moveTo(0, 0); s.bezierCurveTo(.05, .03, .06, .12, 0, .2); s.bezierCurveTo(-.06, .12, -.05, .03, 0, 0);
   const g = new THREE.ShapeGeometry(s, 6); g.rotateX(-Math.PI / 2); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const zz = p.getZ(i); p.setY(i, -zz * zz * .8 + Math.abs(p.getX(i)) * .25); } g.computeVertexNormals(); return g; })();
-function plant(x, z, { potR = .2, potH = .4, h = 1.4, pot = mat.pot, seed = 3, spread = .5, base = 0 } = {}) {
-  C(x, z, base, base + potH, potR, pot, { r2: potR * 1.08, seg: 24 });
-  C(x, z, base + potH - .03, base + potH - .01, potR * 1.02, mat.walnut, { seg: 20, cast: false });
+function plant(x, z, { potR = .2, potH = .4, h = 1.4, pot = mat.pot, seed = 3, spread = .5, base = 0, parent = root } = {}) {
+  C(x, z, base, base + potH, potR, pot, { r2: potR * 1.08, seg: 24, parent });
+  C(x, z, base + potH - .03, base + potH - .01, potR * 1.02, mat.walnut, { seg: 20, cast: false, parent });
   const r = rnd(seed), ms = [mat.leaf, mat.leaf2, mat.leaf3];
-  if (h > .9) C(x, z, base + potH, base + h * .75, .018, mat.walnut, { seg: 6 });
+  if (h > .9) C(x, z, base + potH, base + h * .75, .018, mat.walnut, { seg: 6, parent });
   const n = Math.round(26 + h * 40);
   for (let i = 0; i < n; i++) {
     const t = r(), y = base + potH + (h - potH) * (0.2 + t * .8), rad = spread * (0.25 + (1 - Math.abs(t - .65)) * .6) * Math.sqrt(r());
     const a = r() * Math.PI * 2, s = .7 + r() * .7;
-    const lf = mesh(leafGeo, ms[Math.floor(r() * 3)]); lf.scale.setScalar(s);
+    const lf = mesh(leafGeo, ms[Math.floor(r() * 3)], parent); lf.scale.setScalar(s);
     lf.position.set(x + Math.cos(a) * rad, y, z + Math.sin(a) * rad);
     lf.rotation.set(0, -a + Math.PI / 2, 0); lf.rotateX(-0.3 - r() * 0.9); lf.rotateZ((r() - .5) * .8);
   }
@@ -1513,8 +1546,21 @@ ceilingFan(9.30, 1.55, 2.70);
   shell.scale.set(1, 1.25, 1); shell.position.set(0, .95, 0); shell.rotation.y = Math.PI; shell.castShadow = shell.receiveShadow = true; g.add(shell);
   const cush = new THREE.Mesh(new THREE.SphereGeometry(.40, 32, 16), mat.linenGrey); cush.scale.set(1, .32, 1); cush.position.set(0, .62, -.05); cush.castShadow = true; g.add(cush);
   const back = B(-.30, .30, -.06, .06, -.30, .30, mat.linen, { parent: g, round: .06 }); back.position.set(0, .95, -.30); back.rotation.x = .25; }
-plant(8.10, 8.25, { potR: .36, potH: .55, h: 1.5, seed: 81, spread: .6, base: BY });
-plant(8.15, 6.10, { potR: .24, potH: .45, h: 1.0, seed: 82, spread: .35, base: BY, pot: mat.potDark });
+// Balcony plants: CC0 Poly Haven models on the site (assets/models, meshopt + WebP, built by assets.py); the procedural
+// plants stay as the fallback (artifact, or a failed load) in their own group, hidden once both models are in.
+const procPlants = new THREE.Group(), propGroup = new THREE.Group(); scene.add(procPlants, propGroup);
+plant(8.10, 8.25, { potR: .36, potH: .55, h: 1.5, seed: 81, spread: .6, base: BY, parent: procPlants });
+plant(8.15, 6.10, { potR: .24, potH: .45, h: 1.0, seed: 82, spread: .35, base: BY, pot: mat.potDark, parent: procPlants });
+{ const gl = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+  const load = (f, x, z, h, ry) => new Promise(res => gl.load('assets/models/' + f, g => {
+    const m = g.scene, b = new THREE.Box3().setFromObject(m), o = new THREE.Group();   // o: pot centre on the floor, scaled to h
+    m.position.set(-(b.min.x + b.max.x) / 2, -b.min.y, -(b.min.z + b.max.z) / 2); o.add(m);
+    o.scale.setScalar(h / (b.max.y - b.min.y)); o.rotation.y = ry; o.position.set(x, BY, z);
+    m.traverse(c => { if (c.isMesh) { c.castShadow = c.receiveShadow = true; c.material.envMapIntensity = isEve ? .12 : ENV; } });
+    res(o); }, undefined, () => res(null)));
+  Promise.all([load('potted_plant_01.glb', 8.10, 8.25, 1.5, .4), load('potted_plant_02.glb', 8.15, 6.10, .95, 2.1)]).then(os => {
+    if (os.some(o => !o)) return;
+    propGroup.add(...os); procPlants.visible = false; dirty = 1; }); }
 
 // =====================================================================
 // FROM THE CONTRACTOR'S TECHNICAL PLANS (HADA 2579-2: electrical, plumbing, AC). Positions read off the drawings
@@ -1715,6 +1761,15 @@ for (let i = 0; i < 46; i++) {
 }
 const sky = new THREE.Mesh(new THREE.SphereGeometry(650, 32, 16), new THREE.MeshBasicMaterial({ map: skyDay, side: THREE.BackSide, fog: false }));
 scene.add(sky);
+// photo skies (Poly Haven puresky HDRIs, tonemapped): upper 1152 of 2048 rows, turned so the day sun matches the sun light (ESE)
+// and the sunset sits in the west behind the building
+const skies = { day: { map: skyDay, rot: 0, k: 1 }, eve: { map: skyEve, rot: 0, k: 1 } };
+const setSky = eve => { const s = eve ? skies.eve : skies.day; sky.material.map = s.map; sky.rotation.y = s.rot; sky.material.color.setScalar(s.k); sky.material.needsUpdate = true; dirty = 1; };
+Promise.all([assetTex('sky/day.webp'), assetTex('sky/eve.webp')]).then(([d, e]) => {
+  if (!d || !e) return;
+  [d, e].forEach(t => { t.repeat.set(1, 2048 / 1152); t.offset.set(0, 1 - 2048 / 1152); });
+  skies.day = { map: d, rot: -1.11, k: 1 }; skies.eve = { map: e, rot: -3.53, k: .35 }; setSky(isEve);
+});
 
 // =====================================================================
 // Merge static meshes per material (fewer draw calls) + world-space UVs
@@ -1747,13 +1802,14 @@ function mergeGroup(group) {
   while (group.children.length) group.remove(group.children[0]);
   buckets.forEach(({ m, cast, list }) => { const merged = mergeGeometries(list); mesh(merged, m, group, cast); list.forEach(g => g.dispose()); });
 }
-mergeGroup(root); mergeGroup(ceilGroup); mergeGroup(outside);
+mergeGroup(root); mergeGroup(ceilGroup); mergeGroup(outside); mergeGroup(procPlants);
 
 // =====================================================================
 // LIGHTING
 // =====================================================================
-const hemi = new THREE.HemisphereLight(0xdfe9f6, 0xb3a58e, .38); scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xfff1dc, 2.3);
+const HEMI = .22, ENV = .3;
+const hemi = new THREE.HemisphereLight(0xdfe9f6, 0xb3a58e, HEMI); scene.add(hemi);
+const SUN = 3.0, sun = new THREE.DirectionalLight(0xfff1dc, SUN);
 sun.target.position.set(2.4, 0, 1.5); sun.position.set(2.4 + 25, 24, 1.5 + 14);   // ~10:00 in autumn: east-south-east, ~45 deg up
 sun.castShadow = true; sun.shadow.mapSize.set(isPhone ? 2048 : 4096, isPhone ? 2048 : 4096);
 Object.assign(sun.shadow.camera, { left: -13, right: 13, top: 13, bottom: -13, near: 1, far: 80 });
@@ -1761,7 +1817,7 @@ sun.shadow.bias = -.0004; sun.shadow.normalBias = .02;
 scene.add(sun, sun.target);
 const windowLights = [];
 function winLight(x, z, w, h, y, lookX, lookZ, k) {
-  k *= .65;
+  k *= .91;
   const l = new THREE.RectAreaLight(0xeaf1fb, k, w, h); l.position.set(x, y, z); l.lookAt(lookX, y, lookZ); l.userData.k = k; scene.add(l); windowLights.push(l);
 }
 winLight(FX - .02, 2.115, 2.67, HEAD, HEAD / 2, 0, 2.115, 5);
@@ -1773,8 +1829,8 @@ winLight(-3.81, .955, .97, 1.0, 1.5, 0, .955, 3.5);         // mamad
 winLight(8.90, -1.79, .96, 2.15, 1.10, 0, -1.79, 5.5);       // master
 winLight(6.285, -4.99, .59, .7, 1.85, 6.285, 0, 2.5);       // master bath
 const warm = [];
-[[1.05, 1.4, 5], [4.8, 1.8, 5], [5.9, 6.4, 5], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 5], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 3]]
-  .forEach(([x, z, k]) => { const p = new THREE.PointLight(0xffd3a1, 0, 6, 2); p.position.set(x, H - .3, z); p.userData.k = k; scene.add(p); warm.push(p); });
+[[1.05, 1.4, 5], [4.8, 1.8, 5], [5.9, 6.4, 5], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 5], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 2, BC - .3]]   // kids' bath: under its lowered ceiling
+  .forEach(([x, z, k, y = H - .3]) => { const p = new THREE.PointLight(0xffd3a1, 0, 6, 2); p.position.set(x, y, z); p.userData.k = k; scene.add(p); warm.push(p); });
 
 // =====================================================================
 // BAKED LIGHT. Daylight (sun + sky through the real window openings) and the evening lamps were path traced offline in
@@ -1821,7 +1877,7 @@ LM.apply = () => {
   dirty = 1;
 };
 LM.load = async () => {
-  if (window.__nobake || !/[?&]baked=1/.test(location.search)) return;   // off by default: on 2 CPU cores the interior bake stays blotchy (32 spp); kept for a future high-sample bake
+  if (window.__nobake || !/[?&]baked=1/.test(location.search)) return;   // opt-in: the 256 spp bake still reads darker and blotchier than the real-time light
   let man;
   try { const r = await fetch('lm/manifest.json'); if (!r.ok) return; man = await r.json(); } catch (e) { return; }
   const loader = new THREE.TextureLoader();
@@ -1831,6 +1887,7 @@ LM.load = async () => {
   for (const k of ['natural', 'lamps', 'ao']) maps[k] = await Promise.all((man.maps[k] || []).map(m => tex(m.file, k !== 'ao')));
   const gz = await (await fetch('lm/' + man.uv)).arrayBuffer();
   const U = new Uint16Array(await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+  await photoReady;
   const meshes = []; [root, ceilGroup].forEach(gr => gr.children.forEach(o => { if (o.isMesh) meshes.push(o); }));
   meshes.forEach(o => o.geometry.computeBoundingBox());
   const near = (o, b) => { const bb = o.geometry.boundingBox; return Math.abs(bb.min.x - b[0]) < .002 && Math.abs(bb.min.y - b[1]) < .002 && Math.abs(bb.min.z - b[2]) < .002 && Math.abs(bb.max.x - b[3]) < .002 && Math.abs(bb.max.y - b[4]) < .002 && Math.abs(bb.max.z - b[5]) < .002; };
@@ -2013,21 +2070,21 @@ window.addEventListener('keydown', e => { if (e.key === 'h' || e.key === 'H' || 
 function setMode(eve) { dirty = 1;
   document.getElementById('btnDay').setAttribute('aria-pressed', !eve);
   document.getElementById('btnEve').setAttribute('aria-pressed', eve);
-  sun.intensity = eve ? 0 : 2.3; bloom.strength = eve ? .3 : .1;
-  hemi.intensity = eve ? .1 : .38; hemi.color.set(eve ? 0x6a7aa8 : 0xdfe9f6);
+  sun.intensity = eve ? 0 : SUN; bloom.strength = eve ? .3 : .1;
+  hemi.intensity = eve ? .1 : HEMI; hemi.color.set(eve ? 0x6a7aa8 : 0xdfe9f6);
   windowLights.forEach(l => l.intensity = eve ? .12 : l.userData.k);
   warm.forEach(p => p.intensity = eve ? p.userData.k : 0);
-  sky.material.map = eve ? skyEve : skyDay; sky.material.needsUpdate = true;
+  setSky(eve);
   scene.fog.color.set(eve ? 0x3a3f4f : 0xdfe6ec);
   mat.spot.emissiveIntensity = eve ? 2.2 : 0; mat.lamp.emissiveIntensity = eve ? 1.5 : 0; mat.led.emissiveIntensity = eve ? 2.0 : 0; mat.ledWall.emissiveIntensity = eve ? 3.0 : .9;
-  renderer.toneMappingExposure = eve ? 1.2 : .70;
+  renderer.toneMappingExposure = eve ? EXPO.eve : EXPO.day;
   LM.eve = eve; LM.apply();
-  scene.traverse(o => { if (o.isMesh && o.material && o.material !== sky.material && 'envMapIntensity' in o.material) o.material.envMapIntensity = eve ? .12 : .42; }); mat.mirror.envMapIntensity = eve ? .3 : 1.2;
+  scene.traverse(o => { if (o.isMesh && o.material && o.material !== sky.material && 'envMapIntensity' in o.material) o.material.envMapIntensity = eve ? .12 : ENV; }); mat.mirror.envMapIntensity = eve ? .3 : 1.2;
 }
 function refreshPT() { if (!ptOn || !pt) return; ptScene(true); pt.updateLights(); pt.updateMaterials(); pt.updateEnvironment(); }
 document.getElementById('btnDay').onclick = () => { isEve = false; setMode(false); refreshPT(); };
 document.getElementById('btnEve').onclick = () => { isEve = true; setMode(true); refreshPT(); };
-scene.traverse(o => { if (o.isMesh && o.material && 'envMapIntensity' in o.material) o.material.envMapIntensity = .42; });
+scene.traverse(o => { if (o.isMesh && o.material && 'envMapIntensity' in o.material) o.material.envMapIntensity = ENV; });
 mat.mirror.envMapIntensity = 1.2;
 
 window.addEventListener('resize', () => {
@@ -2059,7 +2116,7 @@ const ptInfo = document.getElementById('ptInfo'), btnPT = document.getElementByI
 function ptScene(on) {
   sky.visible = !on; hemi.visible = !on; windowLights.forEach(l => { l.visible = true; l.intensity = on ? (isEve ? 0 : l.userData.k * .6) : (isEve ? .12 : l.userData.k); });
   root.traverse(o => { if (o.isMesh && o.material === mat.glass) o.visible = !on; });   // window panes: open in PT (15% glass only adds noise)
-  renderer.toneMappingExposure = on ? (isEve ? 1.6 : 2.4) : (isEve ? 1.2 : .70);
+  renderer.toneMappingExposure = on ? (isEve ? 1.6 : 2.4) : (isEve ? EXPO.eve : EXPO.day);
   warm.forEach(p => p.visible = !on || isEve);
   dimGroup.traverse(o => o.visible = on ? false : o.visible);
   scene.environment = on ? (isEve ? envEve : envDay) : envRoom;

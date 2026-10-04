@@ -12,7 +12,7 @@ const resolveSpec = (spec, from) => {
 const seen = new Set(), queue = ['three', 'three-mesh-bvh', 'three-gpu-pathtracer',
   ...['controls/OrbitControls.js', 'geometries/RoundedBoxGeometry.js', 'environments/RoomEnvironment.js', 'renderers/CSS2DRenderer.js', 'lights/RectAreaLightUniformsLib.js',
       'postprocessing/EffectComposer.js', 'postprocessing/RenderPass.js', 'postprocessing/TAARenderPass.js', 'postprocessing/GTAOPass.js', 'postprocessing/OutputPass.js',
-      'postprocessing/UnrealBloomPass.js', 'utils/BufferGeometryUtils.js'].map(p => 'three/addons/' + p)].map(s => resolveSpec(s, ''));
+      'postprocessing/UnrealBloomPass.js', 'utils/BufferGeometryUtils.js', 'loaders/GLTFLoader.js', 'libs/meshopt_decoder.module.js'].map(p => 'three/addons/' + p)].map(s => resolveSpec(s, ''));
 const bare = new Set();
 while (queue.length) {
   const f = queue.shift(); if (seen.has(f)) continue; seen.add(f);
