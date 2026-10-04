@@ -46,3 +46,6 @@ for sid, maps, size in [('Metal009', ['nor', 'rough'], 512), ('Leather026', ['no
     for m in maps:
         im = Image.open(f'out/real5/assets/tex/{sid}/{m}.webp').convert('RGB')
         webp(im.resize((size, size * im.height // im.width), Image.LANCZOS), f'{OUT}/tex/{sid}/{m}.webp', {'diff': 82, 'nor': 88, 'rough': 80}[m])
+# kitchen props (desktop only): already optimised GLBs from the same staging (meshopt, WebP, see audit/realism5/assets.md)
+for mid in ['food_apple_01', 'lemon', 'food_pomegranate_01', 'wine_bottle_bordeaux', 'wooden_cutting_board']:
+    shutil.copy(f'out/real5/assets/models/{mid}.glb', f'{OUT}/models/{mid}.glb')

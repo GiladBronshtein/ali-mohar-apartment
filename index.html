@@ -1381,7 +1381,8 @@ B(SP1, SP2, IZ1 + .02, IDZ, .10, .88, mat.graphite); B(SP1 + .02, SP2 - .02, IZ1
 B(IX1, IX2, IZ1, IZ2, .88, .92, mat.quartz);
 B(IX1, IX2, IZ1, IZ1 + .02, 0, .88, mat.quartz);                                                              // waterfall toward the living room
 [[IX1 + .03, SP1 - .02], [SP2 + .02, IX2 - .03]].forEach(([a, b]) => B(a, b, IZ1 + .05, IDZ - .02, .874, .88, mat.led, { cast: false }));
-C(5.87, 6.92, .92, 1.02, .16, mat.matteBlack, { r2: .19, seg: 32 }); Sph(5.84, 1.05, 6.92, .05, M('#c9a24a', .6)); Sph(5.91, 1.04, 6.88, .045, M('#d38a3a', .6));
+const procFruit = new THREE.Group(); scene.add(procFruit);   // fallback fruit, hidden when the CC0 models load (desktop)
+C(5.87, 6.92, .92, 1.02, .16, mat.matteBlack, { r2: .19, seg: 32 }); Sph(5.84, 1.05, 6.92, .05, M('#c9a24a', .6), { parent: procFruit }); Sph(5.91, 1.04, 6.88, .045, M('#d38a3a', .6), { parent: procFruit });
 [5.81, 6.41].forEach(z => { stool(5.30, z); stool(6.44, z); });
 // frames pendant over the island (owners' lamp, photo): a long black canopy with six vertical black frames of different sizes, LED
 // strips on their inner faces. Bodies in root, canopy and cables in ceilGroup (hidden in the top views)
@@ -1765,7 +1766,26 @@ plant(8.15, 6.10, { potR: .24, potH: .45, h: 1.0, seed: 82, spread: .35, base: B
     res(o); }, undefined, () => res(null)));
   Promise.all([load('potted_plant_01.glb', 8.10, 8.25, 1.5, .4), load('potted_plant_02.glb', 8.15, 6.10, .95, 2.1)]).then(os => {
     if (os.some(o => !o)) return;
-    propGroup.add(...os); procPlants.visible = false; dirty = 1; renderer.shadowMap.needsUpdate = true; captureContact(); }); }
+    propGroup.add(...os); procPlants.visible = false; dirty = 1; renderer.shadowMap.needsUpdate = true; captureContact(); });
+  // Kitchen props, desktop only, after the materials are in (CC0 Poly Haven, real size, origin on the base; assets/models):
+  // fruit in the island bowl, a bottle on the island, an end-grain board leaning on the splash at the window landing.
+  // glTF glass uses transmission, which costs a full extra scene pass in three.js: drawn as plain transparent glass instead.
+  const prop = (f, x, y, z, ry = 0, rot = null) => new Promise(res => gl.load('assets/models/' + f, g => {
+    const m = g.scene, b = new THREE.Box3().setFromObject(m), o = new THREE.Group();
+    m.position.set(-(b.min.x + b.max.x) / 2, -b.min.y, -(b.min.z + b.max.z) / 2);
+    if (rot) { const r = new THREE.Group(); r.add(m); rot(r, b); o.add(r); } else o.add(m);
+    o.rotation.y = ry; o.position.set(x, y, z);
+    m.traverse(c => { if (!c.isMesh) return; c.castShadow = c.receiveShadow = true; const t = c.material; t.envMapIntensity = isEve ? .12 : ENV;
+      if (t.transmission > 0) { Object.assign(t, { transmission: 0, transparent: true, opacity: .88, roughness: .06, depthWrite: false }); t.color.set('#3b1f14'); t.map = null; } });   // dark bottle glass (estimate)
+    res(o); }, undefined, () => res(null)));
+  // board: long side up, back to the wall (model x: length, y: thickness, z: width), tilted 0.2 rad onto the splash
+  const lean = (r, b) => { r.setRotationFromMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0)));
+    r.position.y = (b.max.x - b.min.x) / 2; };
+  if (!isPhone) photoReady.then(() => Promise.all([prop('food_apple_01.glb', 5.83, 1.02, 6.93, .5), prop('lemon.glb', 5.92, 1.02, 6.86, 1.2), prop('food_pomegranate_01.glb', 5.90, 1.02, 6.99, 2),
+    prop('wine_bottle_bordeaux.glb', 6.16, .92, 6.80, .3), prop('wooden_cutting_board.glb', 7.05, .92, 8.64, 0, lean)])).then(os => {
+    os.forEach(o => o && propGroup.add(o)); if (os[0] && os[1] && os[2]) procFruit.visible = false;
+    if (os[4]) os[4].rotation.x = .2;
+    dirty = 1; renderer.shadowMap.needsUpdate = true; }); }
 
 // =====================================================================
 // FROM THE CONTRACTOR'S TECHNICAL PLANS (HADA 2579-2: electrical, plumbing, AC). Positions read off the drawings
