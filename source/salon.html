@@ -2086,20 +2086,26 @@ for (let i = 0, n = 0; i < 400 && n < 80; i++) {
   yardTrees.push([x, z, 4.4 + r * 1.6, i * 2.3]);
 }
 // Tree cards: two Cycles views (90 degrees apart, side by side in one image) of CC0 Poly Haven trees, rendered by treecards.py and
-// packed by assets.py, on two crossed quads per tree. Normals point up so both faces of every card take the sun and sky alike.
+// packed by assets.py, on two crossed quads per tree plus a flat quad at 0.6 h (the crown half of the atlas) for top views.
+// Normals point from the crown centre, half blended with up, so the sun side of the crown lights and the far side falls off;
+// each tree gets its own small tint (+-8% value, slight hue shift).
 // Young street trees: tree_small_02; courtyards: jacaranda and an olive-like island tree, alternating.
+const tintR = rnd(17);
 function treeCards(img, spots) {
-  const a = img.width / 2 / img.height, P = [], U = [];
-  spots.forEach(([x, z, h, t]) => { const w = h * a;
+  const a = img.width / 2 / img.height, P = [], U = [], N = [], C = [];
+  spots.forEach(([x, z, h, t]) => { const w = h * a, cy = GY + .6 * h, v = 1 + (tintR() - .5) * .16, hue = (tintR() - .5) * .08;
+    const put = (q, idx) => idx.forEach(i => { const [px, py, pz] = q[i], d = new THREE.Vector3(px - x, py - cy, pz - z).normalize().add(new THREE.Vector3(0, 1, 0)).normalize();
+      P.push(px, py, pz); U.push(q[i][3], q[i][4]); N.push(d.x, d.y, d.z); C.push(v * (1 + hue), v, v * (1 - hue)); });
     for (let k = 0; k < 2; k++) { const ang = t + k * Math.PI / 2, dx = Math.cos(ang) * w / 2, dz = Math.sin(ang) * w / 2, u0 = k / 2;
-      const q = [[x - dx, GY, z - dz, u0, 0], [x + dx, GY, z + dz, u0 + .5, 0], [x + dx, GY + h, z + dz, u0 + .5, 1], [x - dx, GY + h, z - dz, u0, 1]];
-      [0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2].forEach(i => { P.push(q[i][0], q[i][1], q[i][2]); U.push(q[i][3], q[i][4]); }); } });   // front and back faces
+      put([[x - dx, GY, z - dz, u0, 0], [x + dx, GY, z + dz, u0 + .5, 0], [x + dx, GY + h, z + dz, u0 + .5, 1], [x - dx, GY + h, z - dz, u0, 1]], [0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2]); }   // front and back faces
+    const r = w * .35, c = Math.cos(t) * r, sn = Math.sin(t) * r;
+    put([[x - c + sn, cy, z - sn - c, 0, .45], [x + c + sn, cy, z + sn - c, .5, .45], [x + c - sn, cy, z + sn + c, .5, 1], [x - c - sn, cy, z - sn + c, 0, 1]], [0, 2, 1, 0, 3, 2, 0, 1, 2, 0, 2, 3]); });
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(P.map((_, i) => i % 3 === 1 ? 1 : 0), 3)); return g;
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3)); return g;
 }
 Promise.all(['tree_small_02', 'jacaranda_tree', 'island_tree_02'].map(f => assetTex(`trees/${f}.webp`))).then(ts => {
   if (ts.some(t => !t)) return;
-  const [street, jac, isl] = ts, card = (t, spots) => noAO.push(mesh(treeCards(t.image, spots), new THREE.MeshStandardMaterial({ map: t, alphaTest: .45, roughness: .9, envMapIntensity: isEve ? .12 : ENV }), scene, false));
+  const [street, jac, isl] = ts, card = (t, spots) => noAO.push(mesh(treeCards(t.image, spots), new THREE.MeshStandardMaterial({ map: t, vertexColors: true, alphaTest: .45, roughness: .9, envMapIntensity: isEve ? .12 : ENV }), scene, false));
   card(street, streetTrees); card(jac, yardTrees.filter((_, i) => i % 2)); card(isl, yardTrees.filter((_, i) => !(i % 2)));
   procTrees.visible = false; dirty = 1; });
 // Ground mask (ext 2 and 5): one RGBA texture over the site, drawn once at load, read by the ground-level materials in world xz.
