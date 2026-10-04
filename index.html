@@ -188,7 +188,7 @@ details[open] summary::after { content: " ▴"; }
       <li><b>האי:</b> 160×90, נגמר כמעט בקו המקרר (19 ס״מ אחריו). 4 מקומות: 2 בצד המקרר ו-2 בצד המרפסת, עם 35 ס״מ לברכיים בכל צד. האחסון: גוש מגירות בקצה שמול הכיריים, 3 מגירות רחבות (86 ס״מ) שנפתחות לכיוון הכיריים. מעברים: 118 ס״מ בצד המקרר, 97 ס״מ בצד המרפסת, 105 ס״מ לכיריים.</li>
       <li><b>בין האי לסלון:</b> כ-2 מ׳ פנויים, בלי קונסולה מאחורי הספה.</li>
       <li><b>מרפסת:</b> פינת הישיבה שיש לכם היום: ספה פינתית אפורה על מסגרת אלומיניום כהה ודקה עם רגליים, כריות ישיבה עבות וכריות גב רופפות, בלי ידיות, בפינה הצפונית ופונה אל הדירה, עם שולחן עליון טיק על מסגרת שחורה ומאוורר מעליה. הצלע הקצרה נגמרת 90 ס״מ לפני הזכוכית כך שהדלת פנויה. בקצה הדרומי הריחופית שלכם: כורסת ביצה תלויה מראטן אפור עם קליעה גלית וכריות אפור כהה, על מעמד שחור מעוקל עם בסיס טבעת, הפתח פונה לפינת הישיבה. האמצע נשאר פתוח.</li>
-      <li><b>מנורות:</b> המנורות שיש לכם היום, במקומות שהן יכולות להתאים: מנורת המסגרות השחורות מעל האי, מנורת הגל מעל שולחן העבודה בממ״ד, מנורת שלוש המסגרות הצמודה לתקרה מעל שולחן הסלון, וגופי הצילינדר השחורים במסדרון ובכניסה. ביום הן כבויות ובערב דולקות. המידות והמיקומים הם הערכה מהתמונות.</li>
+      <li><b>מנורות:</b> המנורות שיש לכם היום, במקומות שהן יכולות להתאים: מנורת המסגרות השחורות מעל האי, מנורת הגל מול קיר האחסון בסלון, מקבילה לארון, מנורת שלוש המסגרות הצמודה לתקרה מעל שולחן הסלון, וגופי הצילינדר השחורים במסדרון ובכניסה. ביום הן כבויות ובערב דולקות. המידות והמיקומים הם הערכה מהתמונות.</li>
       <li><b>כביסה:</b> מכונה ומייבש אחד על השני בגומחה של חדר הרחצה, כמו בשרטוט, עם ארון מעליהם. סל הכביסה נשלף מתוך ארון הכיור. למסתור הכביסה נכנסים מהחלון, ובו המזגן, הדוד וחבלי הכביסה.</li>
       <li><b>אחסון נוסף:</b> ארונות מטבח עד התקרה, מגירות באי ובקומודה בכניסה, מגירות במיטות הילדים, כוננית בכל חדר, ספסל חלון עם מגירות בממ״ד, ארונות מראה בשני חדרי הרחצה וארון מעל האסלה.</li>
       <li><b>מקלחת הורים:</b> מקלחון 106×92 מהקירות, כמו בתוכנית האינסטלציה. זכוכית קבועה בצד האסלה ודלת הזזה בצד החדר. דלת על צירים הייתה פוגעת בארונית או באסלה. האסלה מתחת לחלון, והמרכז שלה 60 ס״מ מקיר חדר הארונות.</li>
@@ -1196,6 +1196,17 @@ plate('e', .02, TMD - .058, .44, .06, .05);
 B(.62, 1.97, .03, .06, H - .012, H, mat.ledWall, { parent: ceilGroup, cast: false }); B(.62, 1.43, TW - .06, TW - .03, H - .012, H, mat.ledWall, { parent: ceilGroup, cast: false });
 art('s', .006, 1.30, 1.55, .95, 1.20, 102, ['#ebe4d6', '#c39a6b', '#7f876b', '#3b4340'], 'fields', mat.black);
 art('n', TW - .006, 1.03, 1.55, .55, .80, 202, ['#efe9dd', '#2f3a36', '#b46f4b', '#d6c7ab'], 'arch', mat.black);
+// wave pendant in front of the storage wall (owners' lamp, photo): a 124 cm black bar parallel to the cabinet that waves in plan
+// (1.5 waves) and gently in height, a white diffuser under it, hung on four cables that drop straight out of a slim canopy as long
+// as the bar. 60 cm out from the cabinet front, clear of the upper doors; diffuser bottom about 2.06 so it clears heads (estimate)
+{ const N = 48, xc = 1.20, za = .82, zb = 2.06, yc = 2.12, A = .06, P = s => [xc + A * Math.sin(s * Math.PI * 3), yc + .02 * Math.sin(s * Math.PI * 2), za + (zb - za) * s];
+  for (let i = 0; i < N; i++) { const [xA, yA, zA] = P(i / N), [xB, yB, zB] = P((i + 1) / N), Lh = Math.hypot(xB - xA, zB - zA), L = Math.hypot(Lh, yB - yA) + .004;
+    const g = new THREE.Group(); root.add(g); g.position.set((xA + xB) / 2, (yA + yB) / 2, (zA + zB) / 2);
+    g.rotation.order = 'YZX'; g.rotation.y = -Math.atan2(zB - zA, xB - xA); g.rotation.z = Math.atan2(yB - yA, Lh);
+    B(-L / 2, L / 2, -.0225, .0225, -.014, .014, mat.matteBlack, { parent: g, cast: false }); B(-L / 2, L / 2, -.018, .018, -.044, -.014, mat.led, { parent: g, cast: false }); }
+  const [, , c1] = P(.01), [, , c2] = P(.99);
+  B(xc - .03, xc + .03, c1, c2, H - .025, H, mat.matteBlack, { parent: ceilGroup, cast: false });   // canopy: every cable starts inside it
+  [.03, 1 / 3, 2 / 3, .97].forEach(s => { const [x, y, z] = P(s); C(x, z, y + .014, H - .025, .003, mat.matteBlack, { seg: 6, parent: ceilGroup, cast: false }); }); }
 
 // =====================================================================
 // ENTRY: no tall cabinet. A floating low commode, 28 cm deep, with two drawers and a round mirror above, kept 35 cm back
@@ -1557,14 +1568,6 @@ art('w', -.25, 1.915, 1.55, .5, .7, 701, ['#ece6d8', '#5f7e93', '#c7a046', '#d9c
 // side), iMac 24" angled in the corner, 49" 32:9 curved monitor (1800R) on an arm in front of the chair, mobile drawers, ergonomic chair
 const WD = .75, deskTop = M('#f2f1ee', .45), frameM = mat.matteBlack;
 B(-3.8, -1.83, 1.945, 2.745, WD - .03, WD, deskTop, { round: .006 }); B(-3.8, -3.25, 1.345, 1.945, WD - .03, WD, deskTop, { round: .006 });
-// wave pendant over the desk (owners' lamp, photo): a long black bar that waves in plan and a little in height, white diffuser
-// blocks under it, a slim rectangular canopy and four cables
-{ const N = 28, xa = -3.42, xb = -2.18, zc = 2.30, yc = 1.66, P = s => [xa + (xb - xa) * s, yc + .025 * Math.sin(s * Math.PI * 3), zc + .07 * Math.sin(s * Math.PI * 2.5)];
-  for (let i = 0; i < N; i++) { const [xA, yA, zA] = P(i / N), [xB, yB, zB] = P((i + 1) / N), L = Math.hypot(xB - xA, zB - zA) + .006, ry = -Math.atan2(zB - zA, xB - xA);
-    [[mat.matteBlack, .045, .028, 0], [mat.led, .036, .030, -.029]].forEach(([m, w, hh, dy]) => { const b = B(-L / 2, L / 2, -w / 2, w / 2, -hh / 2, hh / 2, m, { cast: false });
-      b.position.set((xA + xB) / 2, (yA + yB) / 2 + dy, (zA + zB) / 2); b.rotation.y = ry; }); }
-  B(xa + .25, xb - .25, zc - .04, zc + .04, H - .025, H, mat.matteBlack, { parent: ceilGroup, cast: false });
-  [.04, .35, .65, .96].forEach(s => { const [x, y, z] = P(s); C(x, z, y + .014, H - .025, .003, mat.matteBlack, { seg: 6, parent: ceilGroup, cast: false }); }); }
 [-3.59, -2.05].forEach(x => { B(x - .035, x + .035, 2.265, 2.365, 0, WD - .03, frameM); B(x - .04, x + .04, 2.015, 2.665, 0, .03, frameM); });
 B(-3.59, -2.05, 2.585, 2.625, WD - .10, WD - .03, frameM);                                                   // crossbar / cable tray
 B(-3.69, -3.33, 1.46, 1.52, 0, WD - .03, frameM); B(-3.77, -3.27, 1.44, 1.54, 0, .03, frameM);              // return leg
@@ -1971,7 +1974,7 @@ winLight(-3.81, .955, .97, 1.0, 1.5, 0, .955, 3.5);         // mamad
 winLight(8.90, -1.79, .96, 2.15, 1.10, 0, -1.79, 5.5);       // master
 winLight(6.285, -4.99, .59, .7, 1.85, 6.285, 0, 2.5);       // master bath
 const warm = [];
-[[1.05, 1.4, 5], [4.7, 2.2, 5, H - .25], [5.99, 6.31, 5, 2.0], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 5], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.75, 1.9, 3, 2.0], [5.6, -4.2, 3], [3.2, -2.6, 2, BC - .3]]   // kids' bath: under its lowered ceiling
+[[1.2, 1.44, 5, 1.95], [4.7, 2.2, 5, H - .25], [5.99, 6.31, 5, 2.0], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 5], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 2, BC - .3]]   // kids' bath: under its lowered ceiling
   .forEach(([x, z, k, y = H - .3]) => { const p = new THREE.PointLight(0xffd3a1, 0, 6, 2); p.position.set(x, y, z); p.userData.k = k; scene.add(p); warm.push(p); });
 
 // =====================================================================
