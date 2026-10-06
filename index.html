@@ -619,12 +619,13 @@ async function photoPBR(mats, id, metres, { color = false, normal = 1, rough: ta
   }
   dirty = 1;
 }
+const mStuccoOut = mat.stucco.clone();   // plaster outside our own walls: an exterior material (photo sky, dark at dusk)
 const photoReady = Promise.all([   // the baked-light materials are clones: LM.load waits for these
   photoPBR([mat.planks], 'laminate_floor_02', 1.7, { normal: .3 }),
   photoPBR([mat.oak], 'oak_veneer_01', 1.83, { color: true, normal: .5 }),
   photoPBR([mat.slatOak], 'oak_veneer_01', .6, { color: true, normal: .5 }).then(() => mat.slatOak.color.multiply(new THREE.Color(.93, .9, .9))),
   photoPBR([mat.wall], 'white_stucco', 2.0, { normal: .35 }),
-  photoPBR([mat.stucco], 'white_stucco', 1.5, { normal: .5 }),   // exterior plaster on our shell (finish is an estimate)
+  photoPBR([mat.stucco, mStuccoOut], 'white_stucco', 1.5, { normal: .5 }),   // exterior plaster on our shell (finish is an estimate)
   photoPBR([mat.sofaGrey, mat.oat, mat.oatDark, mat.charcoal, mat.blackFab], 'caban', .27),
   photoPBR([mat.steel], 'Metal009', .5, { normal: .2, rough: mat.steel.roughness }),   // brushed lines (ambientCG CC0)
   photoPBR([mat.quartz], 'Marble021', 1.6, { normal: .15, rough: .2 }),   // quartz keeps its own colour, photo gloss only
@@ -1895,33 +1896,29 @@ const SUN_OFF = [25, 24, 14];   // sun position minus its target: the one sun ve
 const sunBoxes = [], sunPoles = [];            // [x1, x2, z1, z2, height, opacity, base]: boxes that throw a baked shadow on the ground (see siteMask)
 const mKerb = mat.concrete.clone();   // street-level concrete (kerbs, sidewalks): takes the baked ground shadows, the shell keeps mat.concrete
 const mGlassRailN = new THREE.MeshStandardMaterial({ color: '#cfe0e4', roughness: .05, metalness: .1, transparent: true, opacity: .3, depthWrite: false });
-{ const g = new THREE.PlaneGeometry(500, 500); g.rotateX(-Math.PI / 2); g.translate(10, GY, 0); mesh(g, mat.ground, outside, false); }
-B(-160, 160, 52.5, 60.5, GY, GY + .03, mat.asphalt, { cast: false, parent: outside });                                // Tirtsa Atar street (south)
-B(-160, 16.9, 48, 50.5, GY, GY + .15, mKerb, { cast: false, parent: outside }); B(34.2, 160, 48, 50.5, GY, GY + .15, mKerb, { cast: false, parent: outside }); B(-160, 160, 60.5, 62.5, GY, GY + .15, mKerb, { cast: false, parent: outside });
-function building(x1, x2, z1, z2, h, kind = 'white', base = 0) {
-  const t = facadeTex(kind); t.repeat.set(Math.max(x2 - x1, z2 - z1) / 3.2, (h - base) / 3);
-  B(x1, x2, z1, z2, GY + base, GY + h, new THREE.MeshStandardMaterial({ map: t, roughness: .9 }), { cast: false, parent: outside });
-  B(x1, x2, z1, z2, GY + h, GY + h + .6, mat.concrete, { cast: false, parent: outside }); sunBoxes.push(base ? [x1, x2, z1, z2, h + .6, .85, base] : [x1, x2, z1, z2, h + .6]);
+[[-240, 260, -250, -.69], [-240, 260, 21.45, 250], [-240, -21.86, -.69, 21.45], [-14.92, 260, -.69, 21.45]].forEach(([a, b, c, d]) => {   // ground, open over the car-park ramp
+  const g = new THREE.PlaneGeometry(b - a, d - c); g.rotateX(-Math.PI / 2); g.translate((a + b) / 2, GY, (c + d) / 2); mesh(g, mat.ground, outside, false); });
+B(-160, 160, 50.10, 60.18, GY, GY + .03, mat.asphalt, { cast: false, parent: outside });                              // Tirtsa Atar street (south); road width beyond the sheet an estimate
+B(-160, 16.75, 47.62, 50.10, GY, GY + .15, mKerb, { cast: false, parent: outside }); B(27.25, 160, 47.62, 50.10, GY, GY + .15, mKerb, { cast: false, parent: outside });   // north sidewalk, broken by Ali Mohar
+B(-160, 16.75, 60.18, 62.18, GY, GY + .15, mKerb, { cast: false, parent: outside }); B(30.05, 160, 60.18, 62.18, GY, GY + .15, mKerb, { cast: false, parent: outside });   // south sidewalk (Ali Mohar continues south: OpenStreetMap)
+function building(x1, x2, z1, z2, h, kind = 'white', base = 0) {   // called after the facade atlas exists (see the blocks)
+  const m = blockMats[kind] ||= facadeAtlas(kind), floors = Math.round((h - base) / 3.3), y0 = GY + base + (base ? .02 : 0);
+  const uv = B(x1, x2, z1, z2, y0, GY + h, m, OUT).geometry.attributes.uv, nx = Math.max(1, Math.round((z2 - z1) / 3.2)), nz = Math.max(1, Math.round((x2 - x1) / 3.2));
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * ((i >> 2) < 2 ? nx : nz), uv.getY(i) * floors);   // whole bays, one storey per atlas row
+  if (base) B(x1, x2, z1, z2, GY + base, y0, mStuccoOut, OUT);                                                      // soffit over the open ground floor
+  B(x1, x2, z1, z2, GY + h, GY + h + .6, mat.concrete, OUT); sunBoxes.push(base ? [x1, x2, z1, z2, h + .6, .85, base] : [x1, x2, z1, z2, h + .6]);
 }
-// building A and B (typical floor sheet, floors 1-4): one bar x -2.1..8.26 to z 30.6 on an open ground floor (paved, columns on
-// x 8.15, closed lobby core), B's south apartment x -9.65..8.26 to z 42.6, the stair and lift core beside our entry (x -3.55..1.19).
-// Storey height 3.3 and 7 storeys are estimates (no plans of floors 5-7).
-building(-2.1, 8.26, 9.11, 30.6, 23.1, 'white', 3.3); building(-9.65, 8.26, 30.6, 42.6, 23.1); building(-3.55, 1.19, 5.77, 9.11, 23.1);
-B(-1.3, 5.3, 9.11, 13.2, GY, GY + 3.3, mat.stucco, { cast: false, parent: outside }); sunBoxes.push([-1.3, 5.3, 9.11, 13.2, 3.3]);   // lobby A and storage under the bar
-[13.4, 16.6, 19.9, 23.2, 26.3].forEach(z => { B(7.95, 8.35, z - .4, z + .4, GY, GY + 3.3, mat.stucco, { cast: false, parent: outside }); sunBoxes.push([7.95, 8.35, z - .4, z + .4, 3.3]); });
-for (let f = 0; f < 7; f++) [[9.25, 13.2], [26, 30.8]].forEach(([a, b]) => { const y = GY + f * 3.3 + 3.2;          // separate balcony boxes, about 4.4 m long (keyplan)
-  B(7.70, 10.2, a, b, y - .25, y, mat.stucco, { cast: false, parent: outside }); B(10.05, 10.2, a, b, y, y + .45, mat.stucco, { cast: false, parent: outside });
-  B(7.70, 10.2, a, a + .15, y, y + .45, mat.stucco, { cast: false, parent: outside }); B(7.70, 10.2, b - .15, b, y, y + .45, mat.stucco, { cast: false, parent: outside });
-  B(10.1, 10.14, a, b, y + .45, y + 1.05, mGlassRailN, { cast: false, parent: outside }); });
+// building A and B: built after the residential blocks (they share the facade atlas), see "BUILDING A AND B"
 // under the apartment: floor 1 has our plan (apartment 2, typical floor sheet) with the same open balcony; the ground floor is the
 // garden apartment, its east face straight at x 9.25 (ground sheet). Plaster, windows as flush dark glass in a frame (sills and
 // heads on the ground floor are estimates)
-B(-4.28, 9.25, -5.39, 9.11, GY, GY + 3.15, mat.stucco, { cast: false, parent: outside });
-B(-4.28, 9.30, -5.39, -.13, GY + 3.15, GY + 6.15, mat.stucco, { cast: false, parent: outside }); B(-4.28, FO, -.13, 9.11, GY + 3.15, GY + 6.15, mat.stucco, { cast: false, parent: outside });
-sunBoxes.push([-4.28, 9.30, -5.39, 9.11, 6.15], [FO, BX2, BZN, BZ2, 6.6, .85, 2.9]);
+B(-4.28, 9.25, -5.39, 9.11, GY, GY + 3.15, mStuccoOut, { cast: false, parent: outside });
+B(-4.28, 9.30, -5.39, -.13, GY + 3.15, GY + 6.59, mStuccoOut, { cast: false, parent: outside }); B(-4.28, FO, -.13, 5.77, GY + 3.15, GY + 6.59, mStuccoOut, { cast: false, parent: outside });
+B(-3.55, FO, 5.77, 9.11, GY + 3.15, GY + 6.59, mStuccoOut, { cast: false, parent: outside });
+sunBoxes.push([-4.28, 9.30, -5.39, 9.11, 6.59], [FO, BX2, BZN, BZ2, 6.6, .85, 2.9]);
 { const mDark = new THREE.MeshStandardMaterial({ color: '#2b3137', roughness: .08, metalness: .2 }), o = { cast: false, parent: outside };
   const west = [['z', -2.81, -1.91, -4.28, -1, .15, 2.35], ['z', .48, 1.48, -4.28, -1, 1.10, 2.10]];
-  for (const [dy, list] of [[-3.3, [...west, ['x', 6.015, 6.615, -5.39, -1, 1.25, 2.35], ['x', .365, 1.265, -5.39, -1, .15, 2.35], ['z', -2.17, -1.27, 9.30, 1, .15, 2.35],
+  for (const [dy, list] of [[-3.3, [...west, ['x', 6.015, 6.615, -5.39, -1, 1.25, 2.35], ['x', .365, 1.265, -5.39, -1, .15, 2.35], ['x', 2.15, 3.65, -5.39, -1, .15, 2.35], ['z', -2.17, -1.27, 9.30, 1, .15, 2.35],
       ['z', .79, 3.49, FO, 1, 0, HEAD], ['z', 4.29, 6.99, FO, 1, 0, HEAD], ['z', 7.75, 8.45, FO, 1, 1.20, HEAD]]],
     [-6.6, [...west, ['x', .29, 1.35, -5.39, -1, .15, 2.35], ['x', 2.15, 3.69, -5.39, -1, .15, 2.35], ['x', 4.96, 8.63, -5.39, -1, 0, 2.35],
       ['z', -2.33, -1.26, 9.25, 1, 0, 2.35], ['z', 1.54, 3.10, 9.25, 1, 0, 2.35], ['z', 4.66, 6.23, 9.25, 1, 0, 2.35], ['z', 7.97, 8.73, 9.25, 1, 0, 2.35]]]]) list.forEach(([ax, a1, a2, f, s, sill, head]) => {
@@ -1948,33 +1945,36 @@ const stoneTex = canvasTex(512, 512, (g, w, h) => { const r = rnd(93);    // cre
   g.fillStyle = 'rgba(170,166,154,.3)'; for (let j = 0; j < 16; j++) g.fillRect(0, j * 32, w, 1); for (let j = 0; j < 16; j++) for (let i = 0; i < 9; i++) g.fillRect(i * 64 + (j % 2) * 32, j * 32, 1, 32); });
 const soilTex = canvasTex(512, 512, (g, w, h) => { const r = rnd(94); g.fillStyle = '#9c8770'; g.fillRect(0, 0, w, h);   // dusty brown, not orange
   for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(${r() > .5 ? '105,80,60' : '210,185,155'},${r() * .25})`; g.beginPath(); g.ellipse(r() * w, r() * h, 1 + r() * 9, 1 + r() * 5, r() * 3, 0, 7); g.fill(); } });
-const mPaver = TM(paverTex, .9, 3.0), mPaverRed = TM(paverT('#b08a7c', [172, 134, 120]), .9, 3.0), mPaverWalk = TM(paverT('#a87a6c', [164, 120, 106]), .9, 3.0), mTerr = TM(terrTex, .5, 2.4), mStone = TM(stoneTex, .85, 4.8), mSoil = TM(soilTex, 1, 9);
-[mStone, mPaver, mPaverRed, mPaverWalk, mSoil].forEach(m => m.userData.envDay = 1.1);   // west faces we look at sit in sun shadow: lift them with the sky
+const mPaverBay = TM(paverT('#8f8f8c', [140, 140, 136]), .9, 3.0), mPaver = TM(paverTex, .9, 3.0), mPaverRed = TM(paverT('#b08a7c', [172, 134, 120]), .9, 3.0), mPaverWalk = TM(paverT('#a87a6c', [164, 120, 106]), .9, 3.0), mTerr = TM(terrTex, .5, 2.4), mStone = TM(stoneTex, .85, 4.8), mSoil = TM(soilTex, 1, 9);
+[mStone, mPaver, mPaverRed, mPaverWalk, mPaverBay, mSoil].forEach(m => m.userData.envDay = 1.1);   // west faces we look at sit in sun shadow: lift them with the sky
 photoPBR([mat.asphalt], 'asphalt_02', 3, { color: true }); photoPBR([mSoil], 'park_dirt', 3, { color: true }); const turfReady = photoPBR([mat.turf], 'grass_ground', 2.5, { color: true });   // CC0 ground sets, site only
-photoPBR([mPaver, mPaverRed, mPaverWalk], 'interlocking_concrete_pavers', 1.8, { color: true, normal: .6 });   // one CC0 paver set (Poly Haven), tinted to each paver colour
+photoPBR([mPaver, mPaverRed, mPaverWalk, mPaverBay], 'interlocking_concrete_pavers', 1.8, { color: true, normal: .6 });   // one CC0 paver set (Poly Haven), tinted to each paver colour
 const mWin = M('#39434b', .25, { metalness: .3 }), mWinFrame = M('#4b5258', .5), mBlue = M('#3d6fa8', .8), mWhiteLine = M('#f2f2ee', .8), mBlueFence = TM(canvasTex(64, 8, (g, w, h) => { for (let x = 0; x < w; x++) { const v = 128 + Math.round(22 * Math.sin(x / w * Math.PI * 8)); g.fillStyle = `rgb(${v},${v + 12},${v + 16})`; g.fillRect(x, 0, 1, h); } }), .6, 1.2);   // grey-blue corrugated hoarding
 const mGlassRail = new THREE.MeshStandardMaterial({ color: '#cfe0e4', roughness: .05, metalness: .1, transparent: true, opacity: .25, depthWrite: false });
 const mSail = M('#e7cf98', .9, { side: THREE.DoubleSide }), mShadeNet = M('#4f8f6a', .95, { side: THREE.DoubleSide }), mAlu = M('#c3c6c8', .35, { metalness: .8 });
 // floor 1's balcony, one storey below ours (same plan): tiled slab, side walls up to our slab, upstand and black pickets
 { const y = -3.3;
-  B(BX1, BX2, BZN, BZ2, BY + y - .36, BY + y, mTerr, OUT);
-  B(BX1, BN + .002, BZN - .015, BZ1, BY + y, -.40, mat.stucco, OUT); B(BX1, BS, BZ2, 9.20, BY + y, -.40, mat.stucco, OUT);
-  B(BX2 - .15, BX2, BZN, BZ2, BY + y, .45 + y, mat.stucco, OUT); B(BN, BX2 - .15, BZN, BZN + .15, BY + y, .45 + y, mat.stucco, OUT);
+  B(BX1, BX2, BZN, BZ2, BY + y - .36, BY + y - .012, mStuccoOut, OUT); B(BX1, BX2, BZN, BZ2, BY + y - .012, BY + y, mTerr, OUT);
+  B(BX1, BN - .002, BZN - .015, BZ1, BY + y, -.40, mStuccoOut, OUT); B(BX1, BS, BZ2, 9.20, BY + y, -.40, mStuccoOut, OUT);
+  B(BX2 - .15, BX2, BZN, BZ2, BY + y, .45 + y, mStuccoOut, OUT); B(BN, BX2 - .15, BZN, BZN + .15, BY + y, .45 + y, mStuccoOut, OUT);
+  for (let x = BN + .07; x < BX2 - .12; x += .12) B(x - .01, x + .01, BZN + .08, BZN + .10, .47 + y, 1.05 + y, mat.blackMetal, OUT);
+  B(BN, BX2 - .06, BZN + .06, BZN + .12, 1.05 + y, 1.09 + y, mat.blackMetal, OUT); B(BN, BX2 - .07, BZN + .07, BZN + .11, .45 + y, .49 + y, mat.blackMetal, OUT);
   for (let z = BZN + .07; z < BZ2 - .05; z += .12) B(BX2 - .10, BX2 - .08, z - .01, z + .01, .47 + y, 1.05 + y, mat.blackMetal, OUT);
   B(BX2 - .12, BX2 - .06, BZN, BZ2, 1.05 + y, 1.09 + y, mat.blackMetal, OUT); B(BX2 - .11, BX2 - .07, BZN, BZ2, .45 + y, .49 + y, mat.blackMetal, OUT); }
 // street cross-section (x): lot fence 14.1-14.3 | sidewalk 14.3-16.9 | parallel parking on pavers 16.9-18.8 (ground sheet) |
 // road 18.8-25.2 | bays 25.2-30.2 | sidewalk 30.2-34.2 | school fence 34.2 (far side from the photos)
-B(14.3, 16.9, -160, 160, GY, GY + .15, mPaver, OUT); B(16.9, 18.8, -160, 160, GY, GY + .04, mPaver, OUT);
-B(18.8, 30.2, -160, 160, GY, GY + .03, mat.asphalt, OUT);
-for (let z = -158; z < 160; z += 6) B(21.94, 22.06, z, z + 3, GY + .03, GY + .035, mWhiteLine, OUT);                         // centre line
+const AM = [[-92, 47.62], [62.18, 160]];   // Ali Mohar's sidewalks run from the cross street in the north, broken by Tirtsa Atar
+AM.forEach(([a, b]) => B(14.3, 16.9, a, b, GY, GY + .15, mPaver, OUT)); [[-92, 43.8], [62.18, 160]].forEach(([a, b]) => { B(16.9, 18.8, a, b, GY, GY + .04, mPaverBay, OUT); B(16.75, 16.92, a, b, GY, GY + .16, mKerb, OUT); });   // parking ends at z 43.8 (sheet)
+B(18.8, 30.2, -100, 160, GY, GY + .03, mat.asphalt, OUT);
+for (let z = -90; z < 160; z += 6) if (z + 3 < 50 || z > 60.2) B(21.94, 22.06, z, z + 3, GY + .03, GY + .035, mWhiteLine, OUT);   // centre line
 [-8, -5.5, -3, -.5, 0, 2.5].forEach(z => B(25.2, 30.2, z - .05, z + .05, GY + .03, GY + .036, mWhiteLine, OUT));                 // bay lines: two regular bays north of the accessible ones
 [[-3.0, -.5], [0, 2.5]].forEach(([a, b]) => { B(25.2, 30.2, a + .06, b - .06, GY + .031, GY + .035, mBlue, OUT); });        // accessible bays
 for (let k = 0; k < 6; k++) B(25.4 + k * .8, 25.7 + k * .8, -.45, -.05, GY + .031, GY + .036, mWhiteLine, OUT);
 // far side (photos 08, 12): perpendicular bays only at z -8..3; north and south of them a parallel lane (x 23.0-25.2) and the red
 // sidewalk widens to the kerb, with a yellow tactile strip along it. Positions estimated from the photos.
-B(30.2, 34.2, -8, 3.2, GY, GY + .15, mPaverRed, OUT); B(30.05, 30.2, -8, 3.2, GY, GY + .16, mKerb, OUT); B(16.75, 16.9, -160, 160, GY, GY + .16, mKerb, OUT);
+B(30.2, 34.2, -8, 3.2, GY, GY + .15, mPaverRed, OUT); B(30.05, 30.2, -8, 3.2, GY, GY + .16, mKerb, OUT);
 const mTactile = M('#d4c27a', .8);
-[[-160, -8], [3.2, 160]].forEach(([a, b]) => { B(27.4, 34.2, a, b, GY, GY + .15, mPaverRed, OUT); B(27.25, 27.4, a, b, GY, GY + .16, mKerb, OUT); B(27.4, 27.7, a, b, GY + .15, GY + .156, mTactile, OUT); });
+[[-92, -8], [3.2, 47.62], [62.18, 160]].forEach(([a, b]) => { B(27.4, 34.2, a, b, GY, GY + .15, mPaverRed, OUT); B(27.25, 27.4, a, b, GY, GY + .16, mKerb, OUT); B(27.4, 27.7, a, b, GY + .15, GY + .156, mTactile, OUT); });
 const mKerbRed = M('#c8352e', .7);
 [[-8.15, -8], [3.2, 3.35]].forEach(([a, b]) => { for (let k = 0; k < 6; k++) B(27.25 + k * .49, 27.74 + k * .49, a, b, GY, GY + .16, k % 2 ? mKerbRed : mWhiteLine, OUT); });   // red-white kerb at the bay ends
 // young street trees on the far sidewalk, thin crowns (as in the photos); no trees on our side. On the site they are tree cards
@@ -1991,7 +1991,7 @@ const lampU = { uLamp: { value: [] }, uLampK: { value: 0 } };   // lamp heads th
 const streetLight = (x, z, h, dx) => { C(x, z, GY, GY + h, .07, mPole, { seg: 10, parent: outside, cast: false }); sunPoles.push([x, z, h + .3]); lampU.uLamp.value.push(new THREE.Vector3(x + dx, GY + h + .15, z));
   mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(new THREE.Vector3(x, GY + h - .5, z), new THREE.Vector3(x, GY + h + .25, z), new THREE.Vector3(x + dx, GY + h + .3, z)), 12, .04, 6), mPole, outside, false);
   const a = x + dx - .25; B(a, a + .5, z - .14, z + .14, GY + h + .2, GY + h + .3, mPole, OUT); B(a + .03, a + .47, z - .11, z + .11, GY + h + .19, GY + h + .2, mLampHead, OUT); };
-[-40, -14, 12, 38].forEach(z => streetLight(30.6, z, 7.7, -1.6));
+[-40, -14, 15.5, 33.5].forEach(z => streetLight(30.6, z, 7.7, -1.6));   // clear of the street trees
 // parked cars: parallel on our side, nose-in on the far side
 const carCols = ['#f4f4f2', '#1d1f22', '#9aa0a6', '#f4f4f2', '#5b636b', '#b8bcc0', '#2c3e57', '#f4f4f2'];
 const carProf = (pts, depth, bevel) => { const sh = new THREE.Shape(pts.map(([u, v]) => new THREE.Vector2(u, v)));
@@ -2053,7 +2053,7 @@ B(35.1, 82, 8.85, 8.9, GY, GY + 1.8, M('#a9adb0', .6, { metalness: .4 }), OUT); 
 const mRetain = M('#cfcac0', .9); B(35.2, 82, 22, 22.3, GY, GY + 1.0, mRetain, OUT); sunBoxes.push([35.2, 82, 22, 22.3, 1], [35.1, 82, 8.85, 8.9, 1.8, .6]);
 B(34.2, 60, 22.3, 28, GY, GY + .03, mat.asphalt, OUT);
 [[40.2, 1], [45.7, 3], [49.2, 6]].forEach(([x, i]) => car(x, 26.2, 'x', carCols[i]));
-B(33.2, 33.7, 9.6, 11.4, GY + .4, GY + .45, mat.walnut, OUT);
+B(33.2, 33.7, 9.6, 11.4, GY + .4, GY + .45, mat.walnut, OUT); [9.75, 11.25].forEach(z => B(33.3, 33.6, z - .04, z + .04, GY + .15, GY + .4, mat.blackMetal, OUT));   // bench
 // the tall white building at the south-east end of the lot (photos 01, 06, 11, 26; placed by bearing and distance, about +-10 m):
 // two stepped wings, 9 storeys plus a roof storey, white large-format panels, small square windows, two dark-brown louvre strips
 // on the face toward us, recessed loggias, a red-tile roof element. All dimensions are estimates.
@@ -2077,37 +2077,47 @@ const litMats = [];   // lit-window emissive maps, on in the evening
 // north of our building: an empty plot behind a blue construction fence (photo looking north from the balcony)
 const mWeeds = TM(canvasTex(256, 256, (g, w, h) => { const r = rnd(95); g.fillStyle = '#8a7656'; g.fillRect(0, 0, w, h);
   for (let i = 0; i < 1800; i++) { g.strokeStyle = `rgba(${r() > .5 ? '110,95,60' : '170,150,105'},${.3 + r() * .4})`; const x = r() * w, y = r() * h; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 6, y - 3 - r() * 6); g.stroke(); } }), 1, 3);
-B(-6, 14.3, -48, -11.9, GY, GY + .06, mWeeds, OUT); B(14.3, 14.36, -48, -11.9, GY, GY + 2.0, mBlueFence, OUT); sunBoxes.push([14.3, 14.36, -48, -11.9, 2], [-6, 14.36, -48.05, -48, 2]); B(-6, 14.36, -48.05, -48, GY, GY + 2.0, mBlueFence, OUT);   // north of our lot line (z -11.8)
+B(-6, 14.18, -48, -11.74, GY, GY + .06, mWeeds, OUT); B(14.18, 14.24, -48, -11.74, GY, GY + 2.0, mBlueFence, OUT); sunBoxes.push([14.18, 14.24, -48, -11.74, 2], [-6, 14.24, -48.05, -48, 2]); B(-6, 14.24, -48.05, -48, GY, GY + 2.0, mBlueFence, OUT);   // north of our lot line (z -11.8)
 [[2, -20], [3.4, -21], [-1, -33]].forEach(([x, z]) => B(x, x + 1.2, z, z + 1.0, GY + .06, GY + .2, M('#a08463', .9), OUT));     // pallets
-// OUR LOT (ground sheet, scaled about +-0.15 m; heights and materials not written, so they are estimates): low stone-clad wall on
+// OUR LOT (ground sheet, calibrated on the 1:75 sheet's written dimensions, about +-0.1 m; heights and materials not written, so they are estimates): low stone-clad wall on
 // the lot line with the two pedestrian gaps on Ali Mohar and the car gate on Tirtsa Atar, gardens, the private garden and pergola
 // of the garden apartment under our north windows, smoke-release vents of the car park, surface parking, the fire-truck pad and
 // the car-park ramp along the west lot line. Which way the entrance steps go (up or down) is not written, so no steps are drawn.
 { const mFence = M('#4a4e52', .55, { metalness: .5 }), mVent = M('#9a9d9f', .7), mGrille = M('#3a3d40', .6, { metalness: .4 }), wallH = .5;
   const lotWall = (x1, x2, z1, z2) => B(x1, x2, z1, z2, GY, GY + wallH, mStone, OUT);
-  lotWall(-22.3, 14.3, -11.9, -11.7); lotWall(-22.5, -22.3, -11.9, 47.9);                                                   // north, west
-  [[-11.7, 9.98], [14.92, 28.47], [30.59, 39.7]].forEach(([a, b]) => lotWall(14.1, 14.3, a, b));                               // east, gaps for the A and B entrances
-  lotWall(-18.1, 6.2, 47.8, 48.0);                                                                                           // south, car gate at x -22.1..-18.1
-  for (let i = 0; i < 6; i++) { const a0 = i / 6 * Math.PI / 2, a1 = (i + 1) / 6 * Math.PI / 2, am = (a0 + a1) / 2, R = 8.1, L = 2 * R * Math.sin((a1 - a0) / 2) + .05;   // rounded SE corner
-    const w = B(-L / 2, L / 2, -.1, .1, GY, GY + wallH, mStone, OUT); w.position.set(6.1 + R * Math.cos(am), 0, 39.7 + R * Math.sin(am)); w.rotation.y = Math.PI / 2 - am; }
-  B(-22.1, -18.1, 47.85, 47.93, GY, GY + 1.6, mFence, OUT);                                                                  // car gate (closed)
-  B(9.25, 14.1, -11.7, 9.9, GY, GY + .02, mat.turf, OUT); B(-1.2, 9.25, -11.7, -5.39, GY, GY + .02, mat.turf, OUT);       // east strip, private north garden
-  B(12.7, 12.9, -11.7, 9.83, GY, GY + .4, mKerb, OUT); B(5.44, 12.9, 9.82, 9.97, GY, GY + .4, mKerb, OUT);                // low walls (blue lines on the sheet)
-  B(10.75, 14.3, 9.97, 13.01, GY, GY + .05, mPaver, OUT);                                                                    // building A entrance from Ali Mohar
-  [-1.19, 9.19].forEach(x => { B(x - .02, x + .02, -11.7, -5.39, GY + 1.1, GY + 1.14, mFence, OUT);                         // private garden fences, 1.15 high (estimate)
-    for (let z = -11.65; z < -5.4; z += .12) B(x - .01, x + .01, z, z + .02, GY, GY + 1.12, mFence, OUT); });
-  [[4.1, -8.9], [9.0, -8.9], [4.1, -5.45], [9.0, -5.45], [6.55, -8.9]].forEach(([x, z]) => B(x - .06, x + .06, z - .06, z + .06, GY, GY + 2.8, mFence, OUT));   // pergola, top 2.8 (estimate)
-  B(4.04, 9.06, -8.96, -8.84, GY + 2.68, GY + 2.8, mFence, OUT); for (let x = 4.15; x < 9.0; x += .3) B(x, x + .05, -8.9, -5.4, GY + 2.72, GY + 2.8, mFence, OUT);
-  sunBoxes.push([4.1, 9.0, -8.9, -5.4, 2.8, .45, 2.7]);
-  [[-2.7, -1.25, -11.7, -8.65], [-2.7, -1.25, -7.05, -5.45], [9.3, 12.0, -11.7, -9.6]].forEach(([a, b, c, d]) => {              // smoke-release vents, 0.8 high (estimate)
+  lotWall(-22.06, 14.18, -11.74, -11.55); lotWall(-22.06, -21.86, -11.55, 47.62);                                             // north, west
+  [[-11.55, 9.95], [14.85, 28.28], [30.38, 39.45]].forEach(([a, b]) => lotWall(13.97, 14.17, a, b));                           // east, gaps for the A and B entrances
+  lotWall(-17.74, 6.15, 47.42, 47.62);                                                                                         // south, car gate at x -21.86..-17.74
+  for (let i = 0; i < 6; i++) { const a0 = i / 6 * Math.PI / 2, a1 = (i + 1) / 6 * Math.PI / 2, am = (a0 + a1) / 2, R = 7.85, L = 2 * R * Math.sin((a1 - a0) / 2) + .05;   // rounded SE corner
+    const w = B(-L / 2, L / 2, -.1, .1, 0, wallH, mStone, OUT); w.position.set(6.15 + R * Math.cos(am), GY, 39.5 + R * Math.sin(am)); w.rotation.y = Math.PI / 2 - am; }
+  B(-21.86, -17.74, 47.46, 47.54, GY, GY + .08, mFence, OUT); for (let x = -21.8; x < -17.75; x += .12) B(x, x + .02, 47.48, 47.52, GY, GY + 1.6, mFence, OUT); B(-21.86, -17.74, 47.46, 47.54, GY + 1.52, GY + 1.6, mFence, OUT);   // car gate (closed)
+  B(9.25, 13.97, -11.55, 9.8, GY, GY + .02, mat.turf, OUT); B(-1.17, 9.25, -11.55, -5.39, GY, GY + .02, mat.turf, OUT);       // east strip, private north garden
+  B(12.56, 12.75, -11.55, 9.8, GY, GY + .4, mKerb, OUT); B(5.44, 12.75, 9.8, 9.94, GY, GY + .4, mKerb, OUT);                // low walls (blue lines on the sheet)
+  B(8.27, 13.97, 9.94, 30.38, GY, GY + .015, mPaver, OUT); B(-2.13, 8.27, 9.11, 30.6, GY, GY + .015, mPaver, OUT);          // paths in front of A and the open ground floor (d08: pavers)
+  [[8.22, 11.15, 12.97, 13.11], [8.22, 11.15, 26.90, 26.99], [8.22, 8.37, 13.11, 26.90], [11.06, 11.15, 13.11, 26.90], [11.06, 12.75, 12.95, 13.05]]
+    .forEach(([a, b, c, d]) => B(a, b, c, d, GY, GY + .4, mKerb, OUT));                                                        // planter in front of the columns
+  B(8.37, 11.06, 13.11, 26.90, GY, GY + .3, mat.turf, OUT); B(12.54, 13.97, 14.85, 28.28, GY, GY + .02, mat.turf, OUT);
+  [[8.27, 12.35, 37.25, 37.45], [12.15, 12.35, 30.52, 37.25], [8.31, 13.97, 30.38, 30.52]].forEach(([a, b, c, d]) => B(a, b, c, d, GY, GY + .4, mKerb, OUT));   // B's east garden
+  B(8.27, 13.97, 30.52, 39.45, GY, GY + .02, mat.turf, OUT);
+  [-1.17, 9.10].forEach(x => { B(x - .02, x + .02, -11.55, -5.39, GY + 1.1, GY + 1.14, mFence, OUT);                         // private garden fences, 1.15 high (estimate)
+    for (let z = -11.5; z < -5.4; z += .12) B(x - .01, x + .01, z, z + .02, GY, GY + 1.12, mFence, OUT); });
+  [[4.04, -8.76], [9.0, -8.76], [4.04, -5.45], [9.0, -5.45], [6.52, -8.76]].forEach(([x, z]) => B(x - .06, x + .06, z - .06, z + .06, GY, GY + 2.8, mFence, OUT));   // pergola, top 2.8 (estimate)
+  B(3.98, 9.06, -8.82, -8.70, GY + 2.68, GY + 2.8, mFence, OUT); for (let x = 4.1; x < 9.0; x += .3) B(x, x + .05, -8.76, -5.4, GY + 2.72, GY + 2.8, mFence, OUT);
+  sunBoxes.push([4.04, 9.0, -8.76, -5.4, 2.8, .45, 2.7]);
+  [[-2.7, -1.25, -11.55, -8.65], [-2.7, -1.25, -7.05, -5.45], [9.3, 12.0, -11.55, -9.6], [11.13, 12.16, 34.05, 37.08]].forEach(([a, b, c, d]) => {   // smoke-release vents, 0.8 high (estimate)
     B(a, b, c, d, GY, GY + .78, mVent, OUT); B(a + .05, b - .05, c + .05, d - .05, GY + .78, GY + .8, mGrille, OUT); sunBoxes.push([a, b, c, d, .8]); });
-  B(-14.1, -8.65, -2.9, 7.1, GY, GY + .03, mat.asphalt, OUT); for (let z = -2.9; z < 7.2; z += 2.5) B(-14.1, -9.1, z - .05, z + .05, GY + .03, GY + .036, mWhiteLine, OUT);   // stalls 1-4
-  B(-7.8, -2.9, 15.4, 28.1, GY, GY + .03, mat.asphalt, OUT); [15.4, 17.9, 20.4, 23.1, 25.6, 28.1].forEach(z => B(-7.4, -2.9, z - .05, z + .05, GY + .03, GY + .036, mWhiteLine, OUT));   // stalls 5, 6, accessible
-  B(-14.3, -8.2, 7.5, 19.6, GY, GY + .035, mPaverRed, OUT); B(-21.5, -15.3, 32.7, 44.8, GY, GY + .035, mPaverRed, OUT);      // fire-truck pads
-  B(-22.2, -15.2, 21.4, 47.9, GY, GY + .03, mat.asphalt, OUT);                                                               // driveway to the ramp
-  B(-22.0, -15.4, 17.4, 21.4, GY, GY + .005, mGrille, OUT);                                                                  // ramp portal: going down north (covered beyond)
-  [[-22.2, -22.0, 17.2, 21.4], [-15.4, -15.2, 17.2, 21.4], [-22.2, -15.2, 17.2, 17.4]].forEach(([a, b, c, d]) => B(a, b, c, d, GY, GY + 1.1, mKerb, OUT));
-  [[-6.9, -6.7], [-5.4, -5.2]].forEach(([a, b]) => B(a, b, 1.1, 5.75, GY, GY + 1.0, mKerb, OUT)); B(-6.7, -5.4, 1.1, 5.75, GY, GY + .005, mGrille, OUT);   // outdoor stair under the mamad window
+  B(-13.95, -8.59, -2.80, 7.14, GY, GY + .03, mat.asphalt, OUT); [-13.95, -11.27, -8.59].forEach(x => B(x - .05, x + .05, -2.80, 7.14, GY + .03, GY + .036, mWhiteLine, OUT));   // stalls 1-4: 2 x 2, cars north-south
+  B(-13.95, -8.59, 2.12, 2.22, GY + .03, GY + .036, mWhiteLine, OUT);
+  B(-7.8, -2.9, 15.4, 28.1, GY, GY + .03, mat.asphalt, OUT); [15.5, 18.18, 20.57, 23.06, 25.52, 27.93].forEach(z => B(-7.4, -2.9, z - .05, z + .05, GY + .03, GY + .036, mWhiteLine, OUT));   // stalls 5, 6, accessible
+  B(-14.08, -8.03, 7.5, 19.53, GY, GY + .035, mPaverRed, OUT); B(-21.20, -15.15, 32.6, 44.6, GY, GY + .035, mPaverRed, OUT);   // fire-truck pads
+  B(-21.86, -15.11, 21.45, 47.42, GY, GY + .03, mat.asphalt, OUT);                                                             // driveway from the car gate
+  B(-13.50, 10.07, 50.10, 52.18, GY, GY + .04, mPaverBay, OUT);                                                              // Tirtsa Atar parking on pavers (sheet)
+  { const L = 21.92, D = 3.0, m = mesh(new THREE.PlaneGeometry(6.75, Math.hypot(L, D)), mat.asphalt, outside, false);           // ramp down north to the basement gate at z 0 (depth an estimate)
+    m.rotation.x = -Math.PI / 2 - Math.atan2(D, L); m.position.set(-18.485, GY - D / 2, 10.49); }
+  B(-15.11, -14.92, -.47, 20.90, GY - 3.0, GY + 1.0, mKerb, OUT); B(-22.06, -21.86, -.69, 21.45, GY - 3.0, GY, mKerb, OUT);   // ramp walls (east parapet 1.0, estimate)
+  B(-21.86, -14.92, -.69, -.47, GY - 3.0, GY + .5, mKerb, OUT); B(-21.86, -14.92, -.47, -.4, GY - 3.0, GY - .6, mGrille, OUT);   // wall over the basement gate, the gate
+  B(-21.19, -18.16, 20.95, 21.45, GY + .9, GY + 1.0, mat.blackMetal, OUT); B(-21.19, -21.09, 20.95, 21.45, GY, GY + 1.0, mat.blackMetal, OUT);   // barrier at the top of the down lane
+  [[-6.64, -6.44], [-5.55, -5.35]].forEach(([a, b]) => B(a, b, 1.1, 4.16, GY, GY + 1.0, mKerb, OUT)); B(-6.44, -5.55, 1.1, 4.16, GY, GY + .005, mGrille, OUT);   // outdoor stair under the mamad window
   C(-18.1, -8.2, GY, GY + 2.6, .1, mat.walnut, { seg: 6, parent: procTrees, cast: false });                                 // the one tree on the sheet (NW garden)
   { const c = mesh(new THREE.IcosahedronGeometry(1.6, 1), mat.leaf, procTrees, false); c.position.set(-18.1, GY + 3.8, -8.2); } yardTrees.push([-18.1, -8.2, 5.4, 1.3]); }
 B(-60, 90, -100, -92, GY, GY + .035, mat.asphalt, OUT);                                                                       // cross street at the T-junction
@@ -2191,11 +2201,24 @@ function block(x1, x2, z1, z2, floors, kind = 'white', face = 'w') {
 // east ring pushed out so only the top storeys show over the school (photo 10), a far ring at 150-300 m to close the horizon, and
 // 6-8 storey blocks across the T-junction at the north end of Ali Mohar (photo 25). Positions are estimates.
 [[100, 116, -46, -26, 7], [104, 120, -14, 6, 6, 'stone'], [132, 150, -24, 4, 8], [90, 106, -80, -60, 7, 'stone'], [118, 136, -70, -50, 6],
- [100, 118, 18, 40, 8, 'stone'], [150, 170, -60, -34, 7], [48, 64, -90, -72, 7], [-10, 6, -78, -58, 8], [33, 45, -90, -74, 6, 'stone'],
+ [100, 118, 18, 40, 8, 'stone'], [150, 170, -60, -34, 7], [48, 64, -90, -72, 7], [-10, 6, -78, -58, 8], [35.2, 47.2, -90, -74, 6, 'stone'],
  [165, 185, 20, 44, 8], [170, 190, -110, -86, 7, 'stone'], [140, 158, 60, 82, 9], [200, 222, -30, -6, 7], [190, 210, 60, 84, 8, 'stone'], [130, 150, -120, -100, 6],
  [90, 108, -130, -112, 8], [60, 78, -150, -130, 7, 'stone'], [210, 230, -80, -56, 6], [-5, 34, -118, -102, 7, 'clad'], [-40, -10, -120, -104, 6], [38, 56, -120, -104, 8, 'stone'],
- [-40, -24, -40, -22, 7], [-46, -30, -6, 12, 6, 'stone'], [-42, -26, 22, 40, 7], [-14, 2, -48, -34, 7], [-70, -50, -30, 0, 8], [-20, -6, 62, 80, 7, 'stone'], [56, 72, 80, 98, 7]]
+ [-40, -24, -40, -22, 7], [-46, -30, -6, 12, 6, 'stone'], [-42, -26, 22, 40, 7], [-26, -10, -48, -34, 7], [-70, -50, -30, 0, 8], [-20, -6, 63, 81, 7, 'stone'], [56, 72, 80, 98, 7]]
   .forEach(([a, b, c, d, f, k]) => block(a, b, c, d, f, k || 'white', a > 30 ? 'w' : (c > 30 ? 'n' : 's')));
+// BUILDING A AND B (typical floor and ground sheets, recalibrated on the 1:75 sheet): the bar steps with the flats (east face 7.70
+// for the flats next to ours and at the A/B joint, 8.27 for the two middle ones; west face -1.44 / -0.74 / -2.13), floors 1-6 on
+// an open ground floor with storage blocks, lobby A and columns at x 8.04; B's south flat (its west wing from z 32.94); the stair
+// and lift core beside our entry. Storey height 3.3 and 6 storeys over the ground floor are estimates (no plans of floors 5-7).
+[[-1.44, 7.70, 9.11, 12.91], [-1.44, 8.27, 12.91, 15.75], [-0.74, 8.27, 15.75, 23.75], [-2.13, 8.27, 23.75, 26.82], [-1.44, 7.70, 26.82, 30.6]]
+  .forEach(([a, b, c, d]) => building(a, b, c, d, 23.1, 'white', 3.3));
+building(-3.5, 8.27, 30.6, 42.6, 23.1); building(-9.66, -3.5, 32.94, 42.6, 23.1); building(-3.55, 1.19, 5.77, 9.12, 23.1);
+[[-1.3, 5.3, 9.11, 13.18], [-1.43, 5.35, 13.18, 18.96], [-0.74, 5.35, 20.77, 24.81]].forEach(([a, b, c, d]) => { B(a, b, c, d, GY, GY + 3.3, mStuccoOut, OUT); sunBoxes.push([a, b, c, d, 3.3]); });   // lobby A, storage
+[[13.36, .4], [16.59, .4], [19.88, .4], [23.16, .4], [26.24, .5]].forEach(([z, r]) => { B(7.89, 8.19, z - r, z + r, GY, GY + 3.3, mStuccoOut, OUT); sunBoxes.push([7.89, 8.19, z - r, z + r, 3.3]); });
+for (let f = 0; f < 6; f++) [[9.13, 12.91], [26.82, 30.6]].forEach(([a, b]) => { const y = GY + f * 3.3 + 3.2;      // the neighbours' balconies, floors 1-6
+  B(7.70, 10.2, a, b, y - .25, y, mStuccoOut, OUT); B(10.05, 10.2, a, b, y, y + .45, mStuccoOut, OUT);
+  B(7.70, 10.2, a, a + .15, y, y + .45, mStuccoOut, OUT); B(7.70, 10.2, b - .15, b, y, y + .45, mStuccoOut, OUT);
+  B(10.1, 10.14, a, b, y + .45, y + 1.05, mGlassRailN, OUT); });
 // courtyard trees between the blocks
 for (let i = 0, n = 0; i < 400 && n < 80; i++) {
   const x = 50 + treeR() * 160, z = -140 + treeR() * 250, r = 1.6 + treeR() * 1.2;
@@ -2286,7 +2309,7 @@ Promise.all(['tree_small_02', 'jacaranda_tree', 'island_tree_02'].map(f => asset
   vec3 lampE = vec3(0.); for (int i = 0; i < ${lampU.uLamp.value.length}; i++) { vec3 d = uLamp[i] - vSiteW; float r2 = dot(d, d); lampE += max(d.y, 0.) / (r2 * sqrt(r2)); }   // cos / r^2 on level ground
   reflectedLight.directDiffuse += uLampK * lampE * vec3(1., .8, .58) * diffuseColor.rgb;   // about 3000 K LED (estimate)`); };
     m.customProgramCacheKey = () => 'site' + (lawnOn ? 1 : 0); m.needsUpdate = true; };
-  patch(mat.ground, true); [mat.asphalt, mKerb, mPaver, mPaverRed, mPaverWalk, mSoil, mat.turf, mWeeds, mTactile, mWhiteLine, mBlue, mKerbRed].forEach(m => patch(m, false));
+  patch(mat.ground, true); [mat.asphalt, mKerb, mPaverBay, mPaver, mPaverRed, mPaverWalk, mSoil, mat.turf, mWeeds, mTactile, mWhiteLine, mBlue, mKerbRed].forEach(m => patch(m, false));
   mat.ground.color.set('#b3aea3');   // the paved aprons and paths between the lawns
   turfReady.then(() => { if (mat.turf.map) { U.uGrass.value = mat.turf.map; dirty = 1; } });
 }

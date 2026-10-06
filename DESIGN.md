@@ -21,7 +21,7 @@ code at load time, so the whole apartment is diffable text.
 - Meters. `x` = east (toward the balcony), `z` = south (toward the kitchen), `y` = up. True north is `-z`; the
   balcony faces east onto Ali Mohar street.
 - Origin: living-room face of the TV wall, at the inner west face of the dining alcove.
-- `H = 2.60` ceiling (estimate), `HEAD = 2.35` opening head (written on the construction plan), `DOORH = 2.10`, `FX = 7.28` inner living facade,
+- `H = 2.70` ceiling (the sale spec's written minimum, "not less than 2.70"), `HEAD = 2.35` opening head (written on the construction plan), `DOORH = 2.10`, `FX = 7.28` inner living facade,
   `FO = 7.70` outer facade, `LZ = 8.79`, `FT = 2.70` facade top.
 - `DROP = H - .35` corridor and AC bulkhead drop ceiling; `BC = H - .50` kids' bath ceiling (AC unit above).
 - Balcony: `BX1 = FO`, `BX2 = 10.45`, `BZ1 = .30`, `BZ2 = 8.71`, deck `BY = -.04`, north wall stops at `BN = 9.30`.

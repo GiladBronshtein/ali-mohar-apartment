@@ -22,7 +22,7 @@ Interior (commit 5167387)
 - Vanities: one-piece ceramic top with the basin sunk in (d10 item 3), deck-mounted mixers (d08 table 4).
 - Master split condenser 84x40 over the main unit in the laundry niche (d10 item 11, AC sheet outline); pipes moved.
 - d10 item 10: socket and TV point on the balcony, socket on the island (positions not written, estimates).
-- Panel: the mamad is the model's room 3, which d01 writes as "חדר מס' 4 ממ\"ד" (the developer numbers the master 1); ceiling text; fan blade height 2.45.
+- Panel: the mamad is the model's room 3, which d01 writes as "חדר מס' 4 ממ"ד" (the developer numbers the master 1); ceiling text; fan blade height 2.45.
 
 Ceramics (commit d7c72b9)
 - The 05/10/2026 edition adds page 5, six glossy 80x80 floor tiles: new picker group for the living and bedroom floors.
