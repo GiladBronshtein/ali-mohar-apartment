@@ -23,6 +23,7 @@ session; remove entries that are no longer true.
 
 | Date | Event |
 |---|---|
+| 2026-10-06 | Re-check 5 against 11 new owner documents (sale spec, addendum, annexes, studio spec 05/10/2026, sheets 1:75, typical floor, ground, basement, roof, notes), five agent reports in `audit/recheck5/` (summary `APPLIED.md`). Interior `5167387`: ceiling 2.70 (spec minimum), mamad porcelain, 7 cm skirting in the floor material, window C without shutter, master shower one sash, washer niche painted, no rain head over the bath, white flush plates, ceramic vanity tops with deck mixers, second condenser, balcony and island sockets. Ceramics `d7c72b9`: glossy 80x80 page, pages renumbered. Outside `96821de`: floor-1 balcony and garden apartment below us, A/B bar on pilotis, lot wall, gardens, west parking and ramp, near side of both streets from the ground sheet, far side +2.2 m. North kept: OpenStreetMap has both streets on the cardinal axes. The documents stay outside the repo (`source/out/docs5`, personal data); the studio slides crops too. |
 | 2026-10-04 | Realism pass 5, from three agent reports (`audit/realism5/`: interior, exterior, CC0 assets), one commit per stage, each with `sitetest` no issues and phone shots. A `23a1166`: floor contact shadows, static shadow map, GTAO tune, fog and sky-lit exterior env, clearer glass, dithering, vignette, sheers, bedside and kids' bath lights. B1 `accb357`: physical finishes on desktop. B2 `2499dda`: baked ground mask (sun shadows, AO, lawns). B3 `40ed7eb`: facade atlas on the blocks (generic layouts, estimate). B4 `15e2108`: evening light pools and lit windows in three warmths. ext6 `891cdd3`: stucco on our shell, floors 0-1 under the apartment (same plan assumed). ext7A `c9b235c`: tree crown normals and tint. int4 `0a7de6e`: window and lamp lights gated to their room box (they leaked through walls). C1 `b48eabf`: CC0 steel, leather, quartz gloss and paver sets (tile and splash stay with the ceramic picker). C2 `eed100c`: CC0 kitchen props on desktop (fruit, wine bottle, cutting board). Dropped: int3 room env capture (flattened the image). Phone 40 fps after A. |
 | 2026-10-04 | Fourth check, report only, by two agents (`audit/recheck4/visual.md`: 33 views day and eve; `geometry_scan.md`: ray scan of tiles, floors, ceilings, leaks, coplanar faces, all 530 ceramic options). Fixed: kitchen south splash now runs to the SW corner (63 cm of plaster, owner screenshot); ceramics moved to their own panel tab with swatches and fly-to-space; mirrors fall back to the env-mapped material beyond 6 m (the Reflector went black from about 8 m); master shower niche panel moved onto the tile face; family bath washer niche, stub face and window reveals tiled (estimate); master bath N tile to the window jamb; `windowZ` end stiles full width (2.5 cm unglazed slots at each end); mamad window `xIn` -3.80 so its sill shows; room 1 planks to the wall face -5.035; balcony N wall end no longer z-fights. `roomdims` +0, `clearance_audit` 0, `sitetest` no issues. |
 | 2026-10-04 | Third re-check against the owner's vector PDFs (`materials/plans/vector/`, the construction plan is new), four reports in `audit/recheck3/` (summary `APPLIED.md`). Window and door sills and heads now written: `HEAD` 2.35, bedroom windows one sash with sill .15, baths 1.10/1.25, mamad 1.10..2.10, kitchen window C sill 1.20; living facade openings re-centred. Corridor-to-living passage 120 (was 98). Family bath riser box to the NW corner, master split over the master door, shower on a wall arm, return grille, condenser 100x45, balcony drains, 9 electrical items. Bath tile skins found buried 2.5 to 3 cm inside the moved walls, moved onto the faces. Ceramics from the studio spec (`CERAMICS.md`, names exact), with a per-space picker in the panel ("קרמיקה מהמפרט", saved in localStorage `ali-cer`, copy button). The vendor catalog PDF stays out of the repo. `roomdims` +0, `clearance_audit` 0, `sitetest` no issues. |
@@ -111,14 +112,20 @@ writes 90x15 only for the two living grilles; rooms 1 and 2 get a combined 80x20
   renders also predate the realism pass (photo sky, PBR sets, glTF plants). `exportglb.mjs` serves `source/`, where
   there is no `assets/`, so a re-render would still use the procedural materials unless the export is pointed at
   the repo root.
-- **Exterior:** layout follows the balcony photos (second re-check); blocks have a generic facade atlas (realism
-  pass 5, not their real elevations), and the bird-view shell is plain grey.
+- **Exterior:** our lot, building A and B, the gardens and the near side of both streets follow the ground and typical
+  floor sheets (re-check 5); the far side of the streets and the other buildings come from the balcony photos. Blocks have a
+  generic facade atlas, not their real elevations. Entrance steps, fence and wall heights, the street level and floors 5-7
+  are not on any sheet.
+- **Re-check 5 conflicts for the owner** (`audit/recheck5/APPLIED.md`): area 130 vs 132, laundry hide 2 vs 2.9 sqm, door and
+  window sizes in the spec vs the plans, standard tile sizes, vanity sizes, master shower 80x80 vs 106x92, kitchen sink type,
+  kitchen splash 50 vs 70, room numbering.
 - **Kitchen props** (fruit, wine bottle, cutting board) load on desktop only; phones keep the procedural fruit.
 - **No CC0 furniture found** for sanitaryware or a matching sofa on Poly Haven; those stay procedural.
 - **Renders stale again:** none of the 17 show the tree cards, ground sets, cars or the new soil colour, nor the
   2026-10-04 blueprint fixes (`bath-day` tub and basin, `shower-day` drain and basin, `entry-day`/`kitchen` living
   grilles and entry door, `balcony-day` lights and drains).
 - **Renders stale (fourth check, 2026-10-04):** no render shows the kitchen splash corner, the master shower niche, the tiled washer niche or the `windowZ` stiles.
+- **Renders stale (re-check 5, 2026-10-06):** no render shows the 2.70 ceiling, the mamad porcelain, the new vanities, the second condenser or the new surroundings below the balcony.
 - **Renders stale (realism pass 5, 2026-10-04):** no render shows any of it (contact shadows, ground mask, facade atlas, stucco, room-gated lights, new CC0 sets and props).
 - **Renders stale (furniture, 2026-10-04):** `sofa`, `kitchen`, `balcony`, `balcony2`, entry eve and the `lm/` bake predate the owners' furniture and lamps.
 - **Baked light:** ideas not tried yet: a higher-resolution atlas or several atlases for ceilings, a brighter or
@@ -142,7 +149,7 @@ writes 90x15 only for the two living grilles; rooms 1 and 2 get a combined 80x20
 
 ## Estimates (not on any plan)
 
-Ceiling 2.60 m (the construction plan hints at 2.70 or more); interior door heads 2.10; electrical panel height;
+Ceiling 2.70 m is the sale spec's written minimum ("לא פחות מ-2.70"), so the real height may be a little more; interior door heads 2.10; electrical panel height;
 heights of the new panel socket, fibre point and niche switches; condenser height; railings; surroundings (from
 balcony photos, off by a few metres). Window sills and heads are written on the construction plan since the third
 re-check.
@@ -154,6 +161,6 @@ re-check.
 - CC0 sofas and sanitaryware from another source (ambientCG has none; check licences elsewhere).
 - Fix `render_all.sh` paths before the next render run; re-render the 4 stale images.
 - Refresh `audit/report.md` from `audit/recheck/` (its line numbers are stale).
-- Ask the contractor: column 2, panel position, ceiling height (2.63 near the mamad? heads 2.35 plus the shutter box
-  imply 2.70 or more), mamad relief sleeve, the boxed "א" marks.
+- Ask the contractor: column 2, panel position, the actual ceiling height (spec: not less than 2.70), mamad relief sleeve,
+  the boxed "א" marks, balcony and island socket positions (d10 item 10), entrance steps and street level.
 - Ask the studio: balcony 15x60, vanity sizes (see `CERAMICS.md`).
