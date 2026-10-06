@@ -22,7 +22,7 @@ const b64 = await page.evaluate(async () => {
   A.curtGroup.children.filter(c => !c.visible).forEach(c => A.curtGroup.remove(c));
   const refl = []; A.doorGroup.traverse(o => { if (o.isReflector) refl.push(o); }); refl.forEach(o => o.parent.remove(o));   // live mirrors: Cycles has the mirror material
   A.doorGroup.traverse(o => { if (o.isMesh) o.name = 'm_' + (o.material.name || 'x') + '_d' + (i++); }); A.curtGroup.traverse(o => { if (o.isMesh) o.name = 'm_' + (o.material.name || 'x') + '_c' + (i++); });
-  const buf = await ex.parseAsync([A.root, A.ceilGroup, A.outside, A.fanGroup, A.doorGroup, A.curtGroup, grp], { binary: true, onlyVisible: false, maxTextureSize: 1024 });
+  const buf = await ex.parseAsync([A.root, A.fixRoot, A.ceilGroup, A.outside, A.fanGroup, A.doorGroup, A.curtGroup, grp], { binary: true, onlyVisible: false, maxTextureSize: 1024 });
   let bin = ''; const u = new Uint8Array(buf); for (let k = 0; k < u.length; k += 0x8000) bin += String.fromCharCode.apply(null, u.subarray(k, k + 0x8000));
   return btoa(bin);
 });

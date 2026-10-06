@@ -226,11 +226,11 @@ details[open] summary::after { content: " ▴"; }
   </details>
   <section id="cer" hidden>
     <h2 class="cer-title">בחירת קרמיקה</h2>
-    <p class="notes" style="padding:0">מוצרים מ"מפרט מוצרים סטנדרט" של סטודיו קרמיקה. בכל חלל בוחרים מהרשימה או מדפדפים בחיצים בין כל המוצרים שהמפרט מאפשר שם, והמצלמה עוברת לחלל. השם, המידה והעמוד בקטלוג כתובים ליד הבחירה, כדי שאפשר יהיה להגיד למעצבת. הבחירות נשמרות בדפדפן. האריחים מצוירים לפי התמונה בקטלוג (צבע, מידה, גימור ודוגמה), כך שהם קירוב ולא צילום של המוצר.</p>
+    <p class="notes" style="padding:0">מוצרים מ"מפרט מוצרים סטנדרט" של סטודיו קרמיקה. בכל חלל בוחרים מהרשימה או מדפדפים בחיצים בין כל המוצרים שהמפרט מאפשר שם, והמצלמה עוברת לחלל. השם, המידה והעמוד בקטלוג כתובים ליד הבחירה, כדי שאפשר יהיה להגיד למעצבת. מתחת לקרמיקה אפשר לבחור באותו אופן גם אסלה, לחצן הדחה, אמבטיה, ברזים, מקלחת, כיור וברז מטבח וארונות אמבטיה. הבחירות לא נשמרות: בכל כניסה ההדמיה חוזרת למצב המקורי ("העתקת הבחירות" שומרת רשימה להעביר הלאה). האריחים מצוירים לפי התמונה בקטלוג (צבע, מידה, גימור ודוגמה), כך שהם קירוב ולא צילום של המוצר.</p>
     <div id="cerList"></div>
-    <div class="cer-btns"><button id="cerCopy">העתקת הבחירות</button><button id="cerReset">חזרה להמלצות שלי</button></div>
-    <div class="label" style="margin-top:12px">כלים וברזים מאותו מפרט (רשומים בלבד, לא מוחלפים בדגם)</div>
-    <ul class="notes" id="cerFix"></ul>
+    <div class="cer-btns"><button id="cerCopy">העתקת הבחירות</button><button id="cerReset">חזרה למצב המקורי</button></div>
+    <h2 class="cer-title" style="margin-top:16px">כלים, ברזים וארונות אמבטיה</h2>
+    <div id="fixList"></div>
   </section>
   <div class="hint" id="hint">בתוך חדר: גרירה מסובבת את המבט. חץ למעלה/למטה הולך קדימה/אחורה, חץ ימינה/שמאלה מסתובב (Shift מהר יותר). גלגלת מתקדמת. בטלפון: אצבע אחת מסתכלת מסביב, שתי אצבעות בפישוק הולכות קדימה, וגרירה בשתי אצבעות מזיזה. במבט על: גרירה מסובבת, גלגלת מזיזה זום. מקש H מסתיר את הבקרים.</div>
 </aside>
@@ -634,7 +634,7 @@ const photoReady = Promise.all([   // the baked-light materials are clones: LM.l
 // =====================================================================
 // Geometry helpers
 // =====================================================================
-const root = new THREE.Group(); scene.add(root);
+let root = new THREE.Group(); scene.add(root);   // let: fixture slots point it at their own group while they build
 const curtGroup = new THREE.Group(); scene.add(curtGroup);
 const ceilGroup = new THREE.Group(); scene.add(ceilGroup);
 const outside = new THREE.Group(); scene.add(outside);
@@ -681,6 +681,170 @@ function withShift(dx, dz, fn) {
   const gs = [root, ceilGroup, fanGroup], n = gs.map(g => g.children.length);
   fn();
   gs.forEach((g, i) => g.children.slice(n[i]).forEach(o => { o.position.x += dx; o.position.z += dz; }));
+}
+// =====================================================================
+// FIXTURES FROM THE STUDIO SPEC (pages 20-30 of the 05/10/2026 edition). Each fixture slot builds into its own group (kept out of
+// the static merge) and is rebuilt when another product is picked in the ceramics panel. Shapes are simplified from the catalog
+// photos (proportions, type and finish, not the exact product). The defaults are the design as drawn before; every visit starts
+// from them (nothing is saved).
+// =====================================================================
+const fixRoot = new THREE.Group(); scene.add(fixRoot);
+const mTubIn = mat.ceramicIn.clone(), mSinkIn = mat.sinkSteel.clone(), mSilq = M('#e9e7e1', .55), mSilqIn = mSilq.clone();   // basins seen from inside (back faces)
+[mTubIn, mSinkIn, mSilqIn].forEach(m => m.side = THREE.BackSide);
+const FINM = { black: mat.blackMetal, chrome: M('#e4e6e8', .08, { metalness: 1 }), brushed: M('#b8bbbd', .3, { metalness: 1 }), gold: M('#c9a65e', .22, { metalness: 1 }) };
+const TAPS = [   // [series, page, finish, body]; types: short = פרח פיה קצרה, swan = ברבור, bat = סוללה, 3 / 4 = 3 / 4 דרך
+  ['אומגה שחור', 24, 'black', 'round', 'short swan bat 3 4'], ['אומגה ניקל', 24, 'chrome', 'round', 'short swan bat 3 4'], ['אומגה מוברש', 24, 'brushed', 'round', 'short swan bat 3 4'],
+  ['פרו', 23, 'chrome', 'pro', 'short swan bat 3 4'], ['זן', 23, 'chrome', 'square', 'short swan bat 3 4'], ['רובי', 23, 'chrome', 'slim', 'short swan bat 3 4'],
+  ['LOOP גרוהה', 25, 'chrome', 'grohe', 'short bat 3 4'], ['BEUCURV גרוהה', 25, 'chrome', 'grohe', 'short bat 3 4'], ['FLOW גרוהה', 25, 'chrome', 'grohe', 'short swan bat 3 4']];
+const TAPT = { short: 'פרח פיה קצרה', swan: 'ברבור', bat: 'סוללה', 3: '3 דרך', 4: '4 דרך' };
+const tapOf = key => TAPS.find(t => t[0] === key.split('|')[0]) || TAPS[0];
+const tapOpts = types => TAPS.flatMap(([n, pg, , , ty]) => types.split(' ').filter(t => ty.split(' ').includes(t)).map(t => [`${n}|${t}`, `${n}, ${TAPT[t]}`, pg]));
+const VANS = [   // [model, page, front, colours, sizes] as written in the spec
+  ['אוקלנד', 28, 'flutedWood', ['לבן', 'שחור'], [80, 100]], ['מלבורן', 28, 'glass', ['זכוכית שחור'], [80, 100]],
+  ['באזל', 28, 'drawers2', ['לבן אפוקסי'], [80, 100]], ['סידני', 28, 'fluted', ['לבן אפוקסי'], [60, 80]],
+  ['מילניום', 29, 'doorsLegs', ['שחור אפוקסי', 'לבן אפוקסי', 'אפור', 'עץ אלון', 'אבן', 'בטון'], [60, 80, 100]],
+  ['ניו יורק', 29, 'push2', ['לבן', 'אפור', 'בטון', 'עץ אלון', 'אבן'], [60, 80, 100]],
+  ['סטודיו', 29, 'drawer1', ['לבן אפוקסי', 'שחור אפוקסי'], [60, 80, 100]], ['רומא', 30, 'shelf', ['שחור', 'לבן'], [80, 100]],
+  ['פורטלנד', 30, 'grooved', ['שחור אפוקסי', 'לבן אפוקסי', 'אפור', 'עץ אלון', 'אבן', 'בטון'], [60, 80, 100]],
+  ['מודה', 30, 'butcher', ['לבן אפוקסי', 'שחור אפוקסי'], [60, 80, 100]]];
+const vanOpts = (fits, show) => VANS.flatMap(([n, pg, , cols, sz]) => show ? (sz.some(s => fits.includes(s)) ? cols.map(c => [`${n}|${c}|${show}`, `${n}, ${c} (במפרט ${sz.filter(s => fits.includes(s)).join('/')})`, pg]) : [])
+  : sz.filter(s => fits.includes(s)).flatMap(s => cols.map(c => [`${n}|${c}|${s}`, `${n}, ${c}, ${s} ס״מ`, pg])));
+const FIX = {
+  wc: { name: 'אסלות (שני חדרי הרחצה)', view: 'mbath', def: 'נובה', opts: ['נובה', 'מטרופול', 'אפולו', 'בסטיה גבריט', 'מטרופוליס'].map(n => [n, `${n}, תלויה, לבן`, 20]) },
+  flush: { name: 'לחצן הדחה (מיכל סמוי גיבריט)', view: 'mbath', def: 'לבן מרובע', opts: ['כרום עגול', 'מוברש עגול', 'לבן עגול', 'כרום מרובע', 'מוברש מרובע', 'לבן מרובע'].map(n => [n, n, 20]) },
+  tub: { name: 'אמבטיה', view: 'bath2', def: 'מלבנית', opts: [['מלבנית', 'אקרילית מלבנית 160×70, לבן', 21], ['מעוגלת', 'אקרילית מעוגלת 160×70, לבן', 21]],
+    note: 'במפרט גם 170×70, אבל בחדר הרחצה יש מקום ל-160 בלבד (תוכנית האינסטלציה).' },
+  bathTap: { name: 'ברז האמבטיה', view: 'bath2', def: 'אומגה שחור|4', opts: tapOpts('4 bat'), note: 'בתוכנית האינסטלציה: סוללה סמויה 4 דרך ומילוי דרך הגלישה.' },
+  basinTap: { name: 'ברזי הכיורים (בשני חדרי הרחצה)', view: 'bath', def: 'אומגה שחור|short', opts: tapOpts('short swan') },
+  vanF: { name: 'ארון אמבטיה: חדר הרחצה', view: 'bath', def: 'cur', cur: 'ארון קלאסי 100 עם מדרגה לילדים, כמו שעיצבנו (לא מהמפרט)', opts: vanOpts([60, 80]),
+    note: 'במפרט 60 או 80 ס״מ בחדר הרחצה.' },
+  vanM: { name: 'ארון אמבטיה: מקלחת ההורים', view: 'shower', def: 'cur', cur: 'ארון צף 70 באגוז, כמו שעיצבנו (לא מהמפרט)', opts: vanOpts([100, 120], 70),
+    note: 'במפרט 100 או 120 ס״מ, אבל בקיר הזה (בין המקלחון לדלת) יש 70 ס״מ, ולכן הדגמים מוצגים ברוחב 70.' },
+  showerTap: { name: 'ברז מקלחת ההורים', view: 'shower', def: 'אומגה שחור|3', opts: tapOpts('3') },
+  head: { name: 'זרוע וראש טוש (מקלחת ההורים)', view: 'shower', def: 'אומגה שחור', opts: ['אומגה שחור', 'אומגה ניקל', 'נובה', 'נפולי'].map(n => [n, n, 22]) },
+  rail: { name: 'מוט ומזלף (בשני חדרי הרחצה)', view: 'shower', def: 'מוט אומגה שחור', opts: ['מוט אומגה שחור', 'מוט אומגה מוברש', 'מוט רומא', 'סט מילנו'].map(n => [n, n, 22]) },
+  kSink: { name: 'כיור מטבח', view: 'kitchen3', def: 'נירוסטה כרתה', opts: [['נירוסטה כרתה', 'נירוסטה כרתה (מתחת למשטח)', 26], ['נירוסטה', 'נירוסטה (שקוע מלמעלה)', 26], ['סיליקוורץ', 'סיליקוורץ (שקוע מלמעלה)', 26]] },
+  kTap: { name: 'ברז מטבח', view: 'kitchen3', def: 'אומגה שחור', opts: ['אומגה שחור', 'אומגה ניקל', 'אומגה מוברש', 'אומגה מוזהב', 'מודו', 'זן', 'פרו', 'טקסס', 'יערה'].map(n => [n, n, 27]) },
+};
+const fixState = {}, FIXS = [];   // slots: { g, deps, build }
+function fixSlot(deps, build) { const s = { g: new THREE.Group(), deps, build }; fixRoot.add(s.g); FIXS.push(s); fixDraw(s); }
+function fixDraw(s) {   // root points at the slot's group while it builds, so B / C / place / withShift work as everywhere else
+  s.g.children.slice().forEach(o => { s.g.remove(o); o.traverse(c => { if (c.geometry) c.geometry.dispose(); }); });
+  const r = root; root = s.g; try { s.build(...s.deps.map(d => fixState[d] || FIX[d].def)); } finally { root = r; }
+}
+// --- builders
+function fixWC(P, key) {   // wall-hung WC in a place() frame: wall at local z -.27, front towards +z
+  const c = mat.ceramic, oval = (z, y1, y2, rTop, rz, rBot = rTop) => { const m = C(0, z, y1, y2, rBot, c, { parent: P.g, seg: 40, r2: rTop }); m.scale.z = rz / rTop; };
+  if (key === 'מטרופול') { lb(P, -.185, .185, -.27, .30, .20, .42, c, { round: .06 }); lb(P, -.185, .185, -.27, .31, .42, .455, c, { round: .03 }); }
+  else if (key === 'אפולו') { lb(P, -.16, .16, -.27, -.04, .27, .41, c, { round: .07 }); oval(.06, .27, .41, .165, .22, .12); oval(.05, .41, .435, .178, .235); }
+  else if (key === 'בסטיה גבריט') { lb(P, -.15, .15, -.27, -.1, .29, .41, c, { round: .06 }); oval(0, .29, .41, .165, .2, .115); oval(-.01, .41, .432, .175, .215); }
+  else if (key === 'מטרופוליס') { lb(P, -.18, .18, -.27, .28, .25, .42, c, { round: .02 }); lb(P, -.18, .18, -.27, .285, .42, .44, c, { round: .008 }); }
+  else { lb(P, -.18, .18, -.27, .26, .24, .42, c, { round: .09 }); lb(P, -.18, .18, -.27, .27, .42, .445, c, { round: .02 }); }   // נובה, as drawn before
+}
+function wallBox(ax, p, s, b1, b2, d1, d2, c1, c2, m, o = { cast: false }) {   // a box on a wall: plane x = p (ax 'x') or z = p, d1..d2 out from it (s = outward sign)
+  const u1 = p + s * d1, u2 = p + s * d2;
+  return ax === 'x' ? B(Math.min(u1, u2), Math.max(u1, u2), b1, b2, c1, c2, m, o) : B(b1, b2, Math.min(u1, u2), Math.max(u1, u2), c1, c2, m, o);
+}
+function wallDisc(ax, p, s, a, y, d, r, m) { const k = C(0, 0, -d / 2, d / 2, r, m, { seg: 32, cast: false });
+  if (ax === 'x') { k.rotation.z = Math.PI / 2; k.position.set(p + s * d / 2, y, a); } else { k.rotation.x = Math.PI / 2; k.position.set(a, y, p + s * d / 2); } return k; }
+function fixFlush(ax, p, s, a1, a2, y1, y2, key) {   // concealed-cistern plate with two buttons
+  const m = key.startsWith('כרום') ? FINM.chrome : key.startsWith('מוברש') ? FINM.brushed : mat.whitePlate, am = (a1 + a2) / 2, ym = (y1 + y2) / 2;
+  wallBox(ax, p, s, a1, a2, 0, .006, y1, y2, m);
+  [am - .045, am + .045].forEach(c => { if (key.endsWith('מרובע')) { wallBox(ax, p, s, c - .036, c + .036, .006, .007, ym - .036, ym + .036, mat.slot); wallBox(ax, p, s, c - .033, c + .033, .006, .01, ym - .033, ym + .033, m); }
+    else { wallDisc(ax, p + s * .006, s, c, ym, .002, .036, mat.slot); wallDisc(ax, p + s * .006, s, c, ym, .005, .033, m); } });
+}
+function fixMixer(x, z, y, key) {   // deck-mounted basin mixer, spout towards +x
+  const [, ty] = key.split('|'), [, , fin, st] = tapOf(key), m = FINM[fin];
+  if (ty === 'swan') { const V = (a, b) => new THREE.Vector3(x + a, y + b, z);
+    C(x, z, y, y + .12, .017, m, { seg: 16 }); mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(0, .11), V(0, .25), V(.04, .31), V(.1, .30), V(.13, .25)]), 24, .011, 8), m);
+    B(x - .006, x + .006, z + .015, z + .065, y + .07, y + .082, m, { cast: false }); return; }
+  if (st === 'square') { B(x - .017, x + .017, z - .017, z + .017, y, y + .17, m); B(x, x + .13, z - .012, z + .012, y + .15, y + .165, m); B(x - .035, x + .005, z - .005, z + .005, y + .168, y + .178, m, { cast: false }); }
+  else if (st === 'slim') { C(x, z, y, y + .2, .013, m, { seg: 16 }); B(x, x + .12, z - .006, z + .006, y + .185, y + .195, m); B(x - .004, x + .004, z + .013, z + .05, y + .15, y + .158, m, { cast: false }); }
+  else if (st === 'pro') { C(x, z, y, y + .14, .016, m, { seg: 18, r2: .021 }); B(x, x + .15, z - .01, z + .01, y + .12, y + .135, m, { round: .004 }); B(x - .075, x + .005, z - .006, z + .006, y + .14, y + .15, m, { cast: false }); }
+  else if (st === 'grohe') { C(x, z, y, y + .13, .022, m, { seg: 20 }); B(x, x + .11, z - .014, z + .014, y + .105, y + .125, m, { round: .006 }); B(x - .055, x + .01, z - .009, z + .009, y + .13, y + .145, m, { round: .004, cast: false }); }
+  else { C(x, z, y, y + .17, .018, m, { seg: 16 }); B(x, x + .14, z - .011, z + .011, y + .145, y + .165, m); B(x - .015, x + .015, z - .006, z + .006, y + .17, y + .21, m, { cast: false }); }   // אומגה, as drawn before
+}
+function fixWallMixer(ax, p, s, a, y, key) {   // concealed 3- or 4-way mixer, or an exposed bar mixer (סוללה); spout down at the bath
+  const [, ty] = key.split('|'), [, , fin, st] = tapOf(key), m = FINM[fin], P = (b1, b2, d1, d2, c1, c2, o) => wallBox(ax, p, s, b1, b2, d1, d2, c1, c2, m, o);
+  if (ty === 'bat') { P(a - .13, a + .13, .045, .08, y - .018, y + .018, { round: .016 }); P(a - .11, a - .08, 0, .05, y - .012, y + .012); P(a + .08, a + .11, 0, .05, y - .012, y + .012);
+    P(a - .015, a + .015, .06, .17, y - .03, y - .012, { round: .006 }); P(a + .085, a + .1, .055, .07, y + .018, y + .075); P(a - .1, a - .085, .055, .07, y + .018, y + .045); return; }
+  const h = ty === '4' ? .1 : .08;
+  if (st === 'square' || st === 'grohe') P(a - h, a + h, 0, .012, y - h, y + h, { round: st === 'grohe' ? .03 : .004, cast: false }); else wallDisc(ax, p, s, a, y, .012, h, m);
+  P(a - .006, a + .006, .012, .06, y - .012 - (ty === '4' ? .025 : 0), y + .004 - (ty === '4' ? .025 : 0)); P(a - .006, a + .006, .05, .06, y - .1, y - .02 - (ty === '4' ? .025 : 0));   // lever
+  if (ty === '4') wallDisc(ax, p + s * .012, s, a, y + .045, .03, .016, m);   // diverter
+}
+function fixHead(key) {   // master shower: arm from the west wall (x 4.446) and head at x 4.80, h 2.10 (plumbing plan); shift added by the caller
+  const m = key === 'אומגה שחור' ? FINM.black : FINM.chrome;
+  if (key === 'נפולי') { const V = (a, b) => new THREE.Vector3(a, b, -4.585);
+    mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(4.446, 2.18), V(4.70, 2.18), V(4.78, 2.15), V(4.80, 2.08)]), 20, .011, 8), m); C(4.80, -4.585, 2.04, 2.055, .125, m, { r2: .11 }); return; }
+  if (key === 'נובה') { const a = C(0, 0, 4.446, 4.80, .009, m, { seg: 10 }); a.rotation.z = -Math.PI / 2; a.position.set(4.623, 2.10, -4.585); C(4.80, -4.585, 2.04, 2.05, .125, m); C(4.80, -4.585, 2.05, 2.10, .008, m, { seg: 8 }); return; }
+  B(4.446, 4.80, -4.595, -4.575, 2.09, 2.11, m); C(4.80, -4.585, 2.04, 2.05, .15, m);   // אומגה: flat arm and a 30 cm head, as drawn before
+}
+function fixRail(ax, p, s, a, y1, y2, key) {   // slide rail with hand shower, or the Milano set (wall holder and hose)
+  const m = key === 'מוט אומגה שחור' ? FINM.black : key === 'מוט אומגה מוברש' ? FINM.brushed : FINM.chrome;
+  if (key === 'סט מילנו') { wallBox(ax, p, s, a - .02, a + .02, 0, .045, y2 - .25, y2 - .2, m, {}); wallBox(ax, p, s, a - .012, a + .012, .03, .055, y2 - .45, y2 - .2, m, { round: .008 });
+    wallDisc(ax, p, s, a, y2 - .19, .03, .035, m); return; }
+  wallBox(ax, p, s, a - .01, a + .01, 0, .02, y1, y2, m, {});
+  if (key === 'מוט רומא') { wallBox(ax, p, s, a - .02, a + .02, .015, .04, y1 + .5 * (y2 - y1) - .09, y1 + .5 * (y2 - y1) + .09, m, { round: .01 }); wallDisc(ax, p + s * .03, s, a, y1 + .5 * (y2 - y1) + .14, .025, .045, m); return; }
+  wallBox(ax, p, s, a - .025, a + .025, .015, .05, y1 + .56 * (y2 - y1), y1 + .78 * (y2 - y1), m, {});   // אומגה, as drawn before
+}
+function fixTub(key) {   // bathtub 160x70 in a tiled apron (plumbing plan); basin 54 x 140, floor at .40
+  const X1 = 3.76, X2 = 4.46, Z1 = -2.98, Z2 = -1.395, x1 = 3.84, x2 = 4.38, z1 = -2.89, z2 = -1.485, t = .006,
+    ring = (a, b, c, d, y1, y2, m, o) => { B(a, x1, c, d, y1, y2, m, o); B(x2, b, c, d, y1, y2, m, o); B(x1, x2, c, z1, y1, y2, m, o); B(x1, x2, z2, d, y1, y2, m, o); };
+  B(X1, X2, Z1, Z2, 0, .40, mat.bathWall2); ring(X1, X2, Z1, Z2, .40, .56, mat.bathWall2); ring(X1, X2, Z1, Z2, .56, .58, mat.ceramic);
+  if (key === 'מעוגלת') { const l = mesh(new RoundedBoxGeometry(x2 - x1, .18, z2 - z1, 4, .085), mTubIn, root, false); l.position.set((x1 + x2) / 2, .49, (z1 + z2) / 2); l.receiveShadow = false; noAO.push(l); }   // seen from inside only (back faces: no shadow, no AO pass)
+  else { B(x1, x2, z1, z2, .40, .41, mat.ceramicIn, { cast: false }); B(x1, x1 + t, z1, z2, .41, .56, mat.ceramicIn, { cast: false }); B(x2 - t, x2, z1, z2, .41, .56, mat.ceramicIn, { cast: false });
+    B(x1, x2, z1, z1 + t, .41, .56, mat.ceramicIn, { cast: false }); B(x1, x2, z2 - t, z2, .41, .56, mat.ceramicIn, { cast: false }); }
+  C(4.11, -1.58, .41, .414, .022, mat.blackMetal, { seg: 20, cast: false });   // drain at the tap end
+}
+function fixKSink(key, a, b, c, d) {   // kitchen sink in the counter hole a..b x c..d (counter top .92)
+  if (key === 'נירוסטה כרתה') {   // undermount, as drawn before
+    B(a, b, c, d, .70, .71, mat.sinkSteel, { cast: false }); B(a, a + .008, c, d, .70, .90, mat.sinkSteel, { cast: false }); B(b - .008, b, c, d, .70, .90, mat.sinkSteel, { cast: false });
+    B(a, b, c, c + .008, .70, .90, mat.sinkSteel, { cast: false }); B(a, b, d - .008, d, .70, .90, mat.sinkSteel, { cast: false });
+    C((a + b) / 2, (c + d) / 2 + .08, .71, .714, .045, mat.sinkSteel, { cast: false }); C((a + b) / 2, (c + d) / 2 + .08, .714, .717, .033, mat.blackMetal, { cast: false }); return; }
+  const q = key === 'סיליקוורץ', m = q ? mSilq : mat.sinkSteel, mi = q ? mSilqIn : mSinkIn, w = q ? .045 : .03;
+  [[a - w, b + w, c - w, c], [a - w, b + w, d, d + w], [a - w, a, c, d], [b, b + w, c, d]].forEach(([x1, x2, z1, z2]) => B(x1, x2, z1, z2, .92, .928, m, { cast: false, round: .003 }));   // rim on the counter
+  const l = mesh(new RoundedBoxGeometry(b - a, .2, d - c, 4, q ? .07 : .05), mi, root, false); l.position.set((a + b) / 2, .82, (c + d) / 2); l.receiveShadow = false; noAO.push(l);
+  C((a + b) / 2, (c + d) / 2, .72, .724, .045, q ? m : mat.sinkSteel, { cast: false }); C((a + b) / 2, (c + d) / 2, .724, .727, .033, mat.blackMetal, { cast: false });
+}
+function fixKTap(key, x) {   // kitchen mixer behind the sink, base at z 8.74 (counter .92), spout towards -z
+  const om = key.startsWith('אומגה'), m = om ? FINM[{ 'אומגה שחור': 'black', 'אומגה ניקל': 'chrome', 'אומגה מוברש': 'brushed', 'אומגה מוזהב': 'gold' }[key]] : FINM.chrome;
+  const V = (y, z) => new THREE.Vector3(x, y, z), tube = (pts, r) => mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(([y, z]) => V(y, z))), 40, r, 12), m);
+  const lever = () => { B(x + .013, x + .025, 8.735, 8.745, 1.02, 1.05, m); B(x + .02, x + .085, 8.733, 8.747, 1.045, 1.055, m); };
+  if (key === 'טקסס') { B(x - .014, x + .014, 8.726, 8.754, .92, 1.30, m); B(x - .012, x + .012, 8.50, 8.754, 1.27, 1.30, m); B(x - .012, x + .012, 8.50, 8.525, 1.21, 1.27, m); lever(); return; }
+  if (key === 'מודו') { B(x - .022, x + .022, 8.70, 8.77, .92, 1.10, m, { round: .01 }); B(x - .014, x + .014, 8.52, 8.72, 1.06, 1.09, m, { round: .008 }); B(x - .02, x + .02, 8.50, 8.56, 1.045, 1.095, m, { round: .01 });
+    B(x + .022, x + .05, 8.735, 8.745, 1.07, 1.08, m); return; }
+  if (key === 'פרו') { tube([[.92, 8.74], [1.10, 8.74], [1.18, 8.69], [1.17, 8.60]], .016); C(x, 8.74, .92, .94, .03, m, { seg: 20 }); C(x, 8.60, 1.10, 1.17, .022, m, { seg: 16 }); lever(); return; }
+  const tall = key === 'יערה' ? .08 : 0;
+  tube([[.92, 8.74], [1.14 + tall, 8.74], [1.27 + tall, 8.70], [1.29 + tall, 8.62], [1.25 + tall, 8.55], [1.17 + tall, 8.53]], key === 'יערה' ? .01 : .013);   // gooseneck, as drawn before
+  C(x, 8.74, .92, .935, .028, m, { seg: 20 }); C(x, 8.53, 1.155 + tall, 1.17 + tall, .016, m, { seg: 12, cast: false }); lever();
+}
+const vanM_ = {};   // vanity colours (cached materials)
+const vanCol = c => vanM_[c] ||= c === 'עץ אלון' ? mat.oak : M({ 'לבן': '#f1f0ec', 'לבן אפוקסי': '#f1f0ec', 'שחור': '#262729', 'שחור אפוקסי': '#262729', 'אפור': '#8d9092', 'בטון': '#a8a49c', 'אבן': '#cdc4b5', 'זכוכית שחור': '#1b1c1e' }[c] || '#f1f0ec', c === 'זכוכית שחור' ? .12 : .5, c === 'זכוכית שחור' ? { metalness: .2 } : {});
+function fixVanity(x0, zc, W, topY, key, tap) {   // spec vanity on the wall x = x0 (front towards +x), centred at zc, W wide, ceramic top with the basin, top surface at topY
+  const [nm, col] = key.split('|'), v = VANS.find(t => t[0] === nm), st = v[2], body = vanCol(col), oak = mat.oak, z1 = zc - W / 2, z2 = zc + W / 2;
+  const zs = st === 'shelf' ? z1 + W * .66 : z2, zb = (z1 + zs) / 2;   // Roma: drawers and the basin on 2/3, an open shelf on the rest
+  const D = .46, yT = topY - .03, yb = yT - .14, hx1 = x0 + .06, hx2 = x0 + .42, hw = Math.min(.23, (zs - z1) / 2 - .06), hz1 = zb - hw, hz2 = zb + hw;
+  const legs = st === 'doorsLegs', y0 = legs ? .12 : Math.max(.30, yT - .52), xf = x0 + D;
+  if (legs) [[x0 + .05, z1 + .05], [x0 + .05, z2 - .05], [xf - .05, z1 + .05], [xf - .05, z2 - .05]].forEach(([x, z]) => C(x, z, 0, y0, .015, FINM.chrome, { seg: 10 }));
+  B(x0, xf, z1, zs, y0, yb, body); [[x0, xf, z1, hz1], [x0, xf, hz2, zs], [x0, hx1, hz1, hz2], [hx2, xf, hz1, hz2]].forEach(([a, b, c, d]) => B(a, b, c, d, yb, yT, body));
+  const F = (c1, c2, y1, y2, m, o) => B(xf, xf + .012, c1, c2, y1, y2, m, o || { cast: false }), gap = (y1, y2, c1 = z1 + .003, c2 = z2 - .003) => B(xf + .012, xf + .014, c1, c2, y1, y2, mat.black, { cast: false });
+  const ym = (y0 + yT) / 2, handle = y => B(xf + .012, xf + .03, zc - W * .3, zc + W * .3, y - .006, y + .006, FINM.chrome, { round: .004 });
+  if (st === 'fluted' || st === 'flutedWood' || st === 'glass') {
+    const fm = st === 'flutedWood' ? oak : body; F(z1 + .003, z2 - .003, y0 + .003, yT - .003, fm); gap(ym - .002, ym + .002);
+    for (let z = z1 + .02; z < z2 - .015; z += .025) B(xf + .012, xf + .018, z, z + .012, y0 + .01, yT - .01, fm, { cast: false });
+    if (st === 'glass') { [[z1, z1 + .012], [z2 - .012, z2]].forEach(([a, b]) => B(xf, xf + .02, a, b, y0, yT, FINM.brushed, { cast: false })); }
+  } else if (st === 'doorsLegs') { F(z1 + .003, zc - .002, y0 + .003, yT - .07, body); F(zc + .002, z2 - .003, y0 + .003, yT - .07, body); F(z1 + .003, z2 - .003, yT - .067, yT - .003, body); gap(yT - .07, yT - .067); }
+  else if (st === 'shelf') { F(z1 + .003, zs - .003, y0 + .003, yT - .003, body); gap(ym - .002, ym + .002, z1 + .003, zs - .003);
+    [[zs, zs + .018], [z2 - .018, z2]].forEach(([a, b]) => B(x0, xf, a, b, y0, yT, oak)); B(x0, x0 + .018, zs, z2, y0, yT, oak);
+    [[y0, y0 + .018], [ym - .009, ym + .009], [yT - .018, yT]].forEach(([a, b]) => B(x0, xf, zs, z2, a, b, oak));
+    [ym + (yT - ym) * .5, y0 + (ym - y0) * .5].forEach(y => B(xf + .012, xf + .022, z1 + .1, zs - .1, y - .004, y + .004, FINM.black, { cast: false })); }
+  else { const two = st !== 'drawer1'; F(z1 + .003, z2 - .003, y0 + .003, yT - .003, body); if (two) gap(ym - .002, ym + .002);
+    if (st === 'butcher') { [[z1, z1 + .025], [z2 - .025, z2]].forEach(([a, b]) => B(x0, xf + .013, a, b, y0, yT, oak)); handle(yT - .05); if (two) handle(ym - .05); }
+    else if (st === 'drawers2') { handle(yT - .06); handle(ym - .06); }
+    else if (st === 'drawer1') { gap(yT - .06, yT - .057); handle(yT - .1); }
+    else if (st === 'grooved') { gap(yT - .03, yT - .012); gap(ym - .03, ym - .012); } }   // push2: handleless
+  ceramicTop(x0, x0 + .48, z1 - .005, z2 + .005, yT, topY, hx1, hx2, hz1, hz2); fixMixer(x0 + .03, zb, topY, tap);
 }
 
 // =====================================================================
@@ -1333,18 +1497,13 @@ B(4.25, FX, 8.19, 8.79, .10, .69, mat.graphite); B(4.25, FX, 8.25, 8.79, 0, .10,
 B(3.63, 4.28, 7.62, 8.79, .88, .92, mat.quartz);
 { const a = SK1 + .05, b = SK2 - .05, c = 8.24, d = 8.69;
   B(4.28, a, 8.16, 8.79, .88, .92, mat.quartz); B(b, FX, 8.16, 8.79, .88, .92, mat.quartz); B(a, b, 8.16, c, .88, .92, mat.quartz); B(a, b, d, 8.79, .88, .92, mat.quartz);
-  B(a, b, c, d, .70, .71, mat.sinkSteel, { cast: false }); B(a, a + .008, c, d, .70, .90, mat.sinkSteel, { cast: false }); B(b - .008, b, c, d, .70, .90, mat.sinkSteel, { cast: false });
-  B(a, b, c, c + .008, .70, .90, mat.sinkSteel, { cast: false }); B(a, b, d - .008, d, .70, .90, mat.sinkSteel, { cast: false });
-  C((a + b) / 2, (c + d) / 2 + .08, .71, .714, .045, mat.sinkSteel, { cast: false }); C((a + b) / 2, (c + d) / 2 + .08, .714, .717, .033, mat.blackMetal, { cast: false }); }   // drain
+  fixSlot(['kSink'], k => fixKSink(k, a, b, c, d)); }   // sink from the spec (default: the undermount bowl as drawn)
 B(4.245, 4.252, 7.62, 8.19, .815, .845, mat.matteBlack, { cast: false }); B(4.25, FX, 8.183, 8.19, .815, .845, mat.matteBlack, { cast: false });   // grip channel
 B(4.245, 4.252, 7.62, 8.19, .445, .47, mat.matteBlack, { cast: false });
 [SK1, SK2, DW2, HB2].forEach(x => B(x - .002, x + .002, 8.185, 8.19, .12, .81, mat.black, { cast: false }));
 B(DW2, FX, 8.183, 8.19, .445, .47, mat.matteBlack, { cast: false });
 // sink 80 (bowl 70 x 45, undermount) + faucet, dishwasher, induction hob
-{ const x = (SK1 + SK2) / 2, V = (y, z) => new THREE.Vector3(x, y, z);                              // gooseneck faucet, lever on the side
-  mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(.92, 8.74), V(1.14, 8.74), V(1.27, 8.70), V(1.29, 8.62), V(1.25, 8.55), V(1.17, 8.53)]), 40, .013, 12), mat.blackMetal);
-  C(x, 8.74, .92, .935, .028, mat.blackMetal, { seg: 20 }); C(x, 8.53, 1.155, 1.17, .016, mat.blackMetal, { seg: 12, cast: false });
-  B(x + .013, x + .025, 8.735, 8.745, 1.02, 1.05, mat.blackMetal); B(x + .02, x + .085, 8.733, 8.747, 1.045, 1.055, mat.blackMetal); }
+fixSlot(['kTap'], k => fixKTap(k, (SK1 + SK2) / 2));                                                  // kitchen mixer from the spec (default: black gooseneck)
 B(SK2 + .05, DW2 - .05, 8.17, 8.19, .55, .57, mat.blackMetal, { cast: false });                     // dishwasher pull line
 B(DW2, HB2, 8.24, 8.74, .92, .926, mat.screen, { cast: false });
 { const t = canvasTex(512, 427, (g, w, h) => { const k = w / .6; g.fillStyle = '#0b0c0d'; g.fillRect(0, 0, w, h);
@@ -1463,13 +1622,13 @@ gl(5.495, 5.505, -5.0, -4.10); B(5.49, 5.51, -4.97, -4.10, 1.98, 2.0, mat.blackM
 B(4.94, 4.96, -4.045, -4.03, .85, 1.35, mat.blackMetal); B(4.94, 4.96, -4.085, -4.07, .85, 1.35, mat.blackMetal);   // pull on the sliding panel
 B(4.92, 5.02, -4.53, -4.43, .005, .012, mat.blackMetal, { cast: false });                       // point drain at the tray centre (plan)
 B(4.72, 5.22, -4.974, -4.968, 1.05, 1.40, mat.nicheBack, { cast: false }); B(4.72, 5.22, -5.004, -4.95, 1.03, 1.05, mat.nicheStone);   // niche panel on the tile, ledge
-B(4.446, 4.80, -4.595, -4.575, 2.09, 2.11, mat.blackMetal); C(4.80, -4.585, 2.04, 2.05, .15, mat.blackMetal);   // wall arm, head at 2.10 (plumbing plan); arm length an estimate
-B(4.446, 4.466, -4.77, -4.74, .90, 1.75, mat.blackMetal); B(4.46, 4.5, -4.78, -4.73, 1.38, 1.56, mat.blackMetal); // hand shower on a rail
-B(4.446, 4.48, -4.53, -4.45, 1.0, 1.1, mat.blackMetal);                                          // mixer
+fixSlot(['head'], k => withShift(.19, 0, () => fixHead(k)));                                     // wall arm, head at 2.10 (plumbing plan); arm length an estimate
+fixSlot(['rail'], k => withShift(.19, 0, () => fixRail('x', 4.446, 1, -4.755, .90, 1.75, k)));   // hand shower on a rail
+fixSlot(['showerTap'], k => withShift(.19, 0, () => fixWallMixer('x', 4.446, 1, -4.49, 1.05, k)));   // 3-way mixer
 spot(4.97, -4.27);
 // wall-hung WC under the window (centre 60 cm from the closet wall, as on the plumbing plan), seat part of the shift
-{ const P = place(5.88, 6.24, -4.79, -4.24, 's'); lb(P, -.18, .18, -.27, .26, .24, .42, mat.ceramic, { round: .09 }); lb(P, -.18, .18, -.27, .27, .42, .445, mat.ceramic, { round: .02 }); }
-B(5.96, 6.16, -4.79, -4.785, .86, .98, mat.whitePlate, { cast: false });
+fixSlot(['wc'], k => withShift(.19, 0, () => fixWC(place(5.88, 6.24, -4.79, -4.24, 's'), k)));
+fixSlot(['flush'], k => withShift(.19, 0, () => fixFlush('z', -4.79, 1, 5.96, 6.16, .86, .98, k)));
 });
 B(5.92, 6.85, -4.98, -4.8, 0, 1.08, mat.bathWall); B(5.92, 6.85, -4.98, -4.78, 1.08, 1.10, mat.quartz);   // concealed-cistern ledge
 B(6.77, 6.85, -4.19, -4.11, .70, .72, mat.blackMetal);                                                   // paper holder
@@ -1480,15 +1639,12 @@ function ceramicTop(x1, x2, z1, z2, y1, y2, hx1, hx2, hz1, hz2) {
   [[hx1, hx1 + .01, hz1, hz2], [hx2 - .01, hx2, hz1, hz2], [hx1, hx2, hz1, hz1 + .01], [hx1, hx2, hz2 - .01, hz2]].forEach(([a, b, c, d]) => B(a, b, c, d, y1 - .13, y2, mat.ceramicIn, { cast: false }));
   C((hx1 + hx2) / 2, (hz1 + hz2) / 2, y1 - .12, y1 - .118, .02, mat.blackMetal, { seg: 16, cast: false });
 }
-function deckMixer(x, z, y) {   // deck-mounted basin mixer (d08 table 4: "בעמידה"), spout towards +x
-  C(x, z, y, y + .17, .018, mat.blackMetal, { seg: 16 }); B(x, x + .14, z - .011, z + .011, y + .145, y + .165, mat.blackMetal);
-  B(x - .015, x + .015, z - .006, z + .006, y + .17, y + .21, mat.blackMetal, { cast: false });
-}
 // floating 70 cm vanity + mirror cabinet with light (west wall, as in the plan)
 withShift(.19, .06, () => {
-B(4.44, 4.92, -4.07, -3.39, .45, .66, mat.walnut, { round: .006 }); B(4.92, 4.922, -4.05, -3.41, .62, .624, mat.black, { cast: false });
-[[4.44, 4.92, -4.07, -3.99], [4.44, 4.92, -3.53, -3.39], [4.44, 4.52, -3.99, -3.53], [4.88, 4.92, -3.99, -3.53]].forEach(([a, b, c, d]) => B(a, b, c, d, .66, .80, mat.walnut));   // carcass rim around the bowl
-ceramicTop(4.44, 4.94, -4.08, -3.38, .80, .83, 4.52, 4.88, -3.99, -3.53); deckMixer(4.48, -3.76, .83);
+fixSlot(['vanM', 'basinTap'], (v, t) => withShift(.19, .06, () => { if (v !== 'cur') return fixVanity(4.44, -3.73, .70, .83, v, t);   // spec vanities shown 70 wide
+  B(4.44, 4.92, -4.07, -3.39, .45, .66, mat.walnut, { round: .006 }); B(4.92, 4.922, -4.05, -3.41, .62, .624, mat.black, { cast: false });
+  [[4.44, 4.92, -4.07, -3.99], [4.44, 4.92, -3.53, -3.39], [4.44, 4.52, -3.99, -3.53], [4.88, 4.92, -3.99, -3.53]].forEach(([a, b, c, d]) => B(a, b, c, d, .66, .80, mat.walnut));   // carcass rim around the bowl
+  ceramicTop(4.44, 4.94, -4.08, -3.38, .80, .83, 4.52, 4.88, -3.99, -3.53); fixMixer(4.48, -3.76, .83, t); }));
 B(4.44, 4.58, -4.07, -3.47, 1.15, 1.85, mat.walnut, { round: .004 }); B(4.58, 4.586, -4.06, -3.48, 1.16, 1.84, mat.mirror, { cast: false }); reflector(new THREE.PlaneGeometry(.58, .68), scene, 4.587 + .19, 1.5, -3.77 + .06, Math.PI / 2);   // in the scene, so the shift is added by hand
 B(4.46, 4.57, -4.05, -3.49, 1.144, 1.15, mat.led, { cast: false });
 });
@@ -1551,34 +1707,30 @@ B(3.67, 4.45, -3.765, -3.10, LB - .004, LB, mat.led, { cast: false });
 // bathtub 160x70 with tiled apron (plumbing plan: 35 + 35 to the east wall). Taps on the south (corridor) wall as drawn:
 // 4-way mixer h=85 35 cm from the east wall, filler through the overflow 20 cm from it, rail + hand shower from h=150;
 // glass screen at that (south) end (no fixed head over the bath: d08 table 4)
-{ const X1 = 3.76, X2 = 4.46, Z1 = -2.98, Z2 = -1.395, x1 = 3.84, x2 = 4.38, z1 = -2.89, z2 = -1.485, t = .006,    // hollow: apron and rim around a 54 x 140 basin, floor at .40
-    ring = (a, b, c, d, y1, y2, m, o) => { B(a, x1, c, d, y1, y2, m, o); B(x2, b, c, d, y1, y2, m, o); B(x1, x2, c, z1, y1, y2, m, o); B(x1, x2, z2, d, y1, y2, m, o); };
-  B(X1, X2, Z1, Z2, 0, .40, mat.bathWall2); ring(X1, X2, Z1, Z2, .40, .56, mat.bathWall2); ring(X1, X2, Z1, Z2, .56, .58, mat.ceramic);
-  B(x1, x2, z1, z2, .40, .41, mat.ceramicIn, { cast: false }); B(x1, x1 + t, z1, z2, .41, .56, mat.ceramicIn, { cast: false }); B(x2 - t, x2, z1, z2, .41, .56, mat.ceramicIn, { cast: false });
-  B(x1, x2, z1, z1 + t, .41, .56, mat.ceramicIn, { cast: false }); B(x1, x2, z2 - t, z2, .41, .56, mat.ceramicIn, { cast: false });
-  C(4.11, -1.58, .41, .414, .022, mat.blackMetal, { seg: 20, cast: false }); }                                   // drain at the tap end
+fixSlot(['tub'], fixTub);                                                                          // tub from the spec (default: rectangular)
 B(3.76, 3.77, -2.20, -1.395, .58, 2.0, mat.showerGlass, { cast: false }); B(3.755, 3.775, -2.20, -1.395, 1.98, 2.0, mat.blackMetal); B(3.755, 3.775, -2.22, -2.20, .58, 2.0, mat.blackMetal);
-B(4.06, 4.16, -1.415, -1.395, .80, .90, mat.blackMetal); C(4.11, -1.43, .83, .87, .018, mat.blackMetal, { seg: 12 });
-{ const c = C(0, 0, 0, .012, .035, mat.blackMetal, { seg: 20, cast: false }); c.rotation.x = Math.PI / 2; c.position.set(4.26, .50, -1.503); }
-B(3.92, 3.95, -1.415, -1.395, 1.50, 2.05, mat.blackMetal); B(3.91, 3.96, -1.45, -1.41, 1.78, 1.96, mat.blackMetal);
+fixSlot(['bathTap'], k => { fixWallMixer('z', -1.395, -1, 4.11, .85, k);                          // concealed 4-way (plumbing plan) or a bar mixer
+  if (!k.endsWith('|bat')) { const c = C(0, 0, 0, .012, .035, FINM[tapOf(k)[2]], { seg: 20, cast: false }); c.rotation.x = Math.PI / 2; c.position.set(4.26, .50, -1.503); } });   // filler through the overflow
+fixSlot(['rail'], k => fixRail('z', -1.395, -1, 3.935, 1.50, 2.05, k));
 B(4.448, 4.454, -2.055, -1.505, 1.0, 1.30, mat.nicheBack, { cast: false }); B(4.40, 4.454, -2.055, -1.505, .98, 1.0, mat.nicheStone);   // niche panel on the tile, ledge
 // WC on a concealed-cistern ledge (centre 42 cm from the window wall), paper holder (the cabinet above is part of the run at the laundry niche)
 withShift(.14, -.13, () => {
 B(1.87, 2.05, -3.635, -2.825, 0, 1.08, mat.bathWall2); B(1.87, 2.07, -3.635, -2.825, 1.08, 1.10, mat.quartz);
-{ const P = place(2.05, 2.6, -3.385, -3.025, 'e'); lb(P, -.18, .18, -.27, .26, .24, .42, mat.ceramic, { round: .09 }); lb(P, -.18, .18, -.27, .27, .42, .445, mat.ceramic, { round: .02 }); }
-B(2.05, 2.055, -3.305, -3.105, .86, .98, mat.whitePlate, { cast: false });
+fixSlot(['wc'], k => withShift(.14, -.13, () => fixWC(place(2.05, 2.6, -3.385, -3.025, 'e'), k)));
+fixSlot(['flush'], k => withShift(.14, -.13, () => fixFlush('x', 2.05, 1, -3.305, -3.105, .86, .98, k)));
 B(1.87, 1.95, -2.775, -2.695, .70, .72, mat.blackMetal);
 });
 // 100 cm classic vanity standing on a recessed plinth: tilt-out laundry hamper (shaker door) + two drawers, quartz top with a
 // semi-recessed basin, white framed mirror cabinet with LED under it. Kids: pull-out step in the plinth to reach the basin,
 // three towel hooks at 1.10 on the wall beside the vanity.
-B(2.01, 2.39, -2.675, -1.695, 0, .10, paint);
-shaker('e', 2.41, -2.325, -2.045, .012, .095, [-2.16, .055]);                                   // pull-out step (kids)
-B(2.01, 2.44, -2.695, -1.675, .10, .68, paint);
-[[2.01, 2.44, -2.695, -2.345], [2.01, 2.44, -1.885, -1.675], [2.01, 2.07, -2.345, -1.885], [2.43, 2.44, -2.345, -1.885]].forEach(([a, b, c, d]) => B(a, b, c, d, .68, .82, paint));   // rim around the bowl
-shaker('e', 2.46, -2.695, -2.345, .10, .82, [-2.375, .76]);                                       // hamper (tilt-out)
-shaker('e', 2.46, -2.345, -1.675, .10, .58, [-1.985, .52]); shaker('e', 2.46, -2.345, -1.675, .58, .82, [-1.985, .70]);
-ceramicTop(2.01, 2.49, -2.705, -1.665, .82, .85, 2.07, 2.43, -2.345, -1.885); deckMixer(2.04, -2.115, .85);
+fixSlot(['vanF', 'basinTap'], (v, t) => { if (v !== 'cur') return fixVanity(2.01, -2.185, +v.split('|')[2] / 100, .85, v, t);   // spec vanities: 60 or 80
+  B(2.01, 2.39, -2.675, -1.695, 0, .10, paint);
+  shaker('e', 2.41, -2.325, -2.045, .012, .095, [-2.16, .055]);                                   // pull-out step (kids)
+  B(2.01, 2.44, -2.695, -1.675, .10, .68, paint);
+  [[2.01, 2.44, -2.695, -2.345], [2.01, 2.44, -1.885, -1.675], [2.01, 2.07, -2.345, -1.885], [2.43, 2.44, -2.345, -1.885]].forEach(([a, b, c, d]) => B(a, b, c, d, .68, .82, paint));   // rim around the bowl
+  shaker('e', 2.46, -2.695, -2.345, .10, .82, [-2.375, .76]);                                     // hamper (tilt-out)
+  shaker('e', 2.46, -2.345, -1.675, .10, .58, [-1.985, .52]); shaker('e', 2.46, -2.345, -1.675, .58, .82, [-1.985, .70]);
+  ceramicTop(2.01, 2.49, -2.705, -1.665, .82, .85, 2.07, 2.43, -2.345, -1.885); fixMixer(2.04, -2.115, .85, t); });
 // mirror cabinet: white frame, two mirror doors with a fine black split, black knobs at the bottom
 B(2.01, 2.15, -2.535, -1.695, 1.15, 1.85, paint, { round: .004 });
 B(2.15, 2.156, -2.495, -2.117, 1.19, 1.81, mat.mirror, { cast: false }); B(2.15, 2.156, -2.113, -1.735, 1.19, 1.81, mat.mirror, { cast: false });
@@ -2418,7 +2570,7 @@ function captureContact() {
       renderer.readRenderTargetPixels(c.rt, 0, 0, W, H, px); c.mask = new Float32Array(n); for (let i = 0; i < n; i++) c.mask[i] = px[i * 4] / 255;
     }
     const a = new Float32Array(n);
-    [[[root, curtGroup, doorGroup], contactSolidMat], [[procPlants, propGroup], contactMat]].forEach(([list, m]) => {   // plants: leaf cards are not solids
+    [[[root, curtGroup, doorGroup, fixRoot], contactSolidMat], [[procPlants, propGroup], contactMat]].forEach(([list, m]) => {   // plants: leaf cards are not solids
       only(list); scene.overrideMaterial = m; renderer.clear(); renderer.render(scene, c.cam); renderer.readRenderTargetPixels(c.rt, 0, 0, W, H, px);
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = (H - 1 - y) * W + x; a[i] = Math.max(a[i], px[(y * W + x) * 4] / 255); }
     });
@@ -3152,16 +3304,6 @@ const CER_SPACES = [
   { id: 'balc', name: 'ריצוף: מרפסת השמש', m: mat.deck, cats: ['w30', 'w1560'], def: 'w30|מלרוז אפור|r', view: 'balcony', o: [BX1, BZ1], cur: 'דק עץ (לא מהמפרט)',
     note: 'במפרט ה-15×60 מיועד למרפסות עד 20 מ״ר. המרפסת כ-23 מ״ר (מפרט המכר), כדאי לברר עם הסטודיו.' },
 ];
-const CER_FIXTURES = [   // chosen from the same spec; listed only, the 3D fixtures are not swapped
-  ['ברזי הכיורים', 'סדרת אומגה שחור, פרח פיה קצרה (עמ׳ 24)'],
-  ['אמבטיה, ברז', 'סדרת אומגה שחור (עמ׳ 24), עם מוט אומגה שחור (עמ׳ 22). בדגם ובתוכנית האינסטלציה: סוללה סמויה 4 דרך ומילוי דרך הגלישה'],
-  ['מקלחת ההורים', 'סדרת אומגה שחור, 3 דרך (עמ׳ 24); ראש טוש אומגה שחור, זרוע אומגה שחור, מוט אומגה שחור (עמ׳ 22)'],
-  ['אמבטיה', 'אמבטיה אקרילית מלבנית 160×70, לבן (עמ׳ 21), כמו בדגם'],
-  ['אסלות', 'נובה, תלויה, עם מיכל הדחה סמוי גיבריט ולחצן לבן מרובע (עמ׳ 20)'],
-  ['כיור מטבח', 'נירוסטה (עמ׳ 26). בדגם הכיור מתחת למשטח, במפרט הוא שקוע מלמעלה'],
-  ['ברז מטבח', 'אומגה, שחור (עמ׳ 27)'],
-  ['ארונות אמבטיה', 'ארון סטודיו, אפוקסי לבן (עמ׳ 29): 80 בחדר הרחצה, 100 במקלחת ההורים. בדגם הארונות 100 ו-70 ס״מ, והמפרט נותן 60/80 ו-100/120'],
-];
 const cerState = {};
 function cerApply(sp, key) {
   const m = sp.m, u = m.userData;
@@ -3179,9 +3321,7 @@ function cerApply(sp, key) {
   m.needsUpdate = true; cerState[sp.id] = key; dirty = 1;
   if (ptOn && pt) pt.updateMaterials();
 }
-const cerList = document.getElementById('cerList'), cerSaved = (() => { try { const o = JSON.parse(localStorage.getItem('ali-cer') || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } })();
-const CER_MIG = { 'c3060c|מילניום 7.5/15|g': 'c3060c|מילניום 7.5/15|u', 'k1030|וראנו טאופה|g': 'k1030|וראנו טאופה|u' };   // finishes corrected in the 05/10/2026 edition
-const cerSave = () => { try { localStorage.setItem('ali-cer', JSON.stringify(cerState)); } catch (e) { } };
+const cerList = document.getElementById('cerList');
 const cerUI = {};
 for (const sp of CER_SPACES) {
   const row = document.createElement('div'); row.className = 'cer-row';
@@ -3196,26 +3336,47 @@ for (const sp of CER_SPACES) {
     try { if (im) c.drawImage(im, 0, 0, Math.min(im.width, im.height), Math.min(im.width, im.height), 0, 0, 88, 88); } catch (e) { } };
   const set = (key, fly) => { sel.value = key; if (sel.value !== key) sel.value = key = 'cur'; info.innerHTML = key === 'cur' ? sp.cur : cerDesc(key, true) + (key === sp.def ? ' · ההמלצה שלי' : '');
     if (fly && current !== sp.view) setView(sp.view);
-    photoReady.then(() => { if (sel.value === key) { cerApply(sp, key); cerSave(); swatch(); } }); };
+    photoReady.then(() => { if (sel.value === key) { cerApply(sp, key); swatch(); } }); };
   sel.onchange = () => set(sel.value, true);
   row.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const n = sel.options.length; set(sel.options[(sel.selectedIndex + +b.dataset.d + n) % n].value, true); });
   row.querySelector('[data-v]').onclick = () => setView(sp.view);
   cerUI[sp.id] = set;
 }
 function cerSet(id, key) { if (cerUI[id]) cerUI[id](key); }
-function cerReset() { CER_SPACES.forEach(sp => cerSet(sp.id, sp.def)); }
+// fixtures: one row per FIX entry; a pick redraws every slot that depends on it
+const fixList = document.getElementById('fixList'), fixUI = {};
+const fixLabel = (id, key, html) => { const f = FIX[id], o = f.opts.find(x => x[0] === key); return key === 'cur' || !o ? f.cur : html ? `<b>${o[1]}</b> · עמ׳ ${o[2]}` : `${o[1]} (עמ׳ ${o[2]})`; };
+for (const [id, f] of Object.entries(FIX)) {
+  const row = document.createElement('div'); row.className = 'cer-row';
+  const opts = (f.cur ? [`<option value="cur">${f.cur}</option>`] : []).concat(f.opts.map(([k, l]) => `<option value="${k}">${l}</option>`));
+  row.innerHTML = `<div class="label">${f.name}</div><div class="cer-ctl"><button class="icon-btn" data-d="-1" aria-label="הקודם">›</button>` +
+    `<select aria-label="${f.name}">${opts.join('')}</select><button class="icon-btn" data-d="1" aria-label="הבא">‹</button><button class="icon-btn" data-v>הצג</button></div>` +
+    `<div class="cer-info"></div>${f.note ? `<div class="cer-info cer-note">${f.note}</div>` : ''}`;
+  fixList.appendChild(row);
+  const sel = row.querySelector('select'), info = row.querySelector('.cer-info');
+  const set = (key, fly) => { sel.value = key; if (sel.value !== key) sel.value = key = f.def; info.innerHTML = fixLabel(id, key, true) + (key === f.def ? ' · כמו בהדמיה' : '');
+    if ((fixState[id] || f.def) !== key) { fixState[id] = key; FIXS.filter(s => s.deps.includes(id)).forEach(fixDraw);
+      renderer.shadowMap.needsUpdate = true; captureContact(); if (ptOn && pt) { mirrors.forEach(r => r.visible = false); pt.setScene(scene, camera); } dirty = 1; }
+    if (fly && current !== f.view) setView(f.view); };
+  sel.onchange = () => set(sel.value, true);
+  row.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const n = sel.options.length; set(sel.options[(sel.selectedIndex + +b.dataset.d + n) % n].value, true); });
+  row.querySelector('[data-v]').onclick = () => setView(f.view);
+  fixUI[id] = set; set(f.def);
+}
+function fixSet(id, key) { if (fixUI[id]) fixUI[id](key); }
+function cerReset() { CER_SPACES.forEach(sp => cerSet(sp.id, sp.def)); Object.keys(FIX).forEach(id => fixSet(id, FIX[id].def)); }
 function cerText() {
   return ['קרמיקה (מפרט מוצרים סטנדרט, סטודיו קרמיקה, עלי מוהר 6-8, 05/10/2026):']
-    .concat(CER_SPACES.map(sp => `${sp.name}: ${(cerState[sp.id] || 'cur') === 'cur' ? sp.cur : cerDesc(cerState[sp.id])}`), ['', 'כלים וברזים:'], CER_FIXTURES.map(([a, b]) => `${a}: ${b}`)).join('\n');
+    .concat(CER_SPACES.map(sp => `${sp.name}: ${(cerState[sp.id] || 'cur') === 'cur' ? sp.cur : cerDesc(cerState[sp.id])}`), ['', 'כלים, ברזים וארונות:'], Object.entries(FIX).map(([id, f]) => `${f.name}: ${fixLabel(id, fixState[id] || f.def)}`)).join('\n');
 }
-document.getElementById('cerFix').innerHTML = CER_FIXTURES.map(([a, b]) => `<li><b>${a}:</b> ${b}</li>`).join('');
 document.getElementById('cerReset').onclick = cerReset;
 document.getElementById('cerCopy').onclick = async e => {
   const b = e.currentTarget, txt = cerText();
   try { await navigator.clipboard.writeText(txt); } catch (err) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
   b.textContent = 'הועתק'; setTimeout(() => b.textContent = 'העתקת הבחירות', 1500);
 };
-CER_SPACES.forEach(sp => { let k = cerSaved[sp.id]; k = CER_MIG[k] || k; cerSet(sp.id, k === 'cur' || (typeof k === 'string' && cerItem(k)) ? k : sp.def); });
+CER_SPACES.forEach(sp => cerSet(sp.id, sp.def));   // every visit starts from the original design: nothing is saved
+try { localStorage.removeItem('ali-cer'); } catch (e) { }   // choices stored by older versions
 
 setHQ(hq);
 setPanel(true);
@@ -3224,7 +3385,7 @@ setView(views[start] ? start : 'entry', true);
 document.getElementById('loading').hidden = true;
 requestAnimationFrame(tick);
 LM.ready = LM.load();
-window.__app = { LM, contacts, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls, mirrors, CER, CER_SPACES, cerSet, cerReset, cerText, cerState };
+window.__app = { FIX, fixSet, fixState, fixRoot, LM, contacts, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls, mirrors, CER, CER_SPACES, cerSet, cerReset, cerText, cerState };
 </script>
 
 </body>
