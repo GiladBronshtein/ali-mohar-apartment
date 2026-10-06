@@ -2784,7 +2784,7 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 // =====================================================================
-// Ceramics from the developer's spec ("מפרט מוצרים - סטנדרט", סטודיו קרמיקה, 10/02/2026). Each space can show any product
+// Ceramics from the developer's spec ("מפרט מוצרים - סטנדרט", סטודיו קרמיקה, 05/10/2026). Each space can show any product
 // the spec allows there. The tiles are drawn here from the catalog swatch (colour, size, finish, pattern): approximations,
 // not scans of the product. Names are kept exactly as printed so the owners can quote them to the designer.
 // =====================================================================
@@ -2805,13 +2805,17 @@ const CER = {
     ['ספוט קלאוד ביאנקו', '#f2ede8', 'cloud'], ['ספוט קלאוד גריי', '#cdc4bb', 'cloud'], ['אושן אפור', '#bbb1ac', 'stone'], ['אושן אייבורי', '#efe4da', 'stone'],
     ['בנטון לבן', '#f5f0ea', 'cem'], ['בנטון אפור', '#dedad8', 'cem'], ['נטורל אפור משי', '#bab9b6', 'onyx'],
     ['קיילין סאנד מט', '#e6e1db', 'stone'], ['לייט סטון ביאנקו מט', '#e6e1da', 'stone']] },
-  f60: { t: 'ריצוף 60×60', size: '60×60', page: 5, w: .6, h: .6, nx: 2, ny: 2, fin: 'm', items: [
+  f80g: { t: 'ריצוף 80×80, מבריק', size: '80×80', page: 5, w: .8, h: .8, nx: 2, ny: 2, fin: 'g', items: [   // new page in the 05/10/2026 edition
+    ["מרפיל בז'", '#f6eee8', 'stone'], ['רוסו אפור', '#e7e7e7', 'marble', { v: '#8e8984' }], ["לורה בג'", '#eee6d9', 'marble', { v: '#f8f2e8' }],
+    ['ארמאני אפור בהיר', '#ece9e4', 'marble', { v: '#c9a98a' }], ['רוקי אפור', '#b8b8b8', 'marble', { v: '#a2a2a2' }],
+    ['קררה', '#e4e4e2', 'marble', { v: '#8f8f8d' }]] },
+  f60: { t: 'ריצוף 60×60', size: '60×60', page: 6, w: .6, h: .6, nx: 2, ny: 2, fin: 'm', items: [
     ['דקו סטון אפור', '#d1cac3', 'stone'], ['דקו סטון סביה', '#e9d8ce', 'stone'], ['דקו בטון אפור', '#c6c5c0', 'cem'], ['דקו בטון איבורי', '#e2d4c1', 'cem'],
     ['אמאני אפור', '#cfc7be', 'cloud'], ['אמאני לבן', '#e4e4e4', 'cloud'], ['מונטריאול אפור', '#d0cac7', 'cem'], ['מונטריאול לבן', '#eaeae8', 'cem'],
     ['ארק סילבר', '#b5b1a9', 'stone'], ['ארק אייבורי', '#cfc4b5', 'stone'], ['ארק בלאק', '#504f4d', 'stone'], ['ארק לבן', '#ebe8e5', 'cem'],
     ['מלרוז אפור', '#b9b5b3', 'cem'], ['מלרוז לבן', '#d4d5d0', 'cem'], ['לים סטון איבורי', '#eadccd', 'stone'], ['לים סטון אפור', '#ccc3be', 'stone'],
     ['מטיס בלאק', '#4a3f3c', 'marble', { v: '#e8e4de' }], ['פיאטרה גרי', '#b4b7ba', 'marble', { v: '#eef0f2' }]] },
-  w30: { t: 'ריצוף 30×30 / 33×33, אנטי סליפ', size: '30×30 / 33×33', page: 8, w: .33, h: .33, nx: 4, ny: 4, fin: 'r', items: [
+  w30: { t: 'ריצוף 30×30 / 33×33, אנטי סליפ', size: '30×30 / 33×33', page: 9, w: .33, h: .33, nx: 4, ny: 4, fin: 'r', items: [
     ['פורטו איבורי', '#c0b69b', 'stone'], ['ורונה סטון', '#5a5e63', 'gran'], ['לוגנו סטון', '#d5d5d5', 'chips'],
     ['דקו בטון אפור', '#c5c5bf', 'cem'], ['דקו בטון איבורי', '#e8dbd0', 'cem'], ['דקו פורטו אנטרציט', '#676762', 'stone'], ['אגורה אנטרציט', '#848583', 'cem'],
     ['דקו סטון סביה', '#e7dacd', 'stone'], ['דקו סטון אפור', '#d1cbc3', 'stone'], ['קולור שחור', '#292a2e', 'plain'], ['קולור לבן', '#dededc', 'plain'],
@@ -2820,44 +2824,44 @@ const CER = {
     ["צ'ייו", '#e8e6e1', 'enc:med', { c2: '#3a3a3a', n: 3 }], ['אמורה', '#d8d2c8', 'enc:med', { c2: '#7b6a5a', n: 4 }], ['רוסה', '#ebe9e4', 'enc:pet', { c2: '#2d2d2d' }],
     ['סירקל סקיי', '#eef1f3', 'enc:pet', { c2: '#8fb3cc' }], ['פלורה בולט', '#e8e1d2', 'enc:pet', { c2: '#8a8780' }],
     ['מדרה לבן', '#d8d9d3', 'madera'], ['מדרה אוק', '#c6c2b9', 'madera'], ['מדרה טיק', '#938e8b', 'madera'], ['מדרה אגוז', '#9e7f64', 'madera']] },
-  w1560: { t: 'ריצוף 15×60, אנטי סליפ', size: '15×60', page: 7, w: .15, h: .6, nx: 6, ny: 3, bond: 'c3', fin: 'r', items: [
+  w1560: { t: 'ריצוף 15×60, אנטי סליפ', size: '15×60', page: 8, w: .15, h: .6, nx: 6, ny: 3, bond: 'c3', fin: 'r', items: [
     ['אושן אפור', '#aeaba8', 'stone'], ['אושן אייבורי', '#e6e5e1', 'stone'], ['אושן סמוק', '#cac6c2', 'stone'], ['בלטימור לבן', '#e9e9e5', 'wood'],
     ['פורסט ווד אפור', '#aca49a', 'wood'], ['פורסט ווד לבן', '#d7d0c5', 'wood'], ['פורסט ווד נטורל', '#bea689', 'wood'], ['פורסט ווד מיסט', '#826852', 'wood'],
     ["בלטימור בז'", '#cab292', 'wood'], ['בלטימור גריי', '#dad8d3', 'wood'], ['בלטימור וונגה', '#745b46', 'wood'], ['בלטימור טאופה', '#b1a08e', 'wood']] },
-  c2575a: { t: 'חיפוי 25×75', size: '25×75', page: 10, w: .75, h: .25, nx: 2, ny: 4, fin: 'u', items: [
+  c2575a: { t: 'חיפוי 25×75', size: '25×75', page: 11, w: .75, h: .25, nx: 2, ny: 4, fin: 'u', items: [
     ['לבן', '#efefec', 'plain', { f: 'm' }], ['לבן דקור', '#efefec', 'plain+wave', { f: 'm' }], ['לבן', '#f4f4f2', 'plain', { f: 'g' }], ['לבן קוביות דקור', '#f2f1ef', 'plain+cube', { f: 'g' }],
     ["דאלקי בז' ברילו", '#f0e6d4', 'marble'], ["דאלקי בז' ברילו דקור", '#efe4d2', 'marble+facet'], ['דאלקי פרלה ברילו', '#e5e1d3', 'marble'], ['דאלקי פרלה ברילו דקור', '#e4dfd1', 'marble+facet'],
     ['רוקין אייס', '#dbcabf', 'stone'], ['רוקין אייס דקור', '#dccbc0', 'stone+tri'], ['רוקין גריי', '#bba8a0', 'stone'],
     ['דבלין גריס', '#c6b8ab', 'cem'], ['דבלין דקור', '#ccbeb1', 'cem+lines'], ['דבלין גריס עץ', '#c8b19b', 'slats'],
     ['גיתית גריי', '#b7b8b2', 'cem'], ['גיתית גריי דקור', '#b9bab4', 'cem+bands'], ['גיתית לייט גריי', '#ebe6e0', 'cem'], ['גיתית לייט גריי דקור', '#e9e4de', 'cem+bands'],
     ['סמפר קררה', '#eeedeb', 'marble', { f: 'g', v: '#9a9a98' }], ['סמפר שחור', '#3f3c36', 'marble', { v: '#d8d4cc' }]] },
-  c2575b: { t: 'חיפוי 25×75', size: '25×75', page: 11, w: .75, h: .25, nx: 2, ny: 4, fin: 'm', items: [
+  c2575b: { t: 'חיפוי 25×75', size: '25×75', page: 12, w: .75, h: .25, nx: 2, ny: 4, fin: 'm', items: [
     ["סירקו בז'", '#d9cbbb', 'cem'], ["סירקו בז' דקור", '#d9cbbb', 'cem+wave'], ['סירקו אפור', '#cccccc', 'cem'], ['סירקו אפור דקור', '#cccccc', 'cem+wave'],
     ['פיורי אש', '#c0bdb8', 'stone'], ['פיורי סמוק', '#e1e0de', 'stone'], ['מיסטרל אייבורי', '#e2dedc', 'marble'], ['מיסטרל אייבורי דקור', '#e2dedc', 'marble+tri'],
     ['סהרה אייבורי', '#ede5da', 'stone'], ['סהרה אייבורי דקור', '#ede5da', 'stone+lines'], ['סהרה חולי', '#e4dbd2', 'stone'], ['סהרה חולי דקור', '#e4dbd2', 'stone+lines'],
     ['אריזונה לבן', '#eaebee', 'marble', { f: 'b' }], ['אריזונה לבן דקור', '#eaebee', 'marble+bands', { f: 'b' }], ['אריזונה אפור', '#9f9fa9', 'marble', { f: 'b' }]] },
-  c3060a: { t: 'חיפוי 30×60', size: '30×60', page: 12, w: .6, h: .3, nx: 2, ny: 4, fin: 'm', items: [
+  c3060a: { t: 'חיפוי 30×60', size: '30×60', page: 13, w: .6, h: .3, nx: 2, ny: 4, fin: 'm', items: [
     ['רפאל לבן', '#efefef', 'stone', { f: 'g' }], ['רפאל אפור', '#c9c7c9', 'stone', { f: 'g' }], ['יוטה אפור', '#c8c5b9', 'cem'], ['יוטה אפור דקור', '#c8c5b9', 'cem+tri'],
     ['קאזה פרלה', '#d9d3d2', 'stone'], ['קאזה פרלה דקור', '#d9d3d2', 'stone+bands'], ['אלסקה ביאנקו', '#dcdcda', 'cloud'], ['אלסקה ביאנקו דקור', '#dcdcda', 'cloud+ribs'],
     ['אמאני אפור', '#bfbfbd', 'cloud', { f: 'u' }], ['אמאני לבן', '#e2e2e2', 'cloud', { f: 'u' }]] },
-  c3060b: { t: 'חיפוי 30×60', size: '30×60', page: 13, w: .6, h: .3, nx: 2, ny: 4, fin: 'm', items: [
+  c3060b: { t: 'חיפוי 30×60', size: '30×60', page: 14, w: .6, h: .3, nx: 2, ny: 4, fin: 'm', items: [
     ['דאנטה לבן', '#f0f1f1', 'cem'], ['דאנטה לבן דקור', '#eeefef', 'cem+mosaic'], ['דאנטה אפור', '#959591', 'cem'],
     ['למיניה אפור', '#d4d8e2', 'cem'], ['למיניה אפור רילייב', '#e9eaee', 'plain+wave'], ['למיניה לבן', '#f1f1f0', 'cem'],
     ['בלויו אפור', '#c8c2b8', 'stone'], ['בלויו איוורי', '#e5dfd2', 'stone'], ['בלויו לבן', '#e6e4df', 'stone'],
     ['בלויו אפור דקור', '#c8c2b8', 'stone+cube'], ['בלויו איוורי דקור', '#e5dfd2', 'stone+cube'], ['בלויו לבן דקור', '#e6e4df', 'stone+cube']] },
-  c3060c: { t: 'חיפוי 30×60', size: '30×60', page: 14, w: .6, h: .3, nx: 2, ny: 4, fin: 'u', items: [
+  c3060c: { t: 'חיפוי 30×60', size: '30×60', page: 15, w: .6, h: .3, nx: 2, ny: 4, fin: 'u', items: [
     ['קררה', '#eae7e4', 'marble', { v: '#8d8d8b' }], ['קררה דקור', '#eae7e4', 'marble+bands', { v: '#8d8d8b' }], ["מונה בז'", '#eeece8', 'stone', { f: 'm' }], ["מונה בז' רלייף", '#eeece8', 'stone+wave', { f: 'm' }],
     ['וינה אפור', '#b2b7ba', 'stone', { f: 'g' }], ['ליסה קרם', '#ddcdbe', 'stone', { f: 'g' }], ['לבן', '#f4f4f2', 'plain', { f: 'g' }], ['לבן', '#efefec', 'plain', { f: 'm' }],
-    ['מילניום 7.5/15', '#f3f3f1', 'plain+mill', { f: 'g' }], ['אוריגמי לבן', '#eeeeec', 'plain+origami'], ['דקור לבן ריבועים', '#eeedeb', 'marble+squares']] },
-  c2060: { t: 'חיפוי 20×60', size: '20×60', page: 15, w: .6, h: .2, nx: 2, ny: 6, fin: 'm', items: [
+    ['מילניום 7.5/15', '#f3f3f1', 'plain+mill', { f: 'u' }], ['אוריגמי לבן', '#eeeeec', 'plain+origami'], ['דקור לבן ריבועים', '#eeedeb', 'marble+squares']] },
+  c2060: { t: 'חיפוי 20×60', size: '20×60', page: 16, w: .6, h: .2, nx: 2, ny: 6, fin: 'm', items: [
     ['מרידיאן לבן', '#f0f0ee', 'plain'], ['קאסל לבן', '#f5f5f3', 'plain', { f: 'g' }], ['לאורי בלנקו', '#f3f0eb', 'hand'], ['לאורי בלנקו דקור', '#f1eee9', 'hand+lace'],
     ['לאורי פרלה', '#dcdbd5', 'hand'], ["לאורי רוג'ו", '#bc5b5a', 'hand'], ['לאורי סקאי', '#bfcdd8', 'hand'], ['לאורי קוראל', '#e5a99b', 'hand'],
     ['לאורי אזול', '#748091', 'hand'], ['לאורי נאוד', '#e2e0d4', 'hand'], ['לאורי סילבר', '#81807b', 'hand'], ['לאורי טאופה', '#7d6b5e', 'hand']] },
-  k1030: { t: 'חיפוי מטבח 10×30', size: '10×30', page: 16, w: .3, h: .1, nx: 4, ny: 8, bond: 'r', fin: 'm', items: [
+  k1030: { t: 'חיפוי מטבח 10×30', size: '10×30', page: 17, w: .3, h: .1, nx: 4, ny: 8, bond: 'r', fin: 'm', items: [
     ['פסטל לבן', '#f4f4f2', 'plain', { f: 'g' }], ['פסטל שחור', '#232325', 'plain', { f: 'g' }], ['פסטל אפור', '#b5b5b5', 'plain'], ['פסטל איבורי', '#ede4dd', 'plain'],
-    ['פסטל לבן', '#efefec', 'plain'], ['וראנו לבן', '#f2f1ec', 'hand', { f: 'g' }], ['וראנו טאופה', '#aea69f', 'hand', { f: 'g' }],
+    ['פסטל לבן', '#efefec', 'plain'], ['וראנו לבן', '#f2f1ec', 'hand', { f: 'g' }], ['וראנו טאופה', '#aea69f', 'hand', { f: 'u' }],
     ['וראנו גרפיט', '#3a3a3a', 'hand', { f: 'g' }], ['וראנו טורקיז', '#3d6a90', 'hand', { f: 'g' }]] },
-  k2020: { t: 'חיפוי מטבח 20×20', size: '20×20', page: 16, w: .2, h: .2, nx: 6, ny: 6, fin: 'm', items: [['פלייגראונד', '#e9e4da', 'patch']] },
+  k2020: { t: 'חיפוי מטבח 20×20', size: '20×20', page: 17, w: .2, h: .2, nx: 6, ny: 6, fin: 'm', items: [['פלייגראונד', '#e9e4da', 'patch']] },
 };
 const CER_FIN = { g: ['מבריק', [.05, .14]], l: ['לאפטו', [.16, .34]], s: ['משי', [.36, .56]], m: ['מט', [.55, .78]], r: ['אנטי סליפ', [.7, .9]],
   u: ['גימור לא כתוב בקטלוג', [.4, .62]], b: ['מט או מבריק', [.3, .5]] };
@@ -3021,16 +3025,16 @@ function cerTex(cat, it) {
   }
   g.putImageData(img, 0, 0); rc.getContext('2d').putImageData(rimg, 0, 0); hc.getContext('2d').putImageData(himg, 0, 0);
   const tex = (cv, srgb) => { const t = new THREE.CanvasTexture(cv); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; };
-  return { map: tex(cnv, true), rough: tex(rc), bump: tex(hc), cu, cv, bumpScale: reliefKind ? 1.1 : .55 };
+  return { map: tex(cnv, true), rough: tex(rc), bump: tex(hc), cu, cv, bumpScale: reliefKind ? 1.1 : CER_FIN[cerFin(cat, it)][0] === 'מבריק' ? .15 : .55 };
 }
 
 // Spaces: which material each one drives, which catalog pages the spec allows there, and my pick. o = grid origin [u, v] in
 // metres (floors: x, z; walls: along the wall, height), so a grout line falls on the room edge or the counter.
 const CER_WALL = ['c2575a', 'c2575b', 'c3060a', 'c3060b', 'c3060c', 'c2060'];
 const CER_SPACES = [
-  { id: 'floor', name: 'ריצוף: סלון, מטבח, כניסה ומסדרון', m: mat.tile, cats: ['f80a', 'f80b', 'f60'], def: 'f80a|מלרוז אפור|m', view: 'entry', o: [2.555, 5.70],
+  { id: 'floor', name: 'ריצוף: סלון, מטבח, כניסה ומסדרון', m: mat.tile, cats: ['f80a', 'f80b', 'f80g', 'f60'], def: 'f80a|מלרוז אפור|m', view: 'entry', o: [2.555, 5.70],
     cur: 'הריצוף שעיצבנו עד היום (120×120 בגוון בטון, לא מהמפרט)' },
-  { id: 'rooms', name: 'ריצוף: חדרי השינה וחדר הארונות', m: mat.planks, cats: ['f80a', 'f80b', 'f60'], def: 'cur', view: 'master', o: [4.60, -3.11],
+  { id: 'rooms', name: 'ריצוף: חדרי השינה וחדר הארונות', m: mat.planks, cats: ['f80a', 'f80b', 'f80g', 'f60'], def: 'cur', view: 'master', o: [4.60, -3.11],
     cur: 'דמוי פרקט אלון, כמו שעיצבנו (לא מהמפרט)' },
   { id: 'bathF', name: 'ריצוף: חדר הרחצה', m: mat.terrazzo, cats: ['w30', 'w1560'], def: 'w30|לוגנו סטון|r', view: 'bath', o: [2.01, -3.775], cur: 'טרצו בהיר (לא מהמפרט)' },
   { id: 'bathW', name: 'חיפוי: חדר הרחצה', m: mat.bathWall2, cats: CER_WALL, def: 'c2575b|סהרה אייבורי|m', view: 'bath', o: [2.01, 0], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
@@ -3039,19 +3043,19 @@ const CER_SPACES = [
   { id: 'ensA', name: 'חיפוי: שני קירות המקלחון', m: mat.sage, cats: CER_WALL, def: 'c2575b|מיסטרל אייבורי דקור|m', view: 'shower', o: [4.63, 0],
     cur: 'זליג׳ ירוק מרווה 7.5×30 (לא מהמפרט)' },
   { id: 'kitB', name: 'חיפוי: בין ארונות המטבח', m: mat.splash, cats: ['k1030', 'k2020', 'c3060a', 'c3060b', 'c3060c', 'c2060'], def: 'k1030|וראנו לבן|g', view: 'kitchen3', o: [3.645, .92],
-    cur: 'לוח קוורץ כמו המשטח (לא מהמפרט)' },
+    cur: 'לוח אבן כמו המשטח (בתוספת למפרט: חיפוי אבן כ-50 ס״מ מעל המשטח)' },
   { id: 'balc', name: 'ריצוף: מרפסת השמש', m: mat.deck, cats: ['w30', 'w1560'], def: 'w30|מלרוז אפור|r', view: 'balcony', o: [BX1, BZ1], cur: 'דק עץ (לא מהמפרט)',
     note: 'במפרט ה-15×60 מיועד למרפסות עד 20 מ״ר. המרפסת כ-24 מ״ר, כדאי לברר עם הסטודיו.' },
 ];
 const CER_FIXTURES = [   // chosen from the same spec; listed only, the 3D fixtures are not swapped
-  ['ברזי הכיורים', 'סדרת אומגה שחור, פרח פיה קצרה (עמ׳ 23)'],
-  ['אמבטיה, ברז', 'סדרת אומגה שחור, סוללה (עמ׳ 23), עם מוט אומגה שחור (עמ׳ 21)'],
-  ['מקלחת ההורים', 'סדרת אומגה שחור, 3 דרך (עמ׳ 23); ראש טוש אומגה שחור, זרוע אומגה שחור, מוט אומגה שחור (עמ׳ 21)'],
-  ['אמבטיה', 'אמבטיה אקרילית מלבנית 160×70, לבן (עמ׳ 20), כמו בדגם'],
-  ['אסלות', 'נובה, תלויה, עם מיכל הדחה סמוי גיבריט ולחצן לבן מרובע (עמ׳ 19)'],
-  ['כיור מטבח', 'נירוסטה (עמ׳ 25)'],
-  ['ברז מטבח', 'אומגה, שחור (עמ׳ 26)'],
-  ['ארונות אמבטיה', 'ארון סטודיו, אפוקסי לבן (עמ׳ 28): 80 בחדר הרחצה, 100 במקלחת ההורים. בדגם הארונות 100 ו-70 ס״מ, והמפרט נותן 60/80 ו-100/120'],
+  ['ברזי הכיורים', 'סדרת אומגה שחור, פרח פיה קצרה (עמ׳ 24)'],
+  ['אמבטיה, ברז', 'סדרת אומגה שחור (עמ׳ 24), עם מוט אומגה שחור (עמ׳ 22). בדגם ובתוכנית האינסטלציה: סוללה סמויה 4 דרך ומילוי דרך הגלישה'],
+  ['מקלחת ההורים', 'סדרת אומגה שחור, 3 דרך (עמ׳ 24); ראש טוש אומגה שחור, זרוע אומגה שחור, מוט אומגה שחור (עמ׳ 22)'],
+  ['אמבטיה', 'אמבטיה אקרילית מלבנית 160×70, לבן (עמ׳ 21), כמו בדגם'],
+  ['אסלות', 'נובה, תלויה, עם מיכל הדחה סמוי גיבריט ולחצן לבן מרובע (עמ׳ 20)'],
+  ['כיור מטבח', 'נירוסטה (עמ׳ 26). בדגם הכיור מתחת למשטח, במפרט הוא שקוע מלמעלה'],
+  ['ברז מטבח', 'אומגה, שחור (עמ׳ 27)'],
+  ['ארונות אמבטיה', 'ארון סטודיו, אפוקסי לבן (עמ׳ 29): 80 בחדר הרחצה, 100 במקלחת ההורים. בדגם הארונות 100 ו-70 ס״מ, והמפרט נותן 60/80 ו-100/120'],
 ];
 const cerState = {};
 function cerApply(sp, key) {
@@ -3066,6 +3070,7 @@ function cerApply(sp, key) {
     Object.assign(m, { map: t.map, roughnessMap: t.rough, bumpMap: t.bump, normalMap: null, bumpScale: t.bumpScale, roughness: 1 }); m.color.set('#ffffff');
     u.cerTex = [t.map, t.rough, t.bump];
   }
+  if (sp.id === 'floor' || sp.id === 'rooms') { if (key.split('|')[2] === 'g') u.envDay = .45; else delete u.envDay; m.envMapIntensity = isEve ? .12 : (u.envDay ?? ENV); }
   m.needsUpdate = true; cerState[sp.id] = key; dirty = 1;
   if (ptOn && pt) pt.updateMaterials();
 }
@@ -3094,7 +3099,7 @@ for (const sp of CER_SPACES) {
 function cerSet(id, key) { if (cerUI[id]) cerUI[id](key); }
 function cerReset() { CER_SPACES.forEach(sp => cerSet(sp.id, sp.def)); }
 function cerText() {
-  return ['קרמיקה (מפרט מוצרים סטנדרט, סטודיו קרמיקה, עלי מוהר 6-8, 10/02/2026):']
+  return ['קרמיקה (מפרט מוצרים סטנדרט, סטודיו קרמיקה, עלי מוהר 6-8, 05/10/2026):']
     .concat(CER_SPACES.map(sp => `${sp.name}: ${(cerState[sp.id] || 'cur') === 'cur' ? sp.cur : cerDesc(cerState[sp.id])}`), ['', 'כלים וברזים:'], CER_FIXTURES.map(([a, b]) => `${a}: ${b}`)).join('\n');
 }
 document.getElementById('cerFix').innerHTML = CER_FIXTURES.map(([a, b]) => `<li><b>${a}:</b> ${b}</li>`).join('');
