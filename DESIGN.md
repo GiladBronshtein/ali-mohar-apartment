@@ -157,6 +157,13 @@ interior dimensions, e.g. חדר הורים 430×296.
   `fixRefresh` applies the current day/eve reflection strength, the shadow map, contact shadows and the path tracer after
   a pick. Builders: `fixWC`, `fixFlush`, `fixMixer`, `fixWallMixer`, `fixHead`, `fixRail`, `fixTub`, `fixKSink`, `fixKTap`,
   `fixVanity`. Test hooks: `__app.FIX`, `fixSet(id, key)`, `fixState`, `fixRoot`.
+- Loading: `assetTex` memoises by file; photo sets use `ImageBitmapLoader` (decode off the main thread; Safari and the skies,
+  which are also drawn on a canvas, keep `TextureLoader`). `build_site.py` adds `preload` (as fetch) for the start view's
+  photo sets and `modulepreload` for the modules, switches to `three.module.min.js`, and writes `sw.js`: cache-first for every
+  static file keyed by its content hash (index.html and renders/status.json stay on the network). The module awaits
+  `compileAsync` (max 2.5 s) before the first frame; ceramic defaults outside the start view build in idle time.
+- Upper floors: `upperG` holds the neighbours' storeys above floor 2 and floors 3-6 over our wing plus the roof; it is
+  hidden in every view with `top: true` (the dollhouse) and seen from the `street` / `streetN` views.
 - Light skip: a patch after the room gate skips lights with zero colour after the gate or facing away (the main frame
   cost; measured 2.5-3x faster). Eve ceiling lights carry a downward lobe (`WARM_DOWN`, `pointDown` in the gate patch).
 - A `<details>` notes block in the panel states the estimates and stale renders in Hebrew.
