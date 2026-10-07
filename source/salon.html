@@ -253,7 +253,7 @@ import { Reflector } from 'three/addons/objects/Reflector.js';
 // Origin: living-room side of the master-bedroom wall (TV wall), at the dining-room inner west face.
 // =====================================================================
 const H = 2.70, HEAD = 2.35, DOORH = 2.10, FX = 7.28, LZ = 8.79;
-const EXPO = { day: .85, eve: 1.2 };   // day: less ambient fill and stronger sun/window light than before, for contrast
+const EXPO = { day: .85, eve: 1.35 };   // day: less ambient fill and stronger sun/window light than before, for contrast
 const isPhone = Math.min(window.innerWidth, window.innerHeight) < 640 || /Mobi|Android/i.test(navigator.userAgent);
 
 const stage = document.getElementById('stage');
@@ -962,7 +962,7 @@ function pendantCone(x, z, y, r = .13, hgt = .26) { C(x, z, y + hgt / 2, H, .004
 // env-mapped mirror material underneath. g: geometry in the xy plane, facing +z before the turn ry.
 const mirrors = [], _mv = new THREE.Vector3(); let frameNo = 0, reflecting = false;
 function reflector(g, parent, x, y, z, ry) {
-  const r = new Reflector(g, { textureWidth: 1024, textureHeight: 1024, clipBias: .003, multisample: 4 }), draw = r.onBeforeRender; let last = -1;
+  const r = new Reflector(g, { textureWidth: 1024, textureHeight: 1024, clipBias: .003, multisample: 0 }), draw = r.onBeforeRender; let last = -1;
   r.material.uniforms.color.value.setRGB(.46, .46, .46);   // overlay blend: about 90% reflectance
   r.position.set(x, y, z); r.rotation.y = ry; r.visible = hq; parent.add(r); mirrors.push(r);
   r.onBeforeRender = function (rd, sc, cam) { if (sc.overrideMaterial || reflecting || last === frameNo) return; last = frameNo; reflecting = true; draw.call(this, rd, sc, cam); reflecting = false; };
@@ -2468,7 +2468,7 @@ Promise.all(['tree_small_02', 'jacaranda_tree', 'island_tree_02'].map(f => asset
   #endif`)
         .replace(s2, s2 + `
   reflectedLight.directDiffuse *= site.r; reflectedLight.directSpecular *= site.r; reflectedLight.indirectDiffuse *= site.g * (.8 + .2 * site.r); reflectedLight.indirectSpecular *= site.g;
-  vec3 lampE = vec3(0.); for (int i = 0; i < ${lampU.uLamp.value.length}; i++) { vec3 d = uLamp[i] - vSiteW; float r2 = dot(d, d); lampE += max(d.y, 0.) / (r2 * sqrt(r2)); }   // cos / r^2 on level ground
+  vec3 lampE = vec3(0.); if (uLampK > 0.) for (int i = 0; i < ${lampU.uLamp.value.length}; i++) { vec3 d = uLamp[i] - vSiteW; float r2 = dot(d, d); lampE += max(d.y, 0.) / (r2 * sqrt(r2)); }   // cos / r^2 on level ground
   reflectedLight.directDiffuse += uLampK * lampE * vec3(1., .8, .58) * diffuseColor.rgb;   // about 3000 K LED (estimate)`); };
     m.customProgramCacheKey = () => 'site' + (lawnOn ? 1 : 0); m.needsUpdate = true; };
   patch(mat.ground, true); [mat.asphalt, mKerb, mPaverBay, mPaver, mPaverRed, mPaverWalk, mSoil, mat.turf, mWeeds, mTactile, mWhiteLine, mBlue, mKerbRed].forEach(m => patch(m, false));
@@ -2624,10 +2624,10 @@ winLight(-3.81, .955, .97, 1.0, 1.5, 0, .955, 3.5);         // mamad
 winLight(8.90, -1.79, .96, 2.15, 1.10, 0, -1.79, 5.5);       // master
 winLight(6.285, -4.99, .59, .7, 1.85, 6.285, 0, 2.5);       // master bath
 winLight(2.975, -3.78, 1.2, 1.0, 1.6, 2.975, 0, 2.5);       // family bath (onto the laundry recess, so dimmer; estimate)
-const warm = [];
+const warm = [], WARM_DOWN = [.5, 1, .7, 1, 1, 1, 1, 1, 1, 1, 1, 1];   // per light: 1 = ceiling downlight (lobe down), 0 = omni; pendants in between
 [[1.2, 1.79, 2.5, 1.95], [4.7, 2.2, 5, H - .25], [5.99, 6.31, 2.8, 2.3], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 2.8], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 1.2, BC - .55], [7.63, -4.1, 1.5]]   // closet last; kids' bath: well under its lowered ceiling, so the ceiling does not blow out
-  .forEach(([x, z, k, y = H - .3]) => { const p = new THREE.PointLight(0xffd3a1, 0, 6, 2); p.position.set(x, y, z); p.userData.k = k; scene.add(p); warm.push(p); });
-if (!isPhone) [[5.64, -.48], [7.92, -.48]].forEach(([x, z]) => { const p = new THREE.PointLight(0xffc98a, 0, 2.2, 2); p.position.set(x, 1.05, z); p.userData.k = 1.2; scene.add(p); warm.push(p); });   // bedside globes light the bed and wall (desktop)
+  .forEach(([x, z, k, y = H - .3], i) => { const d = WARM_DOWN[i], p = new THREE.PointLight(0xffd3a1, 0, 6, 2); p.position.set(x, d === 1 && y === H - .3 ? (i === 4 ? DROP : H) - .08 : y, z); p.userData.k = d === 1 ? k * 1.15 : k; p.userData.down = d; scene.add(p); warm.push(p); });
+if (!isPhone) [[5.64, -.48], [7.92, -.48]].forEach(([x, z]) => { const p = new THREE.PointLight(0xffc98a, 0, 2.2, 2); p.position.set(x, 1.05, z); p.userData.k = 1.2; p.userData.down = 0; scene.add(p); warm.push(p); });   // bedside globes light the bed and wall (desktop)
 // Room gate (int4): area and point lights cast no shadows, so a window or a lamp leaked through the walls into the rooms
 // behind it (lit corridor, hall and closet with no source). Each light now lights only its own room's floor-plan box
 // (x1, z1, x2, z2 from roomdims.py, +5 cm for the wall faces); the living-room lights also reach the balcony.
@@ -2638,9 +2638,21 @@ if (!isPhone) [[5.64, -.48], [7.92, -.48]].forEach(([x, z]) => { const p = new T
   const G = n => `step( ${n}.x, gateW.x ) * step( gateW.x, ${n}.z ) * step( ${n}.y, gateW.z ) * step( gateW.z, ${n}.w )`;
   const c = THREE.ShaderChunk, pa = 'getPointLightInfo( pointLight, geometryPosition, directLight );', ra = 'rectAreaLight = rectAreaLights[ i ];';
   if (rect.length !== windowLights.length || !c.lights_fragment_begin.includes(pa) || !c.lights_fragment_begin.includes(ra)) throw new Error('room gate: lights or chunk changed');
+  const pos = warm.map(p => `vec3(${p.position.toArray().map(v => v.toFixed(3)).join(',')})`), dn = warm.map(p => (p.userData.down ?? 0).toFixed(2));
   c.lights_fragment_begin = `vec3 gateW = transpose( mat3( viewMatrix ) ) * ( - vViewPosition - viewMatrix[ 3 ].xyz );\n${arr('rectBox', rect)}\n${arr('pointBox', pts)}\n` +
-    c.lights_fragment_begin.replace(pa, `${pa}\n\t\tdirectLight.color *= ${G('pointBox[ i ]')};`).replace(ra, `${ra}\n\t\trectAreaLight.color *= ${G('rectBox[ i ]')};`);
+    `const vec3 pointPos[${pos.length}] = vec3[${pos.length}](${pos.join(',')});\nconst float pointDown[${dn.length}] = float[${dn.length}](${dn.join(',')});\n` +
+    c.lights_fragment_begin.replace(pa, `${pa}\n\t\tdirectLight.color *= ${G('pointBox[ i ]')} * mix( 1.0, .08 + .92 * smoothstep( .2, .75, -normalize( gateW - pointPos[ i ] ).y ), pointDown[ i ] );`).replace(ra, `${ra}\n\t\trectAreaLight.color *= ${G('rectBox[ i ]')};`);
 }
+
+// Light skip (QA7 performance): a light whose colour is zero after the room gate (other rooms, the lamps by day, the sun at night)
+// or that both normals face away from adds exactly nothing, but three.js still ran its full BRDF and shadow taps. Skip it.
+// Measured: desktop HQ 144 to 54 ms per frame, HQ off 103 to 20 ms; shading identical.
+{ let ch = THREE.ShaderChunk.lights_fragment_begin; const P = (a, b) => { const n = ch.replace(a, b); if (n === ch) throw new Error('light skip: chunk changed'); ch = n; };
+  P('IncidentLight directLight;', 'IncidentLight directLight;\n#ifdef STANDARD\n#define FACES_LIGHT ( max( dot( geometryNormal, directLight.direction ), dot( geometryClearcoatNormal, directLight.direction ) ) > 0.0 )\n#else\n#define FACES_LIGHT true\n#endif\n#define LIT_ ( FACES_LIGHT && dot( directLight.color, vec3( 1.0 ) ) > 0.0 )');
+  P(/\( directLight\.visible && receiveShadow \)/g, '( directLight.visible && receiveShadow && LIT_ )');
+  P(/RE_Direct\( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight \);/g, 'if ( LIT_ ) RE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );');
+  P('RE_Direct_RectArea( rectAreaLight,', 'if ( dot( rectAreaLight.color, vec3( 1.0 ) ) > 0.0 ) RE_Direct_RectArea( rectAreaLight,');
+  THREE.ShaderChunk.lights_fragment_begin = ch; }
 
 // =====================================================================
 // BAKED LIGHT. Daylight (sun + sky through the real window openings) and the evening lamps were path traced offline in
@@ -2862,7 +2874,7 @@ document.getElementById('btnDims').onclick = () => setDims(!dimGroup.children[0]
 function setHQ(on) { dirty = 1;
   hq = on; document.getElementById('btnHQ').setAttribute('aria-pressed', on);
   gtao.enabled = on; mirrors.forEach(r => r.visible = on && !ptOn);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, on ? 1.5 : 1));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, on ? 1.5 : isPhone ? Math.max(1, Math.sqrt(1.4e6 / (innerWidth * innerHeight))) : 1));   // phones: a pixel budget (about 1.4 MP), not DPR 1
   composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(window.innerWidth, window.innerHeight);
 }
 document.getElementById('btnHQ').onclick = () => setHQ(!hq);
@@ -2898,6 +2910,7 @@ function setMode(eve) { dirty = 1;
   renderer.toneMappingExposure = eve ? EXPO.eve : EXPO.day;
   LM.eve = eve; LM.apply();
   scene.traverse(o => { if (o.isMesh && o.material && o.material !== sky.material && 'envMapIntensity' in o.material) o.material.envMapIntensity = eve ? .12 : (o.material.userData.envDay ?? ENV); }); mat.mirror.envMapIntensity = eve ? .3 : 1.2;
+  mat.glass.color.set(eve ? '#141a20' : '#d4e3ea'); mat.glass.opacity = eve ? .3 : .08; mat.glass.envMapIntensity = eve ? 1.0 : ENV;   // a night window reads as a dark mirror
   litMats.forEach(m => m.emissiveIntensity = eve ? 1.0 : 0); glowMats.forEach(m => m.emissiveIntensity = eve ? 2.5 : 0); lampU.uLampK.value = eve ? 9 : 0;
 }
 function refreshPT() { if (!ptOn || !pt) return; ptScene(true); pt.updateLights(); pt.updateMaterials(); pt.updateEnvironment(); }
@@ -3034,7 +3047,8 @@ function frame() {
     return;
   }
   if (ptOn && pt) { pt.renderSample(); const n = Math.floor(pt.samples); const msg = n < pt.minSamples ? `מחשב תאורה… ${Math.round(100 * n / pt.minSamples)}%` : `רינדור חי · ${n} דגימות`; ptInfo.textContent = msg; roomName.textContent = msg; return; }
-  if (hq) composer.render(); else renderer.render(scene, camera);
+  if (hq) composer.render();
+  else { const moving = camMoved() || anim || fansOn || dirty; dirty = 0; if (!moving && !ptOn) return; renderer.render(scene, camera); }
   labelRenderer.render(scene, camera);
 }
 function tick(now) {
