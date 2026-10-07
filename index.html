@@ -1605,7 +1605,8 @@ curtainPair(curtOpen, 'z', -2.37, -2.13, 8.83, .02, H - .03, mat.curtLinen, 14, 
 curtainPair(curtClosed, 'z', -2.37, -1.68, 8.835, .02, H - .03, mat.curtLinen, 6, .035); curtainPair(curtClosed, 'z', -1.76, -1.07, 8.815, .02, H - .03, mat.curtLinen, 6, .035);
 curtClosed.forEach(c => c.visible = false);
 windowZ(-2.17, -1.27, 8.92, 9.30, .15, 2.35, 1);                                // one sash, sill 15, head 235 (construction plan)
-B(9.31, 9.35, -2.17, -1.27, 1.02, 1.06, mat.blackMetal); for (let z = -2.11; z < -1.29; z += .12) B(9.32, 9.34, z - .01, z + .01, .05, 1.02, mat.blackMetal);   // outside safety bars
+B(9.31, 9.35, -2.17, -1.27, 1.02, 1.06, mat.blackMetal); B(9.31, 9.35, -2.17, -1.27, .17, .21, mat.blackMetal); [[-2.17, -2.14], [-1.30, -1.27]].forEach(([a, b]) => B(9.31, 9.35, a, b, .15, 1.06, mat.blackMetal));
+for (let z = -2.06; z < -1.32; z += .105) B(9.32, 9.34, z - .01, z + .01, .21, 1.02, mat.blackMetal);   // outside safety bars: frame on posts fixed in the reveal, from the sill up (estimate)
 B(8.79, 8.81, -2.395, -1.04, H - .02, H, mat.frame, { cast: false });   // curtain track over the window only
 
 // CLOSET (190 x 175): x 7.01..8.92, z -5.01..-3.23, open to the bedroom at x 7.54..8.32
@@ -1896,6 +1897,9 @@ for (let z = BZN + .07; z < BZ2 - .05; z += .12) B(BX2 - .10, BX2 - .08, z - .01
 B(BX2 - .12, BX2 - .06, BZN, BZ2, 1.05, 1.09, mat.blackMetal); B(BX2 - .11, BX2 - .07, BZN, BZ2, .45, .49, mat.blackMetal);
 for (let x = BN + .07; x < BX2 - .12; x += .12) B(x - .01, x + .01, BZN + .08, BZN + .10, .47, 1.05, mat.blackMetal);
 B(BN, BX2 - .06, BZN + .06, BZN + .12, 1.05, 1.09, mat.blackMetal); B(BN, BX2 - .07, BZN + .07, BZN + .11, .45, .49, mat.blackMetal);
+// south end: the side wall stops at x 10.07, so the railing turns the corner along the balcony edge to meet it (as at the north end)
+B(BS, BX2 - .15, BZ2 - .15, BZ2, BY, .45, mStuccoOut); for (let x = BS + .07; x < BX2 - .12; x += .12) B(x - .01, x + .01, BZ2 - .10, BZ2 - .08, .47, 1.05, mat.blackMetal);
+B(BS, BX2 - .06, BZ2 - .12, BZ2 - .06, 1.05, 1.09, mat.blackMetal); B(BS, BX2 - .07, BZ2 - .11, BZ2 - .07, .45, .49, mat.blackMetal);
 // grey outdoor corner sofa after the owners' current one (photo): slim dark aluminium frame on legs, thick grey seat cushions and
 // loose back cushions, no arms. North corner, facing the apartment: long run against the railing, short return against the north
 // wall (ends 90 cm short of the glass so door A stays free); teak-top table with a black frame; one fan above it.
@@ -2135,7 +2139,9 @@ const mSail = M('#e7cf98', .9, { side: THREE.DoubleSide }), mShadeNet = M('#4f8f
   for (let x = BN + .07; x < BX2 - .12; x += .12) B(x - .01, x + .01, BZN + .08, BZN + .10, .47 + y, 1.05 + y, mat.blackMetal, OUT);
   B(BN, BX2 - .06, BZN + .06, BZN + .12, 1.05 + y, 1.09 + y, mat.blackMetal, OUT); B(BN, BX2 - .07, BZN + .07, BZN + .11, .45 + y, .49 + y, mat.blackMetal, OUT);
   for (let z = BZN + .07; z < BZ2 - .05; z += .12) B(BX2 - .10, BX2 - .08, z - .01, z + .01, .47 + y, 1.05 + y, mat.blackMetal, OUT);
-  B(BX2 - .12, BX2 - .06, BZN, BZ2, 1.05 + y, 1.09 + y, mat.blackMetal, OUT); B(BX2 - .11, BX2 - .07, BZN, BZ2, .45 + y, .49 + y, mat.blackMetal, OUT); }
+  B(BX2 - .12, BX2 - .06, BZN, BZ2, 1.05 + y, 1.09 + y, mat.blackMetal, OUT); B(BX2 - .11, BX2 - .07, BZN, BZ2, .45 + y, .49 + y, mat.blackMetal, OUT);
+  B(BS, BX2 - .15, BZ2 - .15, BZ2, BY + y, .45 + y, mStuccoOut, OUT); for (let x = BS + .07; x < BX2 - .12; x += .12) B(x - .01, x + .01, BZ2 - .10, BZ2 - .08, .47 + y, 1.05 + y, mat.blackMetal, OUT);
+  B(BS, BX2 - .06, BZ2 - .12, BZ2 - .06, 1.05 + y, 1.09 + y, mat.blackMetal, OUT); B(BS, BX2 - .07, BZ2 - .11, BZ2 - .07, .45 + y, .49 + y, mat.blackMetal, OUT); }
 // street cross-section (x): lot fence 14.1-14.3 | sidewalk 14.3-16.9 | parallel parking on pavers 16.9-18.8 (ground sheet) |
 // road 18.8-25.2 | bays 25.2-30.2 | sidewalk 30.2-34.2 | school fence 34.2 (far side from the photos)
 const AM = [[-92, 47.62], [62.18, 160]];   // Ali Mohar's sidewalks run from the cross street in the north, broken by Tirtsa Atar
