@@ -286,11 +286,12 @@ const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, 
 composer.setSize(window.innerWidth, window.innerHeight);
 const renderPass = new RenderPass(scene, camera); composer.addPass(renderPass);
 // when the view stops moving, jittered frames are accumulated into a clean, fully anti-aliased still, then rendering pauses
-const taa = new TAARenderPass(scene, camera); taa.sampleLevel = 0; taa.accumulate = true; taa.enabled = false; composer.addPass(taa);
+const taa = new TAARenderPass(scene, camera); taa.sampleLevel = 0; taa.accumulate = true; taa.enabled = false;
+taa.sampleRenderTarget = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }); composer.addPass(taa);   // the hold frame keeps MSAA
 let dirty = 1;
 const gtao = new GTAOPass(scene, camera, window.innerWidth, window.innerHeight);
-gtao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.2, thickness: 0.25, scale: 1.0, samples: 24 });   // small radius and thickness: no grey halos around thin frames and cables
-gtao.updatePdMaterial({ lumaPhi: 6, depthPhi: 2, normalPhi: 4, radius: 6, rings: 4, samples: 24 }); gtao.blendIntensity = .85;
+gtao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.2, thickness: 0.25, scale: 1.0, samples: 32 });   // small radius and thickness: no grey halos around thin frames and cables
+gtao.updatePdMaterial({ lumaPhi: 6, depthPhi: 2, normalPhi: 4, radius: 9, rings: 4, samples: 32 }); gtao.blendIntensity = .85;
 composer.addPass(gtao);
 // GTAO draws depth and normals with one override material that ignores alphaTest, so a tree card would darken the full quad
 // behind it: cards listed here are hidden from that pass
@@ -821,7 +822,7 @@ function fixVanity(x0, zc, W, topY, key, tap, axis = zc) {   // spec vanity on t
     [[y0, y0 + .018], [ym - .009, ym + .009], [yT - .018, yT]].forEach(([a, b]) => B(x0, xf, zs, z2, a, b, oak));
     [ym + (yT - ym) * .5, y0 + (ym - y0) * .5].forEach(y => B(xf + .012, xf + .022, z1 + .1, zs - .1, y - .004, y + .004, FINM.black, { cast: false })); }
   else { const two = st !== 'drawer1'; F(z1 + .003, z2 - .003, y0 + .003, yT - .003, body); if (two) gap(ym - .002, ym + .002);
-    if (st === 'butcher') { [[z1, z1 + .025], [z2 - .025, z2]].forEach(([a, b]) => B(x0, xf + .013, a, b, y0, yT, oak)); handle(yT - .05); if (two) handle(ym - .05); }
+    if (st === 'butcher') { [[z1 - .001, z1 + .025], [z2 - .025, z2 + .001]].forEach(([a, b]) => B(x0, xf + .013, a, b, y0, yT, oak)); handle(yT - .05); if (two) handle(ym - .05); }
     else if (st === 'drawers2') { handle(yT - .06); handle(ym - .06); }
     else if (st === 'drawer1') { gap(yT - .06, yT - .057); handle(yT - .1); }
     else if (st === 'grooved') { gap(yT - .03, yT - .012); gap(ym - .03, ym - .012); } }   // push2: handleless
@@ -877,7 +878,7 @@ function wardrobe(P, { h = 2.4, front = mat.oak, doors, handles = true } = {}) {
   lb(P, -hx, hx, -hz, hz - .02, .08, h, mat.whiteFront);
   lb(P, -hx + .02, hx - .02, hz - .06, hz - .02, 0, .08, mat.black, { cast: false });
   lb(P, -hx, hx, hz - .02, hz, .08, h, front);
-  for (let i = 1; i < n; i++) { const x = -hx + i * P.w / n; lb(P, x - .002, x + .002, hz, hz + .002, .1, h - .02, mat.black, { cast: false }); }
+  for (let i = 1; i < n; i++) { const x = -hx + i * P.w / n; lb(P, x - .003, x + .003, hz, hz + .002, .1, h - .02, mGap, { cast: false }); }
   if (handles) for (let i = 0; i < n; i += 2) { const x = -hx + (i + 1) * P.w / n; [-.025, .025].forEach(dx => { if (i + 1 < n || n % 2 === 0) lb(P, x + dx - .006, x + dx + .006, hz, hz + .02, 0.85, 1.35, mat.blackMetal); }); }
   if (h < H - .05) lb(P, -hx, hx, -hz, hz, h, H, mat.wall, { cast: false });
 }
@@ -1015,7 +1016,7 @@ function windowX(x1, x2, zIn, zOut, sill, head, panes = 2, slide = false) {
   B(x1, x1 + f, zc - .03, zc + .03, sill, head, mat.frame); B(x2 - f, x2, zc - .03, zc + .03, sill, head, mat.frame);
   const mid = (x1 + x2) / 2; if (panes > 1) B(mid - .025, mid + .025, zc - .03, zc + .03, sill, head, mat.frame);
   B(x1 + f, x2 - f, zc - .005, zc + .005, sill + f, head - f, mat.glass, { cast: false });
-  if (sill > .1) { const s = Math.sign(zIn - zOut); B(x1 - .03, x2 + .03, zIn - s * .02, zIn + s * .03, sill - .03, sill, mat.sill, { cast: false }); }
+  if (sill > .1) { const s = Math.sign(zIn - zOut); B(x1 - .03, x2 + .03, zIn - s * .02, zIn + s * .03, sill - .03, sill + .002, mat.sill, { cast: false }); }
   if (slide) { const s = Math.sign(zIn - zOut); B(mid + .03, mid + .045, zc + s * .03, zc + s * .045, sill + .25, sill + .55, mat.blackMetal, { cast: false }); }   // sliding sash: flat pull
   else lever('z', panes > 1 ? mid + .05 : x2 - .08, zc + Math.sign(zIn - zOut) * .03, Math.sign(zIn - zOut), Math.min(head - .2, Math.max(sill + .35, 1.25)));
 }
@@ -1028,7 +1029,7 @@ function windowZ(z1, z2, xIn, xOut, sill, head, panes = 2) {
   B(xc - .03, xc + .03, z1, z2, sill, sill + f, mat.frame); B(xc - .03, xc + .03, z1, z2, head - f, head, mat.frame);
   for (let i = 0; i <= panes; i++) { const z = Math.min(z2 - f / 2, Math.max(z1 + f / 2, z1 + (z2 - z1) * i / panes)); B(xc - .03, xc + .03, z - f / 2, z + f / 2, sill, head, mat.frame); }
   B(xc - .005, xc + .005, z1 + f, z2 - f, sill + f, head - f, mat.glass, { cast: false });
-  if (sill > .1) { const s = Math.sign(xIn - xOut); B(xIn - s * .02, xIn + s * .03, z1 - .03, z2 + .03, sill - .03, sill, mat.sill, { cast: false }); }
+  if (sill > .1) { const s = Math.sign(xIn - xOut); B(xIn - s * .02, xIn + s * .03, z1 - .03, z2 + .03, sill - .03, sill + .002, mat.sill, { cast: false }); }
   lever('x', panes > 1 ? z1 + (z2 - z1) / panes + .05 : z2 - .08, xc + Math.sign(xIn - xOut) * .03, Math.sign(xIn - xOut), Math.min(head - .2, Math.max(sill + .35, 1.25)));
 }
 function tileZ(x1, x2, zFace, s, y1, y2, m) { B(x1, x2, zFace, zFace + s * .006, y1, y2, m, { cast: false }); }
@@ -1102,12 +1103,20 @@ B(-2.12, 4.15, -1.245, -.145, DROP, H, mat.ceil, { parent: ceilGroup, cast: fals
 B(1.80, 3.00, -.145, 0.0, DROP, H, mat.ceil, { parent: ceilGroup, cast: false });
 // return-air grille 80x60 in the corridor ceiling (ת.א.ח on the AC plan), slatted
 const grilleM = M('#ecebe7', .5);
+// slatted grilles as one plate with a mipmapped stripe texture: separate slat boxes thinner than a pixel gave moire
+const mGap = M('#45484b', .8);   // door and drawer gaps
+const mSlots = new THREE.MeshStandardMaterial({ map: canvasTex(64, 8, (g, w, h) => { g.fillStyle = '#ecebe7'; g.fillRect(0, 0, w, h); g.fillStyle = '#2a2c2e'; g.fillRect(22, 0, 22, h); }), roughness: .6 });
+function stripeBox(x1, x2, z1, z2, y1, y2, n, m, alongY, o) {   // n stripes across the face (u), or along y when alongY
+  const b = B(x1, x2, z1, z2, y1, y2, m, o), uv = b.geometry.attributes.uv;
+  for (let i = 0; i < uv.count; i++) { const u = uv.getX(i), v = uv.getY(i); uv.setXY(i, alongY ? v * n : u * n, alongY ? u : v); }
+  return b;
+}
 B(1.88, 2.68, -1.145, -.545, DROP - .006, DROP, grilleM, { parent: ceilGroup, cast: false });
-for (let x = 1.92; x < 2.66; x += .035) B(x, x + .012, -1.115, -.575, DROP - .008, DROP - .006, mat.slot, { parent: ceilGroup, cast: false });
+stripeBox(1.92, 2.65, -1.115, -.575, DROP - .008, DROP - .006, 21, mSlots, false, { parent: ceilGroup, cast: false });   // return grille slots
 // AC supply grilles above doors, inside rooms
 [[-1.425, -1.65], [-1.45, 1.32]].forEach(([wall, c]) => {
   B(c - .40, c + .40, wall - .014, wall, DROP + .02, DROP + .22, grilleM, { cast: false });   // combined grille 80 x 20 in an 85 x 25 wall opening (AC plan)
-  for (let y = DROP + .035; y < DROP + .205; y += .025) B(c - .37, c + .37, wall - .018, wall - .014, y, y + .008, mat.slot, { cast: false });
+  stripeBox(c - .37, c + .37, wall - .018, wall - .014, DROP + .035, DROP + .205, 7, mSlots, true, { cast: false });
 });
 // mamad: two steel sleeves 8" (supply + return, to the civil-defence standard), top 10 cm under the ceiling; x scaled from the AC plan
 // the sleeves stop 1.5 cm inside the corridor face: on the corridor side they continue in the ceiling void, behind plaster
@@ -1229,8 +1238,7 @@ function slider(z1, z2, y1, y2, panes) {
 slider(.79, 3.49, 0, HEAD, 2); slider(4.29, 6.99, 0, HEAD, 2); slider(7.75, 8.45, 1.20, HEAD, 1);
 B(FX - .02, FX + .03, 7.72, 8.48, 1.175, 1.205, mat.sill, { cast: false });
 const sheerTex = canvasTex(256, 256, (g, w, h) => { const r = rnd(29); g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
-  for (let i = 0; i < 9000; i++) { g.fillStyle = `rgba(196,194,188,${.04 + r() * .05})`; g.fillRect(Math.floor(r() * w), Math.floor(r() * h), 1, 1); }   // fine weave, no stripes
-  for (let x = 0; x < w; x += 2) { g.fillStyle = `rgba(200,198,192,${.03 + r() * .03})`; g.fillRect(x, 0, 1, h); } });
+  for (let i = 0; i < 9000; i++) { g.fillStyle = `rgba(196,194,188,${.04 + r() * .05})`; g.fillRect(Math.floor(r() * w), Math.floor(r() * h), 1, 1); } });   // fine weave, no stripes
 const sheer = new THREE.MeshStandardMaterial({ map: sheerTex, color: '#fbfaf7', roughness: 1, transparent: true, opacity: 0.62, side: THREE.DoubleSide, depthWrite: false, emissive: '#fffaf2', emissiveIntensity: .12 });   // emissive by day: backlit voile glows
 // one wave-fold sheer per balcony opening on a ceiling track; it opens to the left (north end of each opening)
 // open: ~2.6 m of fabric gathered into a 55 cm stack; closed: soft 20 cm waves across the whole opening, 1 cm above the floor
@@ -1240,7 +1248,7 @@ function curtainPair(arr, ...args) { const c = curtain(...args); root.remove(c);
 // open, each gathers to the left onto solid wall, so no glass is covered (curtain 1 beside door A, curtain 2 on the pier)
 B(FX - .165, FX - .115, .01, 7.64, H - .035, H - .005, mat.steel, { cast: false });                              // track
 [[.02, 3.54, .76], [3.48, 7.62, .77]].forEach(([a, b, st]) => {
-  curtainPair(curtOpen, 'z', a, a + st, FX - .14, .012, H - .04, sheer, Math.round((b - a) / .2) * 1.2 / st, .06);
+  curtainPair(curtOpen, 'z', a, a + st, FX - .14, .012, H - .04, sheer, Math.round((b - a) / .3) / st, .08);
   curtainPair(curtClosed, 'z', a, b, FX - .14, .012, H - .04, sheer, 6, .035);
 });
 curtClosed.forEach(c => c.visible = false);
@@ -1284,7 +1292,7 @@ const MX1 = 3.05, MX2 = 6.95, CD = .36, BD = .48, BT = .645, CL = [[MX1, 3.95], 
 const BAY = (MX2 - MX1) / 10;
 // base: 10 push-to-open bays, the two centre bays open for devices
 B(MX1, MX1 + 4 * BAY, 0, BD, .20, .62, mat.anthracite, { round: .004 }); B(MX1 + 6 * BAY, MX2, 0, BD, .20, .62, mat.anthracite, { round: .004 });
-[1, 2, 3, 7, 8, 9].forEach(k => { const x = MX1 + k * BAY; B(x - .002, x + .002, BD, BD + .002, .22, .60, mat.black, { cast: false }); });
+[1, 2, 3, 7, 8, 9].forEach(k => { const x = MX1 + k * BAY; B(x - .003, x + .003, BD, BD + .002, .22, .60, mGap, { cast: false }); });
 { const a = MX1 + 4 * BAY, b = MX1 + 6 * BAY, m = (a + b) / 2;
   B(a, b, 0, BD, .20, .225, mat.anthracite); B(a, b, 0, .03, .225, .62, mat.charcoal, { cast: false }); B(m - .005, m + .005, .03, BD, .225, .62, mat.anthracite);
   B(a + .01, b - .01, .03, BD - .02, .607, .612, mat.ledWall, { cast: false });
@@ -1303,7 +1311,7 @@ CL.forEach(([a, b]) => {
     B((a + b) / 2 - .002, (a + b) / 2 + .002, .02, .024, y1 + .02, y2 - .03, mat.ledWall, { cast: false });           // vertical back-light line
   });
   B(a + .002, b - .002, CD - .02, CD, .99, .993, mat.black, { cast: false });
-  [a + (b - a) / 3, b - (b - a) / 3].forEach(x => solid.forEach(([y1, y2]) => B(x - .006, x + .006, CD, CD + .002, y1 + .01, y2 - .01, mat.ledWall, { cast: false })));   // warm LED seams in the fluting
+  [a + (b - a) / 3, b - (b - a) / 3].forEach(x => solid.forEach(([y1, y2]) => B(x - .01, x + .01, CD, CD + .002, y1 + .01, y2 - .01, mat.ledWall, { cast: false })));   // warm LED seams in the fluting
 });
 // niche styling
 C(3.25, .20, 1.195, 1.45, .07, mat.ceramicVase, { r2: .05 }); books({ g: root }, 3.55, 1.195, .20, .2, 'stack', 4, 81); Sph(3.85, 1.27, .20, .05, mat.terracotta);
@@ -1329,7 +1337,7 @@ C(4.22, .32, BT, BT + .26, .05, mat.ceramicVase, { r2: .035 }); books({ g: root 
 // 80 cm wide, two 90x15 linear supply grilles blowing into the room). The media wall and the storage wall now stop under it.
 B(0, 7.06, 0, .80, DROP, H, mat.ceil, { parent: ceilGroup, cast: false });
 [2.20, 5.90].forEach(c => { B(c - .45, c + .45, .80, .812, DROP + .05, DROP + .20, grilleM, { cast: false });
-  for (let x = c - .43; x < c + .43; x += .03) B(x, x + .01, .812, .815, DROP + .065, DROP + .185, mat.slot, { cast: false }); });
+  stripeBox(c - .43, c + .43, .812, .815, DROP + .065, DROP + .185, 29, mSlots, false, { cast: false }); });
 // ceiling wall-washer slot along the feature wall (in the bulkhead soffit)
 B(MX1, MX2, BD + .02, BD + .07, DROP - .006, DROP, mat.ledWall, { parent: ceilGroup, cast: false });
 // sofa group moved 55 cm toward the balcony (69 cm left behind the return to reach the sliding door) and 40 cm back toward the
@@ -1469,7 +1477,7 @@ B(3.72, 4.06, 7.38, 7.55, .915, 1.20, M('#1e1f21', .3), { round: .02 }); C(4, 7.
 });
 B(3.65, 3.88, 7.04, 7.60, 1.40, 1.415, mat.blackMetal); [7.13, 7.26, 7.39, 7.50].forEach(z => C(3.76, z, 1.415, 1.50, .036, mat.ceramicVase));
 KW(7.02, 7.62, 1.57, H);
-[5.61, 6.42, 7.02, 7.62].forEach(z => B(4.29, 4.294, z - .002, z + .002, .10, H, mat.black, { cast: false }));
+[5.61, 6.42, 7.02, 7.62].forEach(z => B(4.29, 4.294, z - .003, z + .003, .10, H, mGap, { cast: false }));
 B(4.29, 4.294, 5.61, 7.62, 2.00, 2.004, mat.black, { cast: false });
 // lower runs (graphite, handleless): west z 7.62..8.79 drawers + corner, south x 4.21..7.28
 B(3.63, 4.25, 7.62, 8.79, .10, .88, mat.graphite); B(3.63, 4.19, 7.62, 8.79, 0, .10, mat.black, { cast: false });
@@ -1481,7 +1489,7 @@ B(3.63, 4.28, 7.62, 8.79, .88, .92, mat.quartz);
   fixSlot(['kSink'], k => fixKSink(k, a, b, c, d)); }   // sink from the spec (default: the undermount bowl as drawn)
 B(4.245, 4.252, 7.62, 8.19, .815, .845, mat.matteBlack, { cast: false }); B(4.25, FX, 8.183, 8.19, .815, .845, mat.matteBlack, { cast: false });   // grip channel
 B(4.245, 4.252, 7.62, 8.19, .445, .47, mat.matteBlack, { cast: false });
-[SK1, SK2, DW2, HB2].forEach(x => B(x - .002, x + .002, 8.185, 8.19, .12, .81, mat.black, { cast: false }));
+[SK1, SK2, DW2, HB2].forEach(x => B(x - .003, x + .003, 8.185, 8.19, .12, .81, mGap, { cast: false }));
 B(DW2, FX, 8.183, 8.19, .445, .47, mat.matteBlack, { cast: false });
 // sink 80 (bowl 70 x 45, undermount) + faucet, dishwasher, induction hob
 fixSlot(['kTap'], k => fixKTap(k, (SK1 + SK2) / 2));                                                  // kitchen mixer from the spec (default: black gooseneck)
@@ -1507,7 +1515,7 @@ plate('e', 3.645, 8.13, 1.10, .08, .08);
 // wall cabinets to the ceiling, one bottom line, hood flush in the same front
 B(3.63, 3.98, 7.62, 8.79, 1.62, H, mat.whiteFront); B(3.98, 7.25, 8.44, 8.79, 1.62, H, mat.whiteFront);
 B(3.98, 3.982, 8.198, 8.202, 1.63, H - .01, mat.black, { cast: false });
-[SK1, SK2, DW2, HB2].forEach(x => B(x - .002, x + .002, 8.438, 8.44, 1.63, H - .01, mat.black, { cast: false }));
+[SK1, SK2, DW2, HB2].forEach(x => B(x - .003, x + .003, 8.438, 8.44, 1.63, H - .01, mGap, { cast: false }));
 B(3.98, 4, 7.64, 8.42, 1.618, 1.622, mat.led, { cast: false }); B(4, 7.23, 8.42, 8.44, 1.618, 1.622, mat.led, { cast: false });
 B(DW2 + .04, HB2 - .04, 8.48, 8.75, 1.615, 1.62, mat.slot, { cast: false });                       // hood intake
 B(3.645, FX, 8.775, 8.79, .92, 1.62, mat.splash, { cast: false }); B(3.63, 3.645, 7.62, 8.79, .92, 1.62, mat.splash, { cast: false });
@@ -1821,7 +1829,7 @@ B(-3.47, -3.05, 2.165, 2.705, .06, .62, mat.whiteFront, { round: .01 }); [.24, .
 [[-3.46, 2.24], [-3.12, 2.24], [-3.46, 2.70], [-3.12, 2.70]].forEach(([x, z]) => C(x, z, 0, .06, .022, mat.black, { seg: 10 }));
 // 49" curved monitor on a desk arm
 { const cx = -2.62, cz = 2.56, cy = WD + .38, R = 1.8, th = 1.2 / R;
-  const scr = new THREE.Mesh(new THREE.CylinderGeometry(R, R, .34, 40, 1, true, -th / 2 + Math.PI, th), mat.screen); scr.material.side = THREE.DoubleSide;
+  const scr = new THREE.Mesh(new THREE.CylinderGeometry(R, R, .34, 40, 1, true, -th / 2 + Math.PI, th), mat.screen.clone()); scr.material.side = THREE.DoubleSide;
   scr.position.set(cx, cy, cz - R); scr.rotation.y = Math.PI; root.add(scr);
   const back = new THREE.Mesh(new THREE.CylinderGeometry(R + .025, R + .025, .37, 40, 1, true, -th / 2 + Math.PI, th), M('#1b1c1e', .5, { side: THREE.DoubleSide }));
   back.position.set(cx, cy, cz - R); back.rotation.y = Math.PI; root.add(back);
@@ -2066,7 +2074,7 @@ sunBoxes.push([-4.28, 9.30, -5.39, 9.11, 6.59], [FO, BX2, BZN, BZ2, 6.6, .85, 2.
     [-6.6, [...west, ['x', .29, 1.35, -5.39, -1, .15, 2.35], ['x', 2.15, 3.69, -5.39, -1, .15, 2.35], ['x', 4.96, 8.63, -5.39, -1, 0, 2.35],
       ['z', -2.33, -1.26, 9.25, 1, 0, 2.35], ['z', 1.54, 3.10, 9.25, 1, 0, 2.35], ['z', 4.66, 6.23, 9.25, 1, 0, 2.35], ['z', 7.97, 8.73, 9.25, 1, 0, 2.35]]]]) list.forEach(([ax, a1, a2, f, s, sill, head]) => {
     const P = (b1, b2, d, y1, y2, m) => ax === 'x' ? B(b1, b2, f, f + s * d, y1 + dy, y2 + dy, m, o) : B(f, f + s * d, b1, b2, y1 + dy, y2 + dy, m, o);
-    P(a1, a2, .01, sill, head, mDark);
+    P(a1 + .004, a2 - .004, .008, sill + .004, head - .004, mDark);
     P(a1, a2, .04, head - .05, head, mat.frame); P(a1, a2, .04, sill, sill + .05, mat.frame); P(a1, a1 + .05, .04, sill, head, mat.frame); P(a2 - .05, a2, .04, sill, head, mat.frame);
     if (sill > .1) P(a1 - .03, a2 + .03, .05, sill - .03, sill, mat.sill);
   }); }
@@ -2178,7 +2186,7 @@ B(SX2 - 4, SX2 - 1.5, SZ2 - 6, SZ2 - 1, GY + SH, GY + SH + 1.6, M('#d8d4cc', .8)
 // school fence: white panels with a light mesh, gates, accessible-parking signs, climbing plants
 B(34.2, 34.24, SZ1, SZ2, GY + .15, GY + .55, M('#e6e4de', .7), OUT);
 const mFenceBar = M('#d9d9d6', .5, { metalness: .4 });
-for (let z = SZ1; z < SZ2; z += .15) B(34.2, 34.23, z, z + .025, GY + .55, GY + 1.75, mFenceBar, OUT);
+stripeBox(34.2, 34.23, SZ1, SZ2, GY + .55, GY + 1.75, Math.round((SZ2 - SZ1) / .15), new THREE.MeshStandardMaterial({ map: canvasTex(16, 4, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = '#d9d9d6'; g.fillRect(0, 0, 3, h); }), alphaTest: .5, alphaToCoverage: true, roughness: .5, metalness: .4, side: THREE.DoubleSide }), false, OUT);   // bars every 15 cm
 B(34.2, 34.24, SZ1, SZ2, GY + 1.72, GY + 1.78, mFenceBar, OUT);
 [-2.5, 1.0].forEach(z => { C(33.2, z, GY, GY + 2.4, .03, mAlu, { seg: 6, parent: outside, cast: false }); B(33.18, 33.22, z - .25, z + .25, GY + 1.9, GY + 2.4, mBlue, OUT); });
 for (let i = 0; i < 9; i++) { const c = mesh(new THREE.IcosahedronGeometry(.6, 1), mat.leaf2, outside, false); c.position.set(34.1, GY + 1.3 + treeR() * .8, SZ1 + 6 + i * 5.5 + treeR() * 2); c.scale.set(.5, 1, 1.6); }
@@ -2209,11 +2217,11 @@ const litMats = [];   // lit-window emissive maps, on in the evening
     g.fillStyle = '#3c444b'; wins.forEach(([x, y, s]) => g.fillRect(x, y, s, s)); });
   const glow = canvasTex(512, 512, (g, w, h) => { const r = rnd(303); g.fillStyle = '#000'; g.fillRect(0, 0, w, h); wins.forEach(([x, y, s]) => { if (r() < .35) { g.fillStyle = '#ffcf8f'; g.fillRect(x, y, s, s); } }); });
   const mT = TM(face, .6, U, { emissiveMap: glow, emissive: '#ffffff', emissiveIntensity: 0 }); mT.userData.envDay = 1.1; litMats.push(mT);
-  const mBrown = M('#4a3a30', .7), mLog = M('#7c8084', .8), mRed = M('#b5523b', .8), T = { ...OUT, cast: true };
+  const mLouv = new THREE.MeshStandardMaterial({ map: canvasTex(8, 32, (g, w, h) => { g.fillStyle = '#1d1916'; g.fillRect(0, 0, w, h); g.fillStyle = '#4a3a30'; g.fillRect(0, 0, w, 9); }), roughness: .7 }), mBrown = M('#4a3a30', .7), mLog = M('#7c8084', .8), mRed = M('#b5523b', .8), T = { ...OUT, cast: true };
   B(60, 70, 24, 34, GY, GY + 27, mT, T); B(64, 84, 30, 41.5, GY, GY + 30, mT, T); sunBoxes.push([60, 70, 24, 34, 27.6], [64, 84, 30, 41.5, 32.2]);                                          // west wing (toward us), main wing
   B(60, 70, 24, 34, GY + 27, GY + 27.6, mat.concrete, OUT); B(64, 84, 30, 41.5, GY + 30, GY + 30.6, mat.concrete, OUT);
   [[25.6, 27.1], [30.6, 32.1]].forEach(([a, b]) => { B(59.7, 60, a, b, GY + 1, GY + 26.6, mBrown, OUT);                       // louvre strips, slats every 25 cm
-    for (let y = GY + 1.2; y < GY + 26.5; y += .25) B(59.55, 59.7, a, b, y, y + .07, mBrown, OUT); });
+    stripeBox(59.55, 59.7, a, b, GY + 1.2, GY + 26.45, 101, mLouv, true, OUT); });
   for (let f = 1; f < 9; f++) for (let x = 71.5; x < 83; x += 4.2) { const y = GY + f * 3;                                   // loggias on the main wing's north face
     B(x, x + 2.8, 29.97, 30.0, y + .1, y + 2.8, mLog, OUT); B(x - .1, x + 2.9, 29.6, 30.0, y - .05, y + .1, mat.concrete, OUT); B(x, x + 2.8, 29.62, 29.66, y + .1, y + 1.1, mGlassRail, OUT); }
   B(76, 81, 33, 38, GY + 30.6, GY + 32.2, mRed, OUT); }
@@ -2401,7 +2409,7 @@ function treeCards(img, spots) {
 }
 Promise.all(['tree_small_02', 'jacaranda_tree', 'island_tree_02'].map(f => assetTex(`trees/${f}.webp`))).then(ts => {
   if (ts.some(t => !t)) return;
-  const [street, jac, isl] = ts, card = (t, spots) => noAO.push(mesh(treeCards(t.image, spots), new THREE.MeshStandardMaterial({ map: t, vertexColors: true, alphaTest: .45, roughness: .9, envMapIntensity: isEve ? .12 : ENV }), scene, false));
+  const [street, jac, isl] = ts, card = (t, spots) => noAO.push(mesh(treeCards(t.image, spots), new THREE.MeshStandardMaterial({ map: t, vertexColors: true, alphaTest: .4, alphaToCoverage: true, roughness: .9, envMapIntensity: isEve ? .12 : ENV }), scene, false));
   card(street, streetTrees); card(jac, yardTrees.filter((_, i) => i % 2)); card(isl, yardTrees.filter((_, i) => !(i % 2)));
   procTrees.visible = false; dirty = 1; });
 // Ground mask (ext 2 and 5): one RGBA texture over the site, drawn once at load, read by the ground-level materials in world xz.
@@ -2886,7 +2894,7 @@ function setMode(eve) { dirty = 1;
   warm.forEach(p => p.intensity = eve ? p.userData.k : 0);
   setSky(eve); if (extEnv.day) extMats.forEach(m => m.envMap = eve ? extEnv.eve : extEnv.day);
   scene.fog.color.copy(eve ? fogCol.eve : fogCol.day);
-  sheer.emissiveIntensity = eve ? 0 : .12; mat.spot.emissiveIntensity = eve ? 1.8 : 0; mat.lamp.emissiveIntensity = eve ? 1.5 : 0; mat.led.emissiveIntensity = eve ? 2.0 : 0; mat.ledWall.emissiveIntensity = eve ? 3.0 : .9;
+  sheer.emissiveIntensity = eve ? 0 : .12; mat.spot.emissiveIntensity = eve ? 1.8 : 0; mat.lamp.emissiveIntensity = eve ? 1.5 : 0; mat.led.emissiveIntensity = eve ? 2.0 : 0; mat.ledWall.emissiveIntensity = eve ? 1.9 : .55;   // wider seams, softer: thin bright lines pulsed with bloom
   renderer.toneMappingExposure = eve ? EXPO.eve : EXPO.day;
   LM.eve = eve; LM.apply();
   scene.traverse(o => { if (o.isMesh && o.material && o.material !== sky.material && 'envMapIntensity' in o.material) o.material.envMapIntensity = eve ? .12 : (o.material.userData.envDay ?? ENV); }); mat.mirror.envMapIntensity = eve ? .3 : 1.2;
