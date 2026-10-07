@@ -303,9 +303,12 @@ composer.addPass(new OutputPass());
 let hq = !isPhone;
 // Optional assets (site only): CC0 photo textures, sky and models from Poly Haven under assets/ (built by assets.py). When a file
 // is missing (the claude.ai artifact) the loader resolves null and the procedural version stays.
-const texLoader = new THREE.TextureLoader();
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);   // same test as GLTFLoader r160
+const texLoader = isSafari ? new THREE.TextureLoader() : new THREE.ImageBitmapLoader().setOptions({ imageOrientation: 'flipY', premultiplyAlpha: 'none' });   // decode off the main thread
 const assetCache = new Map();   // one load per file (the oak and stucco sets were fetched and decoded twice)
-const assetTex = (f, color = true) => { const k = f + (color ? '|c' : '|d'); if (!assetCache.has(k)) assetCache.set(k, new Promise(res => texLoader.load('assets/' + f, t => {
+const imgLoader = new THREE.TextureLoader();   // for images that are also drawn on a canvas (skies): an ImageBitmap would arrive flipped
+const assetTex = (f, color = true, plain = false) => { const k = f + (color ? '|c' : '|d'); if (!assetCache.has(k)) assetCache.set(k, new Promise(res => (plain ? imgLoader : texLoader).load('assets/' + f, img => {
+    const t = img.isTexture ? img : new THREE.Texture(img); t.needsUpdate = true;
   t.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); res(t); }, undefined, () => res(null)))); return assetCache.get(k); };
 
 // =====================================================================
@@ -2527,7 +2530,7 @@ sky.renderOrder = 10; scene.add(sky);   // drawn after the opaque scene: only th
 const extEnv = { day: null, eve: null }, extMats = new Set();   // exterior-only materials reflect the photo sky; the interior keeps the room environment
 const skies = { day: { map: skyDay, rot: 0, k: 1 }, eve: { map: skyEve, rot: 0, k: 1 } };
 const setSky = eve => { const s = eve ? skies.eve : skies.day; sky.material.map = s.map; sky.rotation.y = s.rot; sky.material.color.setScalar(s.k); sky.material.needsUpdate = true; dirty = 1; };
-Promise.all([assetTex('sky/day.webp'), assetTex('sky/eve.webp')]).then(([d, e]) => {
+Promise.all([assetTex('sky/day.webp', true, true), assetTex('sky/eve.webp', true, true)]).then(([d, e]) => {
   if (!d || !e) return;
   [d, e].forEach(t => { t.repeat.set(1, 2048 / 1152); t.offset.set(0, 1 - 2048 / 1152); });
   skies.day = { map: d, rot: -1.11, k: 1.8 }; skies.eve = { map: e, rot: -3.53, k: .35 }; setSky(isEve);   // day k 1.8: the view through the glass is brighter than the room, as in an interior photo
@@ -2538,9 +2541,9 @@ Promise.all([assetTex('sky/day.webp'), assetTex('sky/eve.webp')]).then(([d, e]) 
     return new THREE.Color().setRGB(m[0] * k, m[1] * k, m[2] * k, THREE.LinearSRGBColorSpace); };
   fogCol.day.copy(horizon(d.image, skies.day.k)); fogCol.eve.copy(horizon(e.image, skies.eve.k)); scene.fog.color.copy(isEve ? fogCol.eve : fogCol.day);
   // equirect copy for PMREM: three's equirect u is mirrored against the sphere's, and the sphere is turned by rot
-  const equi = (img, rot, gnd) => { const c = document.createElement('canvas'); c.width = 512; c.height = 256; const g = c.getContext('2d'), sh = 256 * 1152 / 2048;
-    g.fillStyle = gnd; g.fillRect(0, 0, 512, 256);
-    for (let i = 0; i < 512; i++) { const u = (((1 - (i + .5) / 512 - rot / (2 * Math.PI)) % 1) + 1) % 1; g.drawImage(img, Math.floor(u * img.width), 0, 1, img.height, i, 0, 1, sh); }
+  const equi = (img, rot, gnd) => { const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const g = c.getContext('2d'), sh = 512 * 1152 / 2048;   // same cube size as the room environment: no shader rebuild on the swap
+    g.fillStyle = gnd; g.fillRect(0, 0, c.width, c.height);
+    for (let i = 0; i < c.width; i++) { const u = (((1 - (i + .5) / c.width - rot / (2 * Math.PI)) % 1) + 1) % 1; g.drawImage(img, Math.floor(u * img.width), 0, 1, img.height, i, 0, 1, sh); }
     const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; const r = pmrem.fromEquirectangular(t).texture; t.dispose(); return r; };
   extEnv.day = equi(d.image, skies.day.rot, '#8a877f'); extEnv.eve = equi(e.image, skies.eve.rot, '#26262a');
   const inside = new Set(); [root, ceilGroup, curtGroup].forEach(g => g.traverse(o => { if (o.isMesh) inside.add(o.material); }));
@@ -2647,7 +2650,7 @@ captureContact();
 // =====================================================================
 // LIGHTING
 // =====================================================================
-const HEMI = .08, ENV = .3;   // less uniform fill (was .22), more from the windows
+const HEMI = .14, ENV = .3;   // less uniform fill (was .22), more from the windows
 const hemi = new THREE.HemisphereLight(0xdfe9f6, 0xcdc4b2, HEMI); scene.add(hemi);
 const SUN = 3.0, sun = new THREE.DirectionalLight(0xfff1dc, SUN);
 sun.target.position.set(2.4, 0, 1.5); sun.position.set(2.4 + SUN_OFF[0], SUN_OFF[1], 1.5 + SUN_OFF[2]);   // ~10:00 in autumn: east-south-east, ~40 deg up
@@ -3393,7 +3396,7 @@ function cerApply(sp, key) {
   m.needsUpdate = true; cerState[sp.id] = key; dirty = 1;
   if (ptOn && pt) pt.updateMaterials();
 }
-const cerList = document.getElementById('cerList');
+const cerList = document.getElementById('cerList'), cerTouched = new Set();   // spaces the visitor changed (idle defaults leave them alone)
 const cerUI = {};
 for (const sp of CER_SPACES) {
   const row = document.createElement('div'); row.className = 'cer-row';
@@ -3407,7 +3410,7 @@ for (const sp of CER_SPACES) {
   const swatch = () => { const c = sw.getContext('2d'), im = sp.m.map && sp.m.map.image; c.fillStyle = '#' + sp.m.color.getHexString(); c.fillRect(0, 0, 88, 88);
     try { if (im) c.drawImage(im, 0, 0, Math.min(im.width, im.height), Math.min(im.width, im.height), 0, 0, 88, 88); } catch (e) { } };
   const set = (key, fly) => { sel.value = key; if (sel.value !== key) sel.value = key = 'cur'; info.innerHTML = key === 'cur' ? sp.cur : cerDesc(key, true) + (key === sp.def ? ' · ההמלצה שלי' : '');
-    if (fly && current !== sp.view) setView(sp.view);
+    if (fly) { cerTouched.add(sp.id); if (current !== sp.view) setView(sp.view); }
     photoReady.then(() => { if (sel.value === key) { cerApply(sp, key); swatch(); } }); };
   sel.onchange = () => set(sel.value, true);
   row.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const n = sel.options.length; set(sel.options[(sel.selectedIndex + +b.dataset.d + n) % n].value, true); });
@@ -3450,15 +3453,20 @@ document.getElementById('cerCopy').onclick = async e => {
   try { await navigator.clipboard.writeText(txt); } catch (err) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
   b.textContent = 'הועתק'; setTimeout(() => b.textContent = 'העתקת הבחירות', 1500);
 };
-CER_SPACES.forEach(sp => cerSet(sp.id, sp.def));   // every visit starts from the original design: nothing is saved
+{ const first = ['floor', 'kitB', 'balc'], order = first.map(id => CER_SPACES.find(sp => sp.id === id)).concat(CER_SPACES.filter(sp => !first.includes(sp.id)));   // every visit starts from the original design: nothing is saved
+  const idle = window.requestIdleCallback ? f => requestIdleCallback(f, { timeout: 400 }) : f => setTimeout(f, 50);   // tile textures for the spaces seen first now, the others in idle time
+  order.slice(0, 3).forEach(sp => cerSet(sp.id, sp.def)); const next = i => { if (i < order.length) idle(() => { if (!cerTouched.has(order[i].id)) cerSet(order[i].id, order[i].def); next(i + 1); }); }; next(3); }
 try { localStorage.removeItem('ali-cer'); } catch (e) { }   // choices stored by older versions
 
 setHQ(hq);
 setPanel(true);
 const start = (location.hash || '#entry').slice(1);
 setView(views[start] ? start : 'entry', true);
+{ renderer.setRenderTarget(hq ? composer.readBuffer : null); const p = renderer.compileAsync(scene, camera); renderer.setRenderTarget(null);   // link the shaders in parallel before the first frame
+  await Promise.race([p, new Promise(r => setTimeout(r, 2500))]); }
 document.getElementById('loading').hidden = true;
 requestAnimationFrame(tick);
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { });   // cache for return visits (sw.js is written by build_site.py)
 LM.ready = LM.load();
 window.__app = { FIX, fixSet, fixState, fixRoot, LM, contacts, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls, mirrors, CER, CER_SPACES, cerSet, cerReset, cerText, cerState };
 </script>
