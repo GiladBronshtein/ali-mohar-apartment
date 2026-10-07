@@ -1,0 +1,7 @@
+[{"name":"e1_entry_westwall_eve","pos":[2.7,0.9,4.9],"tgt":[1.45,0.2,3.7],"fov":60,"inView":"hall","mode":"eve"},
+{"name":"e2_corridor_eve","pos":[3.8,1.4,-0.6],"tgt":[-1.0,0.2,-1.0],"fov":65,"inView":"corridor","mode":"eve"},
+{"name":"e3_closet_opening_eve","pos":[7.9,1.2,-2.2],"tgt":[7.9,0.0,-3.4],"fov":60,"inView":"master","mode":"eve"},
+{"name":"e4_master_step_eve","pos":[5.6,1.0,-1.2],"tgt":[4.5,0.1,-0.22],"fov":60,"inView":"master","mode":"eve","doors":"closed"},
+{"name":"e5_kitchen_landing_eve","pos":[6.3,1.5,7.7],"tgt":[7.28,1.0,8.6],"fov":60,"inView":"kitchen3","mode":"eve"},
+{"name":"e6_hall_view_day","view":"hall"},
+{"name":"e7_corr2_day","view":"corr2"}]

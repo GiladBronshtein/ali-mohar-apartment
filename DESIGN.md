@@ -113,6 +113,9 @@ interior dimensions, e.g. חדר הורים 430×296.
 - High quality (`hq`, desktop default): composer with RenderPass, TAA (32 frames once still), GTAO, bloom, output.
   Phones default to plain `renderer.render`.
 - Render on demand: a dirty flag plus camera-matrix diffing; after 180 ms still, TAA accumulates and the loop idles.
+- Room gate: each window and lamp lights only its room box (`rect`, `pts`); `rectBox2`/`pointBox2` add a second box (the
+  master's door vestibule), `SPILL` and `SPILL2` fade the living daylight through the corridor passage and the master's into
+  the closet opening. A shadow-only slab over the ceiling (`ceilGroup`) stops the sun leaking under the ceiling plane.
 - Mirrors: `reflector()` puts a three.js `Reflector` (1024², HalfFloat, tint .46) on the entry round mirror, the
   closet door mirror, the master bath vanity (in `scene`, so the `withShift` offset is added by hand) and the kids'
   bath mirror. Visible only when `hq` and not path tracing (`setHQ`, `ptScene`). `onBeforeRender` skips GTAO's
@@ -120,8 +123,8 @@ interior dimensions, e.g. חדר הורים 430×296.
   `lm/export.mjs` and `exportglb.mjs` drop them (Cycles has its own mirror material). `__app.mirrors` lists them.
 - Path tracer (three-gpu-pathtracer, lazy import, 5 bounces, denoised): reachable only via `__app.setPT(true)`;
   the `#btnPT` button is hidden.
-- Baked lightmaps (`lm/`, 256 spp GPU bake of the current model with fixtures as occluders, 159 targets): by default
-  hybrid. `LM.loadAo` puts the baked AO map on the shared materials as `aoMap` (uv1, `aoMapIntensity` .7), so the
+- Baked lightmaps (`lm/`, 256 spp GPU bake of the current model with fixtures as occluders, 159 targets): off by default
+  (the AO atlas does not match where separate wall, ceiling and frame meshes meet). With `?ao=1`, `LM.loadAo` puts the baked AO map on the shared materials as `aoMap` (uv1, `aoMapIntensity` .7), so the
   real-time light stays and only the indirect part darkens in corners, under furniture and along the ceiling line,
   phones included (they have no GTAO). Meshes on those materials without a bake UV get a white texel (`lmWhiteUv`,
   also on fixture slots via `fixDraw`, `lmAo`). The full bake as the light source stays behind `?baked=1`: it still
@@ -133,9 +136,9 @@ interior dimensions, e.g. חדר הורים 430×296.
 - Reflection probes: `assets/env/{liv,mbath,fbath}-{day,eve}.webp`, equirect Cycles renders at eye height in the
   living room and the two baths (`PANO=1 POS=x,y,z cycles_render.py`, Standard view transform, normalized to a mean
   linear luminance of .22, about 25 KB each). `loadProbes(mode)` PMREMs them (day after the sky, eve with the eve sky);
-  `applyProbes()` sets `envMap` only on glossy and metal finishes (`PROBE_GLOSSY`: quartz, steel, chrome, ceramics,
-  fronts, frames...), each bath's own finishes on its bath's probe (`PROBE_ZONE`), the rest on the living probe, at the
-  usual env strength x `PROBE_K` (day 2.0, eve 1.6, tuned by eye). Walls and fabrics are shared by every room and keep
+  `applyProbes()` sets `envMap` only on metals, glass, screens and sanitaryware (`PROBE_GLOSSY`: steel, chrome, black metal,
+  ceramics, screens, frames; in r160 the envMap also drives the diffuse light, so white fronts and stone turned beige), each bath's own finishes on its bath's probe (`PROBE_ZONE`), the rest on the living probe, at the
+  usual env strength x `PROBE_K` (day 2.0, eve 1.6, tuned by eye). Walls, fabrics, fronts and stone keep
   the neutral `RoomEnvironment` (a per-room probe on them darkened and warmed whole rooms). Not box-projected.
 
 ## Camera, navigation, views

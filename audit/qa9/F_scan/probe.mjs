@@ -1,0 +1,15 @@
+import { chromium } from '/Users/Gilad.Bronshtein/AliMohar/source/node_modules/playwright/index.mjs';
+import fs from 'fs';
+const probes = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const b = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu'] });
+const p = await b.newPage({ viewport: { width: 1280, height: 800 } });
+await p.goto('http://127.0.0.1:8791/', { waitUntil: 'domcontentloaded', timeout: 240000 });
+await p.waitForFunction(() => window.__app && document.getElementById('loading').hidden, null, { timeout: 240000 });
+await p.waitForTimeout(3000);
+if (process.env.DOORS) await p.evaluate(() => window.__app.setDoors(true)); await p.waitForTimeout(1500); await p.evaluate(fs.readFileSync('/tmp/qa9/f_page2.js', 'utf8'));
+await p.evaluate(() => window.__f9.build());
+const r = await p.evaluate(ps => ps.map(([o, d, far]) => ({ o, d, hits: window.__f9.all(null, o, d, far) })), probes).catch(e => e.message);
+console.log(typeof r === 'string' ? r : '');
+const r2 = await p.evaluate(ps => { const f = window.__f9; return ps.map(([o, d, far]) => ({ o, d, hits: f.allG(o, d, far || 1).map(h => `${h.m}${h.back ? '(back)' : ''}@${h.d.toFixed(4)} p=${h.p.map(v => v.toFixed(4)).join(',')}`) })); }, probes);
+for (const x of r2) console.log(JSON.stringify(x.o), JSON.stringify(x.d), '\n   ' + x.hits.join('\n   '));
+await b.close();
