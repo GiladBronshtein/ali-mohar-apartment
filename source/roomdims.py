@@ -5,7 +5,7 @@ H=2.60; FT=2.70; DOORH=2.10; HEAD=2.30
 env={'H':H,'FT':FT,'DOORH':DOORH,'HEAD':HEAD,'FX':7.28,'FO':7.70,'LZ':8.79}
 boxes=[]; import os; YH=float(os.environ.get("YH","2.4"))
 def ev(s): return float(eval(s.strip(),{},env))
-seg=src.split('// WALLS:')[1].split('// corridor gypsum')[0]
+seg=re.sub(r'//[^\n]*', '', src.split('// WALLS:')[1].split('// corridor gypsum')[0])   # comments stripped: a wall commented out must not count
 for m in re.finditer(r'\bW\(([^()]*)\)', seg):
     a=[ev(t) for t in m.group(1).split(',')]
     y1=a[4] if len(a)>4 else 0; y2=a[5] if len(a)>5 else H
