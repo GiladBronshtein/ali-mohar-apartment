@@ -721,8 +721,9 @@ function withShift(dx, dz, fn) {
 // =====================================================================
 const fixRoot = new THREE.Group(); scene.add(fixRoot);
 let lmAo = null;   // baked AO texture once loaded (LM.load): meshes on an AO material without a bake UV get a white texel
-const mTubIn = mat.ceramicIn.clone(), mSinkIn = mat.sinkSteel.clone(), mSilq = M('#e9e7e1', .55), mSilqIn = mSilq.clone();   // basins seen from inside (back faces)
-const BACKM = new Set([mTubIn, mSinkIn, mSilqIn]); BACKM.forEach(m => m.side = THREE.BackSide);
+const mTubIn = mat.ceramicIn.clone(), mSinkIn = mat.sinkSteel.clone(), mSilq = M('#e9e7e1', .55), mSilqIn = mSilq.clone(), mAcr = M('#f3f2ef', .3), mAcrIn = mAcr.clone();   // basins seen from inside (back faces)
+const BACKM = new Set([mTubIn, mSinkIn, mSilqIn, mAcrIn]); BACKM.forEach(m => m.side = THREE.BackSide);
+const mDoorHw = mat.blackMetal.clone();   // interior door hardware (picker: black / nickel / chrome)
 const FINM = { black: mat.blackMetal, chrome: M('#e4e6e8', .08, { metalness: 1 }), brushed: M('#b8bbbd', .3, { metalness: 1 }), gold: M('#c9a65e', .22, { metalness: 1 }) };
 FINM.chrome.userData.envDay = .9; FINM.brushed.userData.envDay = .7; FINM.gold.userData.envDay = .8;   // a polished metal shows its reflections (day; estimates)
 const TAPS = [   // [series, page, finish, body]; types: short = פרח פיה קצרה, swan = ברבור, bat = סוללה, 3 / 4 = 3 / 4 דרך
@@ -756,7 +757,10 @@ const FIX = {
   showerTap: { name: 'ברז מקלחת ההורים', view: 'shower', def: 'אומגה שחור|3', opts: tapOpts('3') },
   head: { name: 'זרוע וראש טוש (מקלחת ההורים)', view: 'shower', def: 'אומגה שחור', opts: ['אומגה שחור', 'אומגה ניקל', 'נובה', 'נפולי'].map(n => [n, n, 22]) },
   rail: { name: 'מוט ומזלף (בשני חדרי הרחצה)', view: 'shower', def: 'מוט אומגה שחור', opts: ['מוט אומגה שחור', 'מוט אומגה מוברש', 'מוט רומא', 'סט מילנו'].map(n => [n, n, 22]) },
-  kSink: { name: 'כיור מטבח', view: 'kitchen3', def: 'נירוסטה כרתה', opts: [['נירוסטה כרתה', 'נירוסטה כרתה (מתחת למשטח)', 26], ['נירוסטה', 'נירוסטה (שקוע מלמעלה)', 26], ['סיליקוורץ', 'סיליקוורץ (שקוע מלמעלה)', 26]] },
+  kSink: { name: 'כיור מטבח', view: 'kitchen3', def: 'נירוסטה כרתה', opts: [['נירוסטה כרתה', 'נירוסטה כרתה (מתחת למשטח)', 26], ['נירוסטה', 'נירוסטה (שקוע מלמעלה)', 26], ['סיליקוורץ', 'סיליקוורץ (שקוע מלמעלה)', 26], ['אקרילי', 'אקרילי לבן (שקוע מלמעלה, מפרט המכר)', '']] },
+  splashH: { name: 'גובה חיפוי האבן במטבח', view: 'kitchen3', def: '70', opts: [['70', '70 ס״מ, מהמשטח עד הארונות העליונים', ''], ['50', 'כ-50 ס״מ מעל המשטח (תוספת למפרט, סעיף 1)', '']] },
+  screens: { name: 'רשתות יתושים', view: 'entry', def: 'ללא', opts: [['ללא', 'בלי רשתות', ''], ['רשתות', 'רשת בכל החלונות חוץ מהאמבטיה הכללית (תוספת למפרט, סעיף 6)', '']], note: 'בדלתות ההזזה ובחלון המטבח: כנף רשת על מסילה חיצונית. בחלונות הנפתחים: רשת קבועה מבחוץ (סוג הרשת לא כתוב, הערכה).' },
+  doorHw: { name: 'ידיות דלתות הפנים', view: 'corridor', def: 'שחור', opts: [['שחור', 'שחור מט', ''], ['ניקל', 'ניקל מוברש', ''], ['כרום', 'כרום', '']], note: 'גוון הפרזול לא כתוב במפרט לדלתות הפנים (בדלת הכניסה: ניקל).' },
   kTap: { name: 'ברז מטבח', view: 'kitchen3', def: 'אומגה שחור', opts: ['אומגה שחור', 'אומגה ניקל', 'אומגה מוברש', 'אומגה מוזהב', 'מודו', 'זן', 'פרו', 'טקסס', 'יערה'].map(n => [n, n, 27]) },
 };
 const fixState = {}, FIXS = [];   // slots: { g, deps, build }
@@ -839,7 +843,7 @@ function fixKSink(key, a, b, c, d) {   // kitchen sink in the counter hole a..b 
     B(a, b, c, d, .70, .71, mat.sinkSteel, { cast: false }); B(a, a + .008, c, d, .70, .90, mat.sinkSteel, { cast: false }); B(b - .008, b, c, d, .70, .90, mat.sinkSteel, { cast: false });
     B(a, b, c, c + .008, .70, .90, mat.sinkSteel, { cast: false }); B(a, b, d - .008, d, .70, .90, mat.sinkSteel, { cast: false });
     C((a + b) / 2, (c + d) / 2 + .08, .71, .714, .045, mat.sinkSteel, { cast: false }); C((a + b) / 2, (c + d) / 2 + .08, .714, .717, .033, mat.blackMetal, { cast: false }); return; }
-  const q = key === 'סיליקוורץ', m = q ? mSilq : mat.sinkSteel, mi = q ? mSilqIn : mSinkIn, w = q ? .045 : .03;
+  const ac = key === 'אקרילי', q = key === 'סיליקוורץ' || ac, m = ac ? mAcr : q ? mSilq : mat.sinkSteel, mi = ac ? mAcrIn : q ? mSilqIn : mSinkIn, w = q ? .045 : .03;
   [[a - w, b + w, c - w, c + .01], [a - w, b + w, d - .01, d + .02], [a - w, a + .01, c, d], [b - .01, b + w, c, d]].forEach(([x1, x2, z1, z2]) => B(x1, x2, z1, z2, .92, .928, m, { cast: false, round: .003 }));   // rim on the counter, lip over the hole edge
   const l = mesh(new RoundedBoxGeometry(b - a - .006, .2, d - c - .006, 4, q ? .07 : .05), mi, root, false); l.position.set((a + b) / 2, .82, (c + d) / 2);
   C((a + b) / 2, (c + d) / 2, .72, .724, .045, q ? m : mat.sinkSteel, { cast: false }); C((a + b) / 2, (c + d) / 2, .724, .727, .033, mat.blackMetal, { cast: false });
@@ -1066,11 +1070,11 @@ function doorLeaf(hx, hz, dx, dz, w, m = mat.door, hgt = DOORH - .02, t = .04, c
   if (po) g.position.set(po[0], 0, po[1]); doors.push({ g, open, closed, hx, hz, po });
   if (extra) extra(P, w, t);
   lb(P, 0, w, -t / 2, t / 2, .01, hgt, m);
-  [-1, 1].forEach(s => { lb(P, w - .09, w - .07, s * (t / 2), s * (t / 2 + .05), 1.0, 1.02, mat.blackMetal); lb(P, w - .2, w - .07, s * (t / 2 + .04), s * (t / 2 + .055), 1.0, 1.02, mat.blackMetal);
-    lb(P, w - .105, w - .055, s * (t / 2), s * (t / 2 + .008), .985, 1.035, mat.blackMetal);                     // square rose 5 x 5
-    lb(P, w - .092, w - .068, s * (t / 2), s * (t / 2 + .006), .91, .94, mat.blackMetal); });                    // key escutcheon 85 mm below
+  [-1, 1].forEach(s => { lb(P, w - .09, w - .07, s * (t / 2), s * (t / 2 + .05), 1.0, 1.02, mDoorHw); lb(P, w - .2, w - .07, s * (t / 2 + .04), s * (t / 2 + .055), 1.0, 1.02, mDoorHw);
+    lb(P, w - .105, w - .055, s * (t / 2), s * (t / 2 + .008), .985, 1.035, mDoorHw);                     // square rose 5 x 5
+    lb(P, w - .092, w - .068, s * (t / 2), s * (t / 2 + .006), .91, .94, mDoorHw); });                    // key escutcheon 85 mm below
   const ks = Math.sign((cx ?? dx) * dz - (cz ?? dz) * dx) || 1;   // three hinge knuckles on the swing face, past the lining
-  [.25, 1.05, 1.85].forEach(y => lb(P, .016, .026, ks > 0 ? t / 2 : -t / 2 - .012, ks > 0 ? t / 2 + .012 : -t / 2, y, y + .10, mat.blackMetal));
+  [.25, 1.05, 1.85].forEach(y => lb(P, .016, .026, ks > 0 ? t / 2 : -t / 2 - .012, ks > 0 ? t / 2 + .012 : -t / 2, y, y + .10, mDoorHw));
 }
 // window: frame + glass + stone sill + roller-shutter box. axis 'x' => spans x1..x2 in a wall between zIn and zOut
 function windowX(x1, x2, zIn, zOut, sill, head, panes = 2, slide = false, kip = false) {
@@ -1251,11 +1255,11 @@ doorLeaf(-1.24, -1.355, 0, -1, .81, mat.door, DOORH - .02, .04, -1, 0);         
 doorLeaf(1.76, -1.355, 0, -1, .82, mat.door, DOORH - .02, .04, -1, 0);             // room 2 (opening 0.93..1.76, 83 on the plan)
 doorLeaf(3.68, -1.315, -.087, -.996, .81, mat.door, DOORH - .02, .04, -1, 0, (P, w, t) => {   // open about 85 deg: at 90 the lever would strike the tub screen (a door stop is needed)
     // family bath (opening 2.86..3.69), leaf rests beside the tub
-  lb(P, w - .086, w - .074, t / 2 + .006, t / 2 + .024, .905, .945, mat.blackMetal); lb(P, w - .09, w - .07, -t / 2 - .004, -t / 2, .915, .935, M('#c8312b', .4)); });   // turn lock inside, free/occupied indicator outside (annex B 15 ה)
+  lb(P, w - .086, w - .074, t / 2 + .006, t / 2 + .024, .905, .945, mDoorHw); lb(P, w - .09, w - .07, -t / 2 - .004, -t / 2, .915, .935, M('#c8312b', .4)); });   // turn lock inside, free/occupied indicator outside (annex B 15 ה)
 doorLeaf(4.205, -.35, 1, 0, .80, mat.door, DOORH - .02, .04, 0, -1);               // master (opening -1.16..-0.34), hinge on the TV-wall side as in the plan
 doorLeaf(-2.0, -.195, 0, -1, .86, mat.blastDoor, 2.04, .08, 1, 0, (P, w, t) => [.55, 1.55].forEach(y => { lb(P, w - .20, w - .06, t / 2, t / 2 + .012, y - .02, y + .02, mat.steel); lb(P, w - .09, w - .07, t / 2 + .012, t / 2 + .05, y - .015, y + .015, mat.steel); }));   // locking bars on the mamad face (estimate)                  // mamad blast door: hinge at the west end, open 90 deg into the corridor (as drawn in the plan)
 doorLeaf(6.945, -3.365, -1, 0, .69, mat.door, DOORH - .02, .04, 0, -1, (P, w, t) => {   // master bath door from the closet, full-length mirror on the closet side
-  B(.08, w - .16, t / 2, t / 2 + .006, .25, 1.95, mat.mirror, { parent: P.g, cast: false }); reflector(new THREE.PlaneGeometry(w - .24, 1.7), P.g, (w - .08) / 2, 1.1, t / 2 + .007, 0); B(.06, w - .14, t / 2, t / 2 + .003, .23, 1.97, mat.blackMetal, { parent: P.g, cast: false });   lb(P, w - .086, w - .074, -t / 2 - .024, -t / 2 - .006, .905, .945, mat.blackMetal); lb(P, w - .09, w - .07, t / 2, t / 2 + .004, .915, .935, M('#c8312b', .4)); });   // a solid stile carries the lever; turn lock on the bath side
+  B(.08, w - .16, t / 2, t / 2 + .006, .25, 1.95, mat.mirror, { parent: P.g, cast: false }); reflector(new THREE.PlaneGeometry(w - .24, 1.7), P.g, (w - .08) / 2, 1.1, t / 2 + .007, 0); B(.06, w - .14, t / 2, t / 2 + .003, .23, 1.97, mat.blackMetal, { parent: P.g, cast: false });   lb(P, w - .086, w - .074, -t / 2 - .024, -t / 2 - .006, .905, .945, mDoorHw); lb(P, w - .09, w - .07, t / 2, t / 2 + .004, .915, .935, M('#c8312b', .4)); });   // a solid stile carries the lever; turn lock on the bath side
 // DOOR FRAMES (polymer, Pandor PanClassic profile; FRAMES above): a 2.5 cm jamb lining the whole reveal, a 3 x 1.2 cm stop on the
 // side the leaf closes against, and on both wall faces a casing (7 cm on the swing side, 8.5 on the other), 18 mm proud on the
 // opening side and 15 mm on its outer 12 mm, so it reads as a profile and covers the end of the 12 mm skirting. The leaves are
@@ -1272,6 +1276,9 @@ function doorFrame(axis, a1, a2, w1, w2, swing, lc, head = DOORH, m = mat.door) 
     box(e1 - W, e2 + W, ...o(.018), top, top + W - L); box(e1 - W, e2 + W, ...o(.015), top + W - L, top + W); });       // head casing
 }
 FRAMES.forEach(f => doorFrame(...f));   // rooms 1 and 2, family bath, master, master bath (from the closet)
+fixSlot(['doorHw'], k => { const src = { 'שחור': FINM.black, 'ניקל': FINM.brushed, 'כרום': FINM.chrome }[k] || FINM.black;   // door hardware finish: a material swap, no geometry
+  mDoorHw.color.copy(src.color); mDoorHw.metalness = src.metalness; mDoorHw.roughness = src.roughness; mDoorHw.userData.envDay = src.userData.envDay; mDoorHw.needsUpdate = true;
+  try { mDoorHw.envMapIntensity = isEve ? .12 : (src.userData.envDay ?? ENV); dirty = 1; } catch (e) { } });   // (isEve and ENV are declared further down: first draw at load)
 // mamad: steel blast-door frame on the corridor face (the leaf, surface mounted, closes over it)
 [[-2.03, -1.98], [-1.19, -1.14]].forEach(([a, b]) => B(a, b, -.152, -.145, 0, 2.05, mat.blastDoor, { cast: false })); B(-2.03, -1.14, -.152, -.145, 2.0, 2.05, mat.blastDoor, { cast: false });
 [[-1.98, -1.955], [-1.215, -1.19]].forEach(([a, b]) => B(a, b, -.145, .125, 0, 2.0, mat.blastDoor, { cast: false })); B(-1.98, -1.19, -.145, .125, 1.975, 2.0, mat.blastDoor, { cast: false });
@@ -1607,8 +1614,9 @@ B(3.98, 3.982, 8.198, 8.202, 1.63, H - .01, mat.black, { cast: false });
 [SK1, SK2, DW2, HB2].forEach(x => B(x - .003, x + .003, 8.438, 8.44, 1.63, H - .01, mGap, { cast: false }));
 B(3.98, 4, 7.64, 8.42, 1.618, 1.622, mat.led, { cast: false }); B(4, 7.23, 8.42, 8.44, 1.618, 1.622, mat.led, { cast: false });
 B(DW2 + .04, HB2 - .04, 8.48, 8.75, 1.615, 1.62, mat.slot, { cast: false });                       // hood intake
-B(3.645, FX, 8.775, 8.79, .92, 1.62, mat.splash, { cast: false }); B(3.63, 3.645, 7.62, 8.79, .92, 1.62, mat.splash, { cast: false });
-B(FX - .015, FX, 8.45, 8.775, .92, 1.62, mat.splash, { cast: false });   // the return beside the hob landing (d10 item 1: stone over the base units except the window)
+fixSlot(['splashH'], k => { const t = k === '50' ? 1.42 : 1.62;   // stone splash: to the wall cabinets (70) or about 50 cm (d10 item 1); painted wall above it
+  B(3.645, FX, 8.775, 8.79, .92, t, mat.splash, { cast: false }); B(3.63, 3.645, 7.62, 8.79, .92, t, mat.splash, { cast: false });
+  B(FX - .015, FX, 8.45, 8.775, .92, t, mat.splash, { cast: false }); });   // with the return beside the hob landing (stone over the base units except the window)
 outlets('n', 8.775, 3.83, 1.10, 's'); outlets('n', 8.775, 4.50, 1.10, 'ss'); outlets('e', 3.66, 7.54, 1.10, 's');   // service sockets (Regba sheet: south wall 200 from the west wall, west wall at the coffee niche)
 C(3.88, 8.58, .92, 1.08, .09, mat.ceramicVase); B(4.4, 4.8, 8.45, 8.62, .92, .935, mat.greyStone, { round: .005 });
 // ISLAND 160 x 90, ends near the fridge line (19 cm past it). Seats 2 + 2: two on the fridge side, two on the balcony side,
@@ -2118,6 +2126,16 @@ shutterZ(-2.81, -1.91, -4.20, .15, 2.35);            // room 1
 shutterX(.365, 1.265, -5.30, .15, 2.35);               // room 2
 shutterZ(-2.17, -1.27, 9.21, .15, 2.35);               // master
 shutterZ(.79, 3.49, FO - .08, 0, HEAD); shutterZ(4.29, 6.99, FO - .08, 0, HEAD);   // balcony doors A, B (the kitchen window has no shutter: spec, electrical sheet)
+// INSECT SCREENS (d10 item 6: every window but the family bath's), selectable: a screen sash on an outer track over the sliding
+// half of the balcony doors and window C, fixed screens outside the hinged sashes (type not written: an estimate)
+{ const mScreen = new THREE.MeshStandardMaterial({ color: '#2a2d30', roughness: .9, transparent: true, opacity: .32, depthWrite: false, side: THREE.DoubleSide });
+  const panel = (axis, a1, a2, c, y1, y2) => { const P = (b1, b2, d1, d2, q1, q2, m, o) => axis === 'z' ? B(c + d1, c + d2, b1, b2, q1, q2, m, o) : B(b1, b2, c + d1, c + d2, q1, q2, m, o), f = .025;
+    P(a1, a2, -.006, .006, y1, y1 + f, mat.frame); P(a1, a2, -.006, .006, y2 - f, y2, mat.frame); P(a1, a1 + f, -.006, .006, y1, y2, mat.frame); P(a2 - f, a2, -.006, .006, y1, y2, mat.frame);
+    P(a1 + f, a2 - f, -.001, .001, y1 + f, y2 - f, mScreen, { cast: false }); };
+  fixSlot(['screens'], k => { if (k !== 'רשתות') return;
+    [[.79, 3.49, 0, HEAD], [4.29, 6.99, 0, HEAD], [7.75, 8.45, 1.20, HEAD]].forEach(([z1, z2, y1, y2]) => panel('z', z1 + .035, (z1 + z2) / 2 + .03, FX + .257, y1 + .035, y2 - .035));   // over the sliding sash
+    panel('z', -2.17, -1.27, 9.16, .15, 2.35); panel('z', -2.81, -1.91, -4.14, .15, 2.35); panel('z', .48, 1.48, -4.09, 1.10, 2.10);   // master, room 1, mamad
+    panel('x', .365, 1.265, -5.25, .15, 2.35); panel('x', 6.015, 6.615, -5.235, 1.25, 2.35); }); }   // room 2, master shower
 outlets('w', FX, 3.89, 1.10, 'krr'); outlets('w', FX, 7.20, 1.10, 'r'); outlets('w', FX, 3.89, .40, 's');        // shutter switches A+B and a socket on the pier
 // BALCONY: two ceiling lights in the soffit, waterproof socket on the pier, gas point (h=30) and garden tap (h=60) at the south wall
 [[7.96, 2.14], [7.96, 5.73]].forEach(([x, z]) => { C(x, z, 2.66, 2.70, .13, mat.whitePlate, { seg: 32, parent: ceilGroup }); C(x, z, 2.655, 2.66, .11, mat.lamp, { seg: 32, parent: ceilGroup, cast: false }); });
@@ -3529,7 +3547,7 @@ for (const sp of CER_SPACES) {
 function cerSet(id, key) { if (cerUI[id]) cerUI[id](key); }
 // fixtures: one row per FIX entry; a pick redraws every slot that depends on it
 const fixList = document.getElementById('fixList'), fixUI = {};
-const fixLabel = (id, key, html) => { const f = FIX[id], o = f.opts.find(x => x[0] === key); return key === 'cur' || !o ? f.cur : html ? `<b>${o[1]}</b> · עמ׳ ${o[2]}` : `${o[1]} (עמ׳ ${o[2]})`; };
+const fixLabel = (id, key, html) => { const f = FIX[id], o = f.opts.find(x => x[0] === key); return key === 'cur' || !o ? f.cur : !o[2] ? (html ? `<b>${o[1]}</b>` : o[1]) : html ? `<b>${o[1]}</b> · עמ׳ ${o[2]}` : `${o[1]} (עמ׳ ${o[2]})`; };
 for (const [id, f] of Object.entries(FIX)) {
   const row = document.createElement('div'); row.className = 'cer-row';
   const opts = (f.cur ? [`<option value="cur">${f.cur}</option>`] : []).concat(f.opts.map(([k, l]) => `<option value="${k}">${l}</option>`));
