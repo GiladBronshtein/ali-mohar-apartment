@@ -1067,7 +1067,7 @@ floor(6.88, 6.945, -4.06, -3.36, mat.bathFloor); floor(6.945, 7.01, -4.06, -3.36
 // =====================================================================
 // --- north facade (outer -5.39, inner -5.01): room 1, room 2 (window), laundry niche (louvers), master bath (window), closet
 W(-4.28, -1.14, -5.39, -5.035); W(-1.14, 0.365, -5.39, -5.01); W(0.365, 1.265, -5.39, -5.01, 0, .15); W(0.365, 1.265, -5.39, -5.01, 2.35); W(1.265, 2.15, -5.39, -5.01);
-W(3.65, 4.37, -5.39, -5.11); W(4.37, 4.63, -5.39, -5.01); W(4.63, 6.015, -5.39, -4.98); W(6.015, 6.615, -5.39, -4.98, 0, 1.25); W(6.015, 6.615, -5.39, -4.98, 2.35); W(6.615, 6.85, -5.39, -4.98); W(6.85, 7.01, -5.39, -5.01); W(7.01, 8.91, -5.39, -4.995); W(8.91, 9.30, -5.39, -5.01);
+W(3.65, 4.37, -5.39, -5.11); W(4.37, 4.63, -5.39, -5.01); W(4.63, 4.91, -5.39, -4.98); W(5.41, 6.015, -5.39, -4.98); W(4.91, 5.41, -5.39, -4.98, 0, 1.03); W(4.91, 5.41, -5.39, -4.98, 1.42); W(4.91, 5.41, -5.39, -5.07, 1.03, 1.42);   // shower niche cut 9 cm into the wall W(6.015, 6.615, -5.39, -4.98, 0, 1.25); W(6.015, 6.615, -5.39, -4.98, 2.35); W(6.615, 6.85, -5.39, -4.98); W(6.85, 7.01, -5.39, -5.01); W(7.01, 8.91, -5.39, -4.995); W(8.91, 9.30, -5.39, -5.01);
 // --- west facade (outer -4.28): room 1 (window), the two wardrobe niches, mamad (blast window)
 W(-4.28, -3.89, -5.035, -2.81); W(-4.28, -3.89, -2.81, -1.91, 0, .15); W(-4.28, -3.89, -2.81, -1.91, 2.35); W(-4.28, -3.89, -1.91, -1.425); W(-4.28, -3.81, -1.425, -0.50);
 W(-4.28, -3.83, -0.50, 0.125); W(-4.28, -3.80, 0.125, 0.48); W(-4.28, -3.80, 0.48, 1.48, 0, 1.10); W(-4.28, -3.80, 0.48, 1.48, 2.10); W(-4.28, -3.80, 1.48, 2.78);
@@ -1093,7 +1093,7 @@ W(1.85, 2.15, -5.39, -3.80); W(1.85, 2.01, -3.80, -1.245);                      
 W(2.01, 2.86, -1.395, -1.245); W(2.86, 3.69, -1.395, -1.245, DOORH); W(3.69, 4.46, -1.395, -1.245); W(4.46, 4.61, -1.37, -1.245);          // bath / corridor
 W(2.01, 2.375, -3.99, -3.775); W(2.375, 3.575, -3.99, -3.775, 0, 1.10); W(2.375, 3.575, -3.99, -3.775, 2.10); W(3.575, 4.46, -3.99, -3.775); // bath / laundry niche: window only (as in the plan)
 W(3.69, 4.46, -3.09, -2.98);                                                                           // stub wall between washer niche and tub
-W(4.37, 4.63, -5.39, -3.99); W(4.46, 4.63, -3.99, -3.23); W(4.46, 4.61, -3.23, -1.37);                                              // laundry niche + bath / master side
+W(4.37, 4.63, -5.39, -3.99); W(4.46, 4.63, -3.99, -3.23); W(4.46, 4.61, -3.23, -2.055); W(4.46, 4.61, -1.505, -1.37); W(4.46, 4.61, -2.055, -1.505, 0, 1.0); W(4.46, 4.61, -2.055, -1.505, 1.30); W(4.53, 4.61, -2.055, -1.505, 1.0, 1.30);   // tub niche cut 7 cm into the partition                                              // laundry niche + bath / master side
 W(4.61, 6.85, -3.26, -3.105); W(6.85, 7.01, -3.245, -3.105); W(7.01, 7.54, -3.245, -3.105); W(8.32, 8.91, -3.245, -3.105);                                              // master bath + closet / bedroom (closet opening 7.54-8.32)
 W(6.85, 7.01, -4.98, -4.06); W(6.85, 7.01, -4.06, -3.36, DOORH); W(6.85, 7.01, -3.36, -3.245);          // master bath / closet
 W(4.15, 4.26, -1.37, -1.16); W(4.15, 4.26, -1.16, -0.34, DOORH); W(4.15, 4.26, -0.34, -0.145);          // master door (end of the corridor)
@@ -1624,7 +1624,9 @@ rug(7.24, 8.19, -4.3, -3.4, mat.rug);
 // MASTER BATH (222 x 172 net; x 4.63..6.85, z -4.98..-3.26): enclosed 100x91 shower in the NW corner (ends 39 cm before the
 // window), 70 cm vanity, wall-hung WC under the window (as drawn in the plan), door from the closet
 tileX(-4.98, -4.10, 4.63, 1, 0, H, mat.sage); tileX(-4.10, -3.26, 4.63, 1, 0, H, mat.bathWall);
-tileZ(4.63, 5.69, -4.98, 1, 0, H, mat.sage); tileZ(5.69, 6.015, -4.98, 1, 0, H, mat.bathWall);
+tileZ(4.63, 4.91, -4.98, 1, 0, H, mat.sage); tileZ(5.41, 5.69, -4.98, 1, 0, H, mat.sage); tileZ(4.91, 5.41, -4.98, 1, 0, 1.03, mat.sage); tileZ(4.91, 5.41, -4.98, 1, 1.42, H, mat.sage); tileZ(5.69, 6.015, -4.98, 1, 0, H, mat.bathWall);
+tileZ(4.91, 5.41, -5.07, 1, 1.05, 1.42, mat.sage); tileX(-5.07, -4.974, 4.91, 1, 1.03, 1.42, mat.sage); tileX(-5.07, -4.974, 5.41, -1, 1.03, 1.42, mat.sage); B(4.91, 5.41, -5.07, -4.974, 1.414, 1.42, mat.sage, { cast: false });
+B(4.91, 5.41, -5.07, -4.96, 1.03, 1.05, mat.nicheStone);   // the niche lined in the shower tile, stone sill
 tileZ(6.015, 6.615, -4.98, 1, 0, 1.25, mat.bathWall); tileZ(6.015, 6.615, -4.98, 1, 2.35, H, mat.bathWall); tileZ(6.615, 6.85, -4.98, 1, 0, H, mat.bathWall);
 tileX(-4.98, -4.06, 6.85, -1, 0, H, mat.bathWall); tileX(-4.06, -3.36, 6.85, -1, DOORH, H, mat.bathWall); tileX(-3.36, -3.26, 6.85, -1, 0, H, mat.bathWall);
 tileZ(4.63, 6.85, -3.26, -1, 0, H, mat.bathWall);
@@ -1640,8 +1642,6 @@ B(5.49, 5.515, -4.10, -4.035, 0, 2.0, mat.blackMetal); B(4.44, 5.49, -4.10, -4.0
 gl(5.495, 5.505, -5.0, -4.10); B(5.49, 5.51, -4.97, -4.10, 1.98, 2.0, mat.blackMetal); B(5.49, 5.51, -4.974, -4.10, 0, .02, mat.blackMetal, { cast: false });   // floor channel
 B(4.94, 4.96, -4.045, -4.03, .85, 1.35, mat.blackMetal); B(4.94, 4.96, -4.085, -4.07, .85, 1.35, mat.blackMetal);   // pull on the sliding panel
 B(4.92, 5.02, -4.53, -4.43, .005, .012, mat.blackMetal, { cast: false });                       // point drain at the tray centre (plan)
-B(4.72, 5.22, -4.974, -4.968, 1.05, 1.40, mat.nicheBack, { cast: false }); B(4.72, 5.22, -5.004, -4.95, 1.03, 1.05, mat.nicheStone);   // niche panel on the tile, ledge
-[[4.70, 4.72], [5.22, 5.24]].forEach(([a, b]) => B(a, b, -4.98, -4.95, 1.03, 1.42, mat.sage, { cast: false })); B(4.70, 5.24, -4.98, -4.95, 1.40, 1.42, mat.sage, { cast: false });   // returns
 fixSlot(['head'], k => withShift(.19, 0, () => fixHead(k)));                                     // wall arm, head at 2.10 (plumbing plan); arm length an estimate
 fixSlot(['rail'], k => withShift(.19, 0, () => fixRail('x', 4.446, 1, -4.755, .90, 1.75, k)));   // hand shower on a rail
 fixSlot(['showerTap'], k => withShift(.19, 0, () => fixWallMixer('x', 4.446, 1, -4.49, 1.05, k)));   // 3-way mixer
@@ -1675,7 +1675,9 @@ ladder('x', 5.40, 5.90, -3.26, -1, .55, 1.25); B(5.49, 5.87, -3.335, -3.315, .78
 // FAMILY BATH (245 x 238 net; x 2.01..4.46, z -3.775..-1.395), laid out as the plan: WC and 100 cm vanity on the west wall,
 // washer niche in the NE corner, 160 cm bathtub along the east wall below a stub wall, window to the laundry niche, door at the SE.
 tileX(-3.775, -1.395, 2.01, 1, 0, H, mat.bathWall2);
-tileX(-2.98, -1.395, 4.46, -1, 0, H, mat.bathWall2);   // washer niche walls painted (spec: plaster in the service corner)
+tileX(-2.98, -2.055, 4.46, -1, 0, H, mat.bathWall2); tileX(-1.505, -1.395, 4.46, -1, 0, H, mat.bathWall2); tileX(-2.055, -1.505, 4.46, -1, 0, 1.0, mat.bathWall2); tileX(-2.055, -1.505, 4.46, -1, 1.30, H, mat.bathWall2);
+tileX(-2.055, -1.505, 4.53, -1, 1.02, 1.30, mat.bathWall2); tileZ(4.454, 4.53, -2.055, 1, 1.0, 1.30, mat.bathWall2); tileZ(4.454, 4.53, -1.505, -1, 1.0, 1.30, mat.bathWall2); B(4.454, 4.53, -2.055, -1.505, 1.294, 1.30, mat.bathWall2, { cast: false });
+B(4.44, 4.53, -2.055, -1.505, 1.0, 1.02, mat.nicheStone);   // the tub niche lined in the wall tile, stone sill   // washer niche walls painted (spec: plaster in the service corner)
 tileZ(2.01, 2.375, -3.775, 1, 0, H, mat.bathWall2); tileZ(2.375, 3.575, -3.775, 1, 0, 1.10, mat.bathWall2); tileZ(2.375, 3.575, -3.775, 1, 2.10, H, mat.bathWall2); tileZ(3.575, 3.69, -3.775, 1, 0, H, mat.bathWall2);
 tileZ(2.01, 2.86, -1.395, -1, 0, H, mat.bathWall2); tileZ(2.86, 3.69, -1.395, -1, DOORH, H, mat.bathWall2); tileZ(3.69, 4.46, -1.395, -1, 0, H, mat.bathWall2);
 tileZ(3.69, 4.46, -2.98, 1, 0, H, mat.bathWall2); tileX(-3.09, -2.98, 3.69, -1, 0, H, mat.bathWall2);
@@ -1733,8 +1735,6 @@ B(3.76, 3.77, -2.20, -1.395, .58, 2.0, mat.showerGlass, { cast: false }); B(3.75
 fixSlot(['bathTap'], k => { fixWallMixer('z', -1.395, -1, 4.11, .85, k);                          // concealed 4-way (plumbing plan) or a bar mixer
   if (!k.endsWith('|bat')) { const c = C(0, 0, 0, .012, .035, FINM[tapOf(k)[2]], { seg: 20, cast: false }); c.rotation.x = Math.PI / 2; c.position.set(4.26, .50, -1.497); } });   // filler through the overflow
 fixSlot(['rail'], k => fixRail('z', -1.395, -1, 3.935, 1.50, 2.05, k));
-B(4.448, 4.454, -2.055, -1.505, 1.0, 1.30, mat.nicheBack, { cast: false }); B(4.40, 4.454, -2.055, -1.505, .98, 1.0, mat.nicheStone);   // niche panel on the tile, ledge
-[[-2.075, -2.055], [-1.505, -1.485]].forEach(([a, b]) => B(4.42, 4.454, a, b, .98, 1.32, mat.bathWall2, { cast: false })); B(4.42, 4.454, -2.075, -1.485, 1.30, 1.32, mat.bathWall2, { cast: false });   // returns
 // WC on a concealed-cistern ledge (centre 44 cm from the window wall), paper holder (the cabinet above is part of the run at the laundry niche)
 withShift(.14, -.13, () => {
 B(1.87, 2.05, -3.639, -2.825, 0, 1.08, mat.bathWall2); B(1.87, 2.07, -3.639, -2.825, 1.08, 1.10, mat.quartz);
