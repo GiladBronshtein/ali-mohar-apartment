@@ -664,7 +664,7 @@ function withShift(dx, dz, fn) {
 // =====================================================================
 const fixRoot = new THREE.Group(); scene.add(fixRoot);
 let lmAo = null;   // baked AO texture once loaded (LM.load): meshes on an AO material without a bake UV get a white texel
-const mTubIn = mat.ceramicIn.clone(), mSinkIn = mat.sinkSteel.clone(), mSilq = M('#e9e7e1', .55), mSilqIn = mSilq.clone(), mAcr = M('#f3f2ef', .3), mAcrIn = mAcr.clone();   // basins seen from inside (back faces)
+const mTubIn = mat.ceramicIn.clone(), mSinkIn = mat.sinkSteel.clone(), mSilq = M('#8d8b87', .6), mSilqIn = mSilq.clone(), mAcr = M('#f3f2ef', .3), mAcrIn = mAcr.clone();   // basins seen from inside (back faces)
 const BACKM = new Set([mTubIn, mSinkIn, mSilqIn, mAcrIn]); BACKM.forEach(m => m.side = THREE.BackSide);
 const mDoorHw = mat.blackMetal.clone();   // interior door hardware (picker: black / nickel / chrome)
 const FINM = { black: mat.blackMetal, chrome: M('#e4e6e8', .08, { metalness: 1 }), brushed: M('#b8bbbd', .3, { metalness: 1 }), gold: M('#c9a65e', .22, { metalness: 1 }) };
@@ -691,7 +691,7 @@ const FIX = {
   flush: { name: 'לחצן הדחה (מיכל סמוי גיבריט)', view: 'mbath', def: 'לבן מרובע', opts: ['כרום עגול', 'מוברש עגול', 'לבן עגול', 'כרום מרובע', 'מוברש מרובע', 'לבן מרובע'].map(n => [n, n, 20]) },
   tub: { name: 'אמבטיה', view: 'bath2', def: 'מלבנית', opts: [['מלבנית', 'אקרילית מלבנית 160×70, לבן', 21], ['מעוגלת', 'אקרילית מעוגלת 160×70, לבן', 21]],
     note: 'במפרט גם 170×70, אבל בחדר הרחצה יש מקום ל-160 בלבד (תוכנית האינסטלציה).' },
-  bathTap: { name: 'ברז האמבטיה', view: 'bath2', def: 'אומגה שחור|4', opts: tapOpts('4 bat'), note: 'בתוכנית האינסטלציה: סוללה סמויה 4 דרך ומילוי דרך הגלישה.' },
+  bathTap: { name: 'ברז האמבטיה', view: 'tub', def: 'אומגה שחור|4', opts: tapOpts('4 bat'), note: 'בתוכנית האינסטלציה: סוללה סמויה 4 דרך ומילוי דרך הגלישה.' },
   basinTap: { name: 'ברזי הכיורים (בשני חדרי הרחצה)', view: 'bath', def: 'אומגה שחור|short', opts: tapOpts('short swan') },
   vanF: { name: 'ארון אמבטיה: חדר הרחצה', view: 'bath', def: 'cur', cur: 'ארון קלאסי 100 עם מדרגה לילדים, כמו שעיצבנו (לא מהמפרט)', opts: vanOpts([60, 80]),
     note: 'במפרט 60 או 80 ס״מ בחדר הרחצה.' },
@@ -702,7 +702,7 @@ const FIX = {
   rail: { name: 'מוט ומזלף (בשני חדרי הרחצה)', view: 'shower', def: 'מוט אומגה שחור', opts: ['מוט אומגה שחור', 'מוט אומגה מוברש', 'מוט רומא', 'סט מילנו'].map(n => [n, n, 22]) },
   kSink: { name: 'כיור מטבח', view: 'kitchen3', def: 'נירוסטה כרתה', opts: [['נירוסטה כרתה', 'נירוסטה כרתה (מתחת למשטח)', 26], ['נירוסטה', 'נירוסטה (שקוע מלמעלה)', 26], ['סיליקוורץ', 'סיליקוורץ (שקוע מלמעלה)', 26], ['אקרילי', 'אקרילי לבן (שקוע מלמעלה, מפרט המכר)', '']] },
   splashH: { name: 'גובה חיפוי האבן במטבח', view: 'kitchen3', def: '70', opts: [['70', '70 ס״מ, מהמשטח עד הארונות העליונים', ''], ['50', 'כ-50 ס״מ מעל המשטח (תוספת למפרט, סעיף 1)', '']] },
-  screens: { name: 'רשתות יתושים', view: 'entry', def: 'ללא', opts: [['ללא', 'בלי רשתות', ''], ['רשתות', 'רשת בכל החלונות חוץ מהאמבטיה הכללית (תוספת למפרט, סעיף 6)', '']], note: 'בדלתות ההזזה ובחלון המטבח: כנף רשת על מסילה חיצונית. בחלונות הנפתחים: רשת קבועה מבחוץ (סוג הרשת לא כתוב, הערכה).' },
+  screens: { name: 'רשתות יתושים', view: 'inside', def: 'ללא', opts: [['ללא', 'בלי רשתות', ''], ['רשתות', 'רשת בכל החלונות חוץ מהאמבטיה הכללית (תוספת למפרט, סעיף 6)', '']], note: 'בדלתות ההזזה ובחלון המטבח: כנף רשת על מסילה חיצונית. בחלונות הנפתחים: רשת קבועה מבחוץ (סוג הרשת לא כתוב, הערכה).' },
   doorHw: { name: 'ידיות דלתות הפנים', view: 'corridor', def: 'שחור', opts: [['שחור', 'שחור מט', ''], ['ניקל', 'ניקל מוברש', ''], ['כרום', 'כרום', '']], note: 'גוון הפרזול לא כתוב במפרט לדלתות הפנים (בדלת הכניסה: ניקל).' },
   kTap: { name: 'ברז מטבח', view: 'kitchen3', def: 'אומגה שחור', opts: ['אומגה שחור', 'אומגה ניקל', 'אומגה מוברש', 'אומגה מוזהב', 'מודו', 'זן', 'פרו', 'טקסס', 'יערה'].map(n => [n, n, 27]) },
 };
@@ -741,7 +741,7 @@ function fixMixer(x, z, y, key) {   // deck-mounted basin mixer, spout towards +
   if (ty === 'swan') { const V = (a, b) => new THREE.Vector3(x + a, y + b, z);
     C(x, z, y, y + .12, .017, m, { seg: 16 }); mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(0, .11), V(0, .21), V(.04, .26), V(.1, .25), V(.13, .21)]), 24, .011, 8), m); C(x + .13, z, y + .195, y + .212, .012, m, { seg: 12, cast: false });   // aerator
     B(x - .006, x + .006, z + .015, z + .065, y + .07, y + .082, m, { cast: false }); return; }
-  if (st === 'square') { B(x - .017, x + .017, z - .017, z + .017, y, y + .17, m); B(x, x + .13, z - .012, z + .012, y + .15, y + .165, m); B(x - .035, x + .005, z - .005, z + .005, y + .168, y + .178, m, { cast: false }); }
+  if (st === 'square') { B(x - .017, x + .017, z - .017, z + .017, y, y + .17, m); B(x, x + .13, z - .012, z + .012, y + .15, y + .165, m); B(x - .028, x + .005, z - .005, z + .005, y + .168, y + .178, m, { cast: false }); }
   else if (st === 'slim') { C(x, z, y, y + .2, .013, m, { seg: 16 }); B(x, x + .12, z - .006, z + .006, y + .185, y + .195, m); B(x - .004, x + .004, z + .013, z + .05, y + .15, y + .158, m, { cast: false }); }
   else if (st === 'pro') { C(x, z, y, y + .14, .016, m, { seg: 18, r2: .021 }); B(x, x + .15, z - .01, z + .01, y + .12, y + .135, m, { round: .004 }); B(x - .028, x + .005, z - .006, z + .006, y + .14, y + .15, m, { cast: false }); }
   else if (st === 'grohe') { C(x, z, y, y + .13, .022, m, { seg: 20 }); B(x, x + .11, z - .014, z + .014, y + .105, y + .125, m, { round: .006 }); B(x - .025, x + .01, z - .009, z + .009, y + .13, y + .145, m, { round: .004, cast: false }); }
@@ -789,6 +789,7 @@ function fixKSink(key, a, b, c, d) {   // kitchen sink in the counter hole a..b 
   const ac = key === 'אקרילי', q = key === 'סיליקוורץ' || ac, m = ac ? mAcr : q ? mSilq : mat.sinkSteel, mi = ac ? mAcrIn : q ? mSilqIn : mSinkIn, w = q ? .045 : .03;
   [[a - w, b + w, c - w, c + .01], [a - w, b + w, d - .01, d + .02], [a - w, a + .01, c, d], [b - .01, b + w, c, d]].forEach(([x1, x2, z1, z2]) => B(x1, x2, z1, z2, .92, .928, m, { cast: false, round: .003 }));   // rim on the counter, lip over the hole edge
   const l = mesh(new RoundedBoxGeometry(b - a - .006, .2, d - c - .006, 4, q ? .07 : .05), mi, root, false); l.position.set((a + b) / 2, .82, (c + d) / 2);
+  { const r = q ? .07 : .05; [[a, a + .004, c, d], [b - .004, b, c, d], [a, b, c, c + .004], [a, b, d - .004, d]].forEach(([x1, x2, z1, z2]) => B(x1, x2, z1, z2, .92 - r, .92, m, { cast: false })); }   // throat walls under the lip (no slit into the cabinet)
   C((a + b) / 2, (c + d) / 2, .72, .724, .045, q ? m : mat.sinkSteel, { cast: false }); C((a + b) / 2, (c + d) / 2, .724, .727, .033, mat.blackMetal, { cast: false });
 }
 function fixKTap(key, x) {   // kitchen mixer behind the sink, base at z 8.74 (counter .92), spout towards -z
@@ -816,7 +817,7 @@ function fixVanity(x0, zc, W, topY, key, tap, axis = zc) {   // spec vanity on t
   const ym = (y0 + yT) / 2, handle = y => B(xf + .012, xf + .03, zc - W * .3, zc + W * .3, y - .006, y + .006, FINM.chrome, { round: .004 });
   if (st === 'fluted' || st === 'flutedWood' || st === 'glass') {
     const fm = st === 'flutedWood' ? oak : body; F(z1 + .003, z2 - .003, y0 + .003, yT - .003, fm); gap(ym - .002, ym + .002);
-    for (let z = z1 + .02; z < z2 - .015; z += .025) B(xf + .012, xf + .018, z, z + .012, y0 + .01, yT - .01, fm, { cast: false });
+    for (let z = z1 + .02; z < z2 - .015; z += .025) { B(xf + .012, xf + .018, z, z + .012, y0 + .01, ym - .003, fm, { cast: false }); B(xf + .012, xf + .018, z, z + .012, ym + .003, yT - .01, fm, { cast: false }); }
     if (st === 'glass') { [[z1, z1 + .012], [z2 - .012, z2]].forEach(([a, b]) => B(xf, xf + .02, a, b, y0, yT, FINM.brushed, { cast: false })); }
   } else if (st === 'doorsLegs') { F(z1 + .003, zc - .002, y0 + .003, yT - .07, body); F(zc + .002, z2 - .003, y0 + .003, yT - .07, body); F(z1 + .003, z2 - .003, yT - .067, yT - .003, body); gap(yT - .07, yT - .067); }
   else if (st === 'shelf') { F(z1 + .003, zs - .003, y0 + .003, yT - .003, body); gap(ym - .002, ym + .002, z1 + .003, zs - .003);
@@ -2072,7 +2073,8 @@ shutterZ(-2.17, -1.27, 9.21, .15, 2.35);               // master
 shutterZ(.79, 3.49, FO - .08, 0, HEAD); shutterZ(4.29, 6.99, FO - .08, 0, HEAD);   // balcony doors A, B (the kitchen window has no shutter: spec, electrical sheet)
 // INSECT SCREENS (d10 item 6: every window but the family bath's), selectable: a screen sash on an outer track over the sliding
 // half of the balcony doors and window C, fixed screens outside the hinged sashes (type not written: an estimate)
-{ const mScreen = new THREE.MeshStandardMaterial({ color: '#2a2d30', roughness: .9, transparent: true, opacity: .32, depthWrite: false, side: THREE.DoubleSide });
+{ const meshTex = canvasTex(8, 8, (g, w, h) => { g.fillStyle = '#3a3a3a'; g.fillRect(0, 0, w, h); g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, 1); g.fillRect(0, 0, 1, h); });   // 1 cm cells, fine wire
+  const mScreen = new THREE.MeshStandardMaterial({ color: '#2a2d30', roughness: .9, transparent: true, opacity: .55, alphaMap: meshTex, depthWrite: false, side: THREE.DoubleSide }); mScreen.userData.uv = .01;
   const panel = (axis, a1, a2, c, y1, y2) => { const P = (b1, b2, d1, d2, q1, q2, m, o) => axis === 'z' ? B(c + d1, c + d2, b1, b2, q1, q2, m, o) : B(b1, b2, c + d1, c + d2, q1, q2, m, o), f = .025;
     P(a1, a2, -.006, .006, y1, y1 + f, mat.frame); P(a1, a2, -.006, .006, y2 - f, y2, mat.frame); P(a1, a1 + f, -.006, .006, y1, y2, mat.frame); P(a2 - f, a2, -.006, .006, y1, y2, mat.frame);
     P(a1 + f, a2 - f, -.001, .001, y1 + f, y2 - f, mScreen, { cast: false }); };
@@ -2603,7 +2605,7 @@ let eveSkyP = null; const loadEveSky = () => eveSkyP ||= skyPhoto('eve', 'sky/ev
 // generic studio box, and the ambient light gets the rooms' real direction (bright from the glazing).
 const probes = { day: {}, eve: {} }, probeMats = new Set(), PROBE_K = { day: 2.0, eve: 1.6 };   // strength against the old studio box (tuned by eye)
 // only glossy and metal finishes take a probe: walls and fabrics are shared by every room and keep the neutral ambient
-const PROBE_GLOSSY = new Set([mat.blackMetal, mat.steel, mat.ceramic, mat.ceramicIn, mat.sinkSteel, mat.screen, mat.frame, FINM.chrome, FINM.brushed, FINM.gold].filter(Boolean));   // metals, glass, screens and sanitaryware only: in r160 the envMap also drives the diffuse light, so a probe on white fronts or stone tinted them beige (QA9)
+const PROBE_GLOSSY = new Set([mat.blackMetal, mat.steel, mat.ceramic, mat.ceramicIn, mat.sinkSteel, mat.screen, mat.frame].filter(Boolean));   // FINM chrome / nickel / gold keep the neutral room environment: the warm probes made them read gold in the baths (QA10)   // metals, glass, screens and sanitaryware only: in r160 the envMap also drives the diffuse light, so a probe on white fronts or stone tinted them beige (QA9)
 const PROBE_ZONE = new Map([[mat.bathWall, 'mbath'], [mat.bathFloor, 'mbath'], [mat.sage, 'mbath'], [mat.bathWall2, 'fbath'], [mat.terrazzo, 'fbath'], [paint, 'fbath'], [mat.ceramic, 'fbath'], [mat.ceramicIn, 'fbath']]);
 const probeP = {}; const loadProbes = mode => probeP[mode] ||= Promise.all(['liv', 'mbath', 'fbath'].map(r => assetTex(`env/${r}-${mode}.webp`, true, true).then(t => {
   if (!t) return; t.mapping = THREE.EquirectangularReflectionMapping; probes[mode][r] = pmrem.fromEquirectangular(t).texture; }))).then(() => applyProbes());
@@ -2910,6 +2912,7 @@ function setDims(on) { dirty = 1; dimGroup.traverse(o => o.visible = on); docume
 // VIEWS + navigation
 // =====================================================================
 const views = {
+  tub: { g: 'B', name: 'אמבטיה: ברז ומוט', pos: [4.1, 1.6, -2.7], tgt: [4.1, .95, -1.4], fov: 65 },
   entry:   { g: 'A', name: 'מהכניסה',      pos: [2.05, 1.62, 5.2], tgt: [6.4, 1.15, .9] },
   photo:   { g: 'A', name: 'כמו בצילום',   pos: [1.25, 1.55, 2.05], tgt: [7.3, 1.25, 5.3], fov: 75 },
   storage: { g: 'A', name: 'קיר האחסון',   pos: [3.3, 1.62, 1.45], tgt: [0, 1.05, 1.5] },
@@ -3289,10 +3292,12 @@ function cerNoise(g, x, y, w, h, cells, alpha, R, mode = 'soft-light') {   // sm
 function cerVeins(g, x, y, w, h, col, n, wid, alpha, R) {
   const L = Math.max(w, h);
   for (let k = 0; k < n; k++) {
-    let px = x + R() * w, py = y + R() * h, ang = R() * Math.PI * 2; g.beginPath(); g.moveTo(px, py);
-    for (let s = 0; s < 22; s++) { ang += (R() - .5) * .6; px += Math.cos(ang) * L * .06; py += Math.sin(ang) * L * .06; g.lineTo(px, py); }
-    g.lineJoin = 'round'; g.strokeStyle = cerRGB(col, 1, alpha * .3); g.lineWidth = wid * 6; g.stroke();
-    g.strokeStyle = cerRGB(col, 1, alpha); g.lineWidth = wid; g.stroke();
+    const base = R() < .5 ? .7 : 2.3;   // veins run along one diagonal per tile
+    let px = x + R() * w, py = y + R() * h, ang = base + (R() - .5) * .5; g.beginPath(); g.moveTo(px, py);
+    for (let s = 0; s < 22; s++) { ang += (R() - .5) * .15; px += Math.cos(ang) * L * .06; py += Math.sin(ang) * L * .06; g.lineTo(px, py); }
+    g.lineJoin = 'round'; g.save(); g.filter = 'blur(1px)'; g.strokeStyle = cerRGB(col, 1, alpha * .25); g.lineWidth = wid * 8; g.stroke(); g.restore();
+    g.strokeStyle = cerRGB(col, 1, alpha * .5); g.lineWidth = wid * 3; g.stroke();
+    g.strokeStyle = cerRGB(col, 1, alpha); g.lineWidth = wid * 1.5; g.stroke();
   }
 }
 function cerSpots(g, x, y, w, h, n, rMin, rMax, cols, alpha, R) {
@@ -3438,13 +3443,13 @@ const CER_SPACES = [
     cur: 'הריצוף שעיצבנו עד היום (120×120 בגוון בטון, לא מהמפרט)' },
   { id: 'rooms', name: 'ריצוף: חדרי השינה וחדר הארונות', m: mat.planks, cats: ['f80a', 'f80b', 'f80g', 'f60'], def: 'cur', view: 'master', o: [1.25, 1.925],
     cur: 'דמוי פרקט אלון, כמו שעיצבנו (לא מהמפרט)' },
-  { id: 'bathF', name: 'ריצוף: חדר הרחצה', m: mat.terrazzo, cats: ['w30', 'w1560'], def: 'cur', rec: 'w30|לוגנו סטון|r', view: 'bath', o: [2.245, -3.575], cur: 'טרצו בהיר (לא מהמפרט)' },
+  { id: 'bathF', name: 'ריצוף: חדר הרחצה', m: mat.terrazzo, cats: ['w30', 'w1560'], def: 'cur', rec: 'w30|לוגנו סטון|r', view: 'bath', o: [2.138, -3.575], cur: 'טרצו בהיר (לא מהמפרט)' },
   { id: 'bathW', name: 'חיפוי: חדר הרחצה', m: mat.bathWall2, cats: CER_WALL, def: 'cur', rec: 'c2575b|סהרה אייבורי|m', view: 'bath', o: [2.01, 0], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
   { id: 'ensF', name: 'ריצוף: מקלחת ההורים', m: mat.bathFloor, cats: ['w30', 'w1560'], def: 'cur', rec: 'w30|מלרוז אפור|r', view: 'mbath', o: [4.75, -4.78], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
-  { id: 'ensW', name: 'חיפוי: מקלחת ההורים', m: mat.bathWall, cats: CER_WALL, def: 'cur', rec: 'c2575b|מיסטרל אייבורי|m', view: 'mbath', o: [4.63, 0], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
-  { id: 'ensA', name: 'חיפוי: שני קירות המקלחון', m: mat.sage, cats: CER_WALL, def: 'cur', rec: 'c2575b|מיסטרל אייבורי דקור|m', view: 'shower', o: [4.63, 0],
+  { id: 'ensW', name: 'חיפוי: מקלחת ההורים', m: mat.bathWall, cats: CER_WALL, def: 'cur', rec: 'c2575b|מיסטרל אייבורי|m', view: 'mbath', o: [4.70, 0], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
+  { id: 'ensA', name: 'חיפוי: שני קירות המקלחון', m: mat.sage, cats: CER_WALL, def: 'cur', rec: 'c2575b|מיסטרל אייבורי דקור|m', view: 'shower', o: [5.155, 0],
     cur: 'זליג׳ ירוק מרווה 7.5×30 (לא מהמפרט)' },
-  { id: 'kitB', name: 'חיפוי: בין ארונות המטבח', m: mat.splash, cats: ['k1030', 'k2020', 'c3060a', 'c3060b', 'c3060c', 'c2060'], def: 'cur', rec: 'k1030|וראנו לבן|g', view: 'kitchen3', o: [3.645, .92],
+  { id: 'kitB', name: 'חיפוי: בין ארונות המטבח', m: mat.splash, cats: ['k1030', 'k2020', 'c3060a', 'c3060b', 'c3060c', 'c2060'], def: 'cur', rec: 'k1030|וראנו לבן|g', view: 'kitchen3', o: [4.015, .92],
     cur: 'לוח אבן כמו המשטח (בתוספת למפרט: חיפוי אבן כ-50 ס״מ מעל המשטח)' },
   { id: 'balc', name: 'ריצוף: מרפסת השמש', m: mat.deck, cats: ['w30', 'w1560'], def: 'cur', rec: 'w30|מלרוז אפור|r', view: 'balcony', o: [BX1, BZ1], cur: 'דק עץ (התוספת למפרט מתירה ריצוף דמוי פרקט במרפסות)',
     note: 'במפרט ה-15×60 מיועד למרפסות עד 20 מ״ר. המרפסת כ-23 מ״ר (מפרט המכר), כדאי לברר עם הסטודיו.' },
