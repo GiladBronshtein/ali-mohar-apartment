@@ -1,5 +1,5 @@
 # Render a view of apartment.glb with Blender Cycles (path tracing + OIDN denoise)
-import bpy, json, math, sys, time
+import bpy, os, json, math, sys, time
 from mathutils import Vector
 view, mode, spp, W, H, out = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5]), sys.argv[6]
 expo = float(sys.argv[7]) if len(sys.argv) > 7 else 0.0
@@ -85,7 +85,12 @@ co.location = pos; co.rotation_euler = (tgt - pos).to_track_quat('-Z', 'Y').to_e
 fov = math.radians(V.get('fov', 68)); cd.sensor_fit = 'VERTICAL'; cd.sensor_height = 24; cd.lens = 12 / math.tan(fov / 2); cd.clip_start = .03; cd.clip_end = 800
 
 r = sc.render; r.engine = 'CYCLES'; r.resolution_x = W; r.resolution_y = H; r.resolution_percentage = 100
-cy = sc.cycles; cy.device = 'CPU'; cy.samples = spp; cy.use_adaptive_sampling = True; cy.adaptive_threshold = .02
+cy = sc.cycles; cy.device = 'CPU'
+if os.environ.get('GPU'):   # Apple silicon: Cycles on Metal
+    prefs = bpy.context.preferences.addons['cycles'].preferences; prefs.compute_device_type = 'METAL'; prefs.get_devices()
+    for d in prefs.devices: d.use = d.type == 'METAL'
+    cy.device = 'GPU'
+cy.samples = spp; cy.use_adaptive_sampling = True; cy.adaptive_threshold = .02
 cy.use_denoising = True
 try: cy.denoiser = 'OPENIMAGEDENOISE'; cy.denoising_input_passes = 'RGB_ALBEDO_NORMAL'
 except Exception as e: print('denoise opt', e)

@@ -6,8 +6,8 @@ const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH,
 const page = await browser.newPage({ viewport: { width: 800, height: 500 } });
 page.on('pageerror', e => console.log('ERR', e.message));
 await page.addInitScript(() => { window.__pause = true; window.__nobake = true; });   // Cycles relights the scene itself
-await page.goto('http://localhost:8765/local.html');
-await page.waitForFunction(() => window.__app, null, { timeout: 120000 });
+await page.goto('http://localhost:8765/local.html', { waitUntil: 'domcontentloaded', timeout: 300000 });
+await page.waitForFunction(() => window.__app, null, { timeout: 600000 }); await page.waitForTimeout(8000);   // photo textures and ceramic defaults (idle) settle
 const b64 = await page.evaluate(async () => {
   const A = window.__app, THREE = A.THREE;
   const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');

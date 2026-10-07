@@ -27,7 +27,7 @@ const out = await page.evaluate(() => {
   const names = new Map(); for (const k in A.mat) names.set(A.mat[k], k);
   const meshes = [], bufs = []; let off = 0;
   const push = arr => { const o = off; bufs.push(arr); off += arr.byteLength; return o; };
-  const groups = [['root', A.root], ['ceil', A.ceilGroup], ['outside', A.outside], ['doors', A.doorGroup], ['fan', A.fanGroup], ['curt', A.curtGroup]];
+  const groups = [['root', A.root], ['ceil', A.ceilGroup], ['outside', A.outside], ['doors', A.doorGroup], ['fan', A.fanGroup], ['curt', A.curtGroup], ['fix', A.fixRoot]];   // fixtures occlude
   let id = 0;
   for (const [gname, grp] of groups) {
     grp.updateMatrixWorld(true);
