@@ -2555,11 +2555,27 @@ const skyPhoto = (key, f, rot, k, gnd) => assetTex(f, true, true).then(t => { if
   skies[key] = { map: t, rot, k }; fogCol[key].copy(horizon(t.image, k)); extEnv[key] = equi(t.image, rot, gnd);
   if ((key === 'eve') === isEve) { setSky(isEve); scene.fog.color.copy(fogCol[key]); } applyExtEnv(); });
 let eveSkyP = null; const loadEveSky = () => eveSkyP ||= skyPhoto('eve', 'sky/eve.webp', -3.53, .35, '#26262a');
+// INTERIOR REFLECTION PROBES: 360 panoramas rendered in Cycles from the real rooms (living room, master bath, family bath; day and
+// eve; assets/env, normalised to one mean brightness). Glossy and metal surfaces reflect the room and its windows instead of a
+// generic studio box, and the ambient light gets the rooms' real direction (bright from the glazing).
+const probes = { day: {}, eve: {} }, probeMats = new Set(), PROBE_K = { day: 2.0, eve: 1.6 };   // strength against the old studio box (tuned by eye)
+// only glossy and metal finishes take a probe: walls and fabrics are shared by every room and keep the neutral ambient
+const PROBE_GLOSSY = new Set([mat.quartz, mat.blackMetal, mat.steel, mat.ceramic, mat.ceramicIn, mat.sinkSteel, mat.graphite, mat.whiteFront, mat.screen, mat.frame, mat.tile, mat.splash, mat.whitePlate, FINM.chrome, FINM.brushed, FINM.gold].filter(Boolean));
+const PROBE_ZONE = new Map([[mat.bathWall, 'mbath'], [mat.bathFloor, 'mbath'], [mat.sage, 'mbath'], [mat.bathWall2, 'fbath'], [mat.terrazzo, 'fbath'], [paint, 'fbath'], [mat.ceramic, 'fbath'], [mat.ceramicIn, 'fbath']]);
+const probeP = {}; const loadProbes = mode => probeP[mode] ||= Promise.all(['liv', 'mbath', 'fbath'].map(r => assetTex(`env/${r}-${mode}.webp`, true, true).then(t => {
+  if (!t) return; t.mapping = THREE.EquirectangularReflectionMapping; probes[mode][r] = pmrem.fromEquirectangular(t).texture; }))).then(() => applyProbes());
+function applyProbes() {
+  const mode = isEve && probes.eve.liv ? 'eve' : 'day'; if (!probes[mode].liv) return;
+  PROBE_GLOSSY.forEach(m => probeMats.add(m));
+  probeMats.forEach(m => { const e = probes[mode][PROBE_ZONE.get(m) || 'liv'] || probes[mode].liv; if (m.envMap !== e) { m.envMap = e; m.needsUpdate = true; }
+    m.envMapIntensity = (isEve ? .12 : (m.userData.envDay ?? ENV)) * PROBE_K[mode]; });
+  dirty = 1;
+}
 skyPhoto('day', 'sky/day.webp', -1.11, 1.8, '#8a877f').then(() => {   // day k 1.8: the view through the glass is brighter than the room, as in an interior photo
   const inside = new Set(); [root, ceilGroup, curtGroup].forEach(g => g.traverse(o => { if (o.isMesh) inside.add(o.material); }));
   inside.delete(mStuccoOut);   // outside plaster, also on our own balcony
   [outside, upperG].forEach(g => g.traverse(o => { if (o.isMesh && !inside.has(o.material) && o.material.isMeshStandardMaterial) extMats.add(o.material); }));
-  applyExtEnv(); setTimeout(loadEveSky, 8000);
+  applyExtEnv(); loadProbes('day'); setTimeout(() => { loadEveSky(); loadProbes('eve'); }, 8000);
 });
 
 // =====================================================================
@@ -2995,12 +3011,13 @@ function setMode(eve) { dirty = 1;
   hemi.intensity = eve ? .1 : HEMI; hemi.color.set(eve ? 0x6a7aa8 : 0xdfe9f6);
   windowLights.forEach(l => l.intensity = eve ? .12 : l.userData.k);
   warm.forEach(p => p.intensity = eve ? p.userData.k : 0);
-  setSky(eve); applyExtEnv(); if (eve) loadEveSky();
+  setSky(eve); applyExtEnv(); if (eve) { loadEveSky(); loadProbes('eve'); }
   scene.fog.color.copy(eve ? fogCol.eve : fogCol.day);
   sheer.emissiveIntensity = eve ? 0 : .12; mat.spot.emissiveIntensity = eve ? 1.8 : 0; mat.lamp.emissiveIntensity = eve ? 1.5 : 0; mat.led.emissiveIntensity = eve ? 2.0 : 0; mat.ledWall.emissiveIntensity = eve ? 1.9 : .55;   // wider seams, softer: thin bright lines pulsed with bloom
   renderer.toneMappingExposure = eve ? EXPO.eve : EXPO.day;
   LM.eve = eve; LM.apply();
   scene.traverse(o => { if (o.isMesh && o.material && o.material !== sky.material && 'envMapIntensity' in o.material) o.material.envMapIntensity = eve ? .12 : (o.material.userData.envDay ?? ENV); }); mat.mirror.envMapIntensity = eve ? .3 : 1.2;
+  applyProbes();
   mat.glass.color.set(eve ? '#141a20' : '#d4e3ea'); mat.glass.opacity = eve ? .3 : .08; mat.glass.envMapIntensity = eve ? 1.0 : ENV;   // a night window reads as a dark mirror
   litMats.forEach(m => m.emissiveIntensity = eve ? 1.0 : 0); glowMats.forEach(m => m.emissiveIntensity = eve ? 2.5 : 0); lampU.uLampK.value = eve ? 9 : 0;
 }
@@ -3481,7 +3498,7 @@ for (const [id, f] of Object.entries(FIX)) {
 }
 function fixSet(id, key) { if (fixUI[id]) fixUI[id](key); }
 function fixRefresh() {   // after a redraw: the current day/eve reflection strength, shadows, contact shadows, the path tracer
-  fixRoot.traverse(o => { if (o.isMesh) { const m = o.material; m.envMapIntensity = isEve ? .12 : (m.userData.envDay ?? ENV); m.dithering = true; } });
+  fixRoot.traverse(o => { if (o.isMesh) { const m = o.material; m.envMapIntensity = isEve ? .12 : (m.userData.envDay ?? ENV); m.dithering = true; } }); applyProbes();
   renderer.shadowMap.needsUpdate = true; captureContact(); if (ptOn && pt) { mirrors.forEach(r => r.visible = false); pt.setScene(scene, camera); } dirty = 1;
 }
 function cerReset() { CER_SPACES.forEach(sp => cerSet(sp.id, sp.def)); if (Object.keys(FIX).map(id => fixUI[id](FIX[id].def, false, true)).some(Boolean)) fixRefresh(); }

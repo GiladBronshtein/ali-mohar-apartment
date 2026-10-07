@@ -83,6 +83,12 @@ cd = bpy.data.cameras.new('cam'); co = bpy.data.objects.new('cam', cd); sc.colle
 pos, tgt = T2B(V['pos']), T2B(V['tgt'])
 co.location = pos; co.rotation_euler = (tgt - pos).to_track_quat('-Z', 'Y').to_euler()
 fov = math.radians(V.get('fov', 68)); cd.sensor_fit = 'VERTICAL'; cd.sensor_height = 24; cd.lens = 12 / math.tan(fov / 2); cd.clip_start = .03; cd.clip_end = 800
+if os.environ.get('PANO'):   # equirectangular probe at POS (three.js coords): image centre = three +x, right = +z, as three's equirect mapping
+    px, py, pz = [float(v) for v in os.environ['POS'].split(',')]; co.location = T2B({'x': px, 'y': py, 'z': pz}) if False else Vector((px, -pz, py))
+    co.rotation_euler = (math.pi / 2, 0, -math.pi / 2); cd.type = 'PANO'
+    try: cd.panorama_type = 'EQUIRECTANGULAR'
+    except Exception: cd.cycles.panorama_type = 'EQUIRECTANGULAR'
+    cd.clip_start = .05
 
 r = sc.render; r.engine = 'CYCLES'; r.resolution_x = W; r.resolution_y = H; r.resolution_percentage = 100
 cy = sc.cycles; cy.device = 'CPU'
@@ -98,9 +104,10 @@ cy.max_bounces = 10; cy.diffuse_bounces = 5; cy.glossy_bounces = 4; cy.transmiss
 cy.sample_clamp_indirect = 8; cy.caustics_reflective = False; cy.caustics_refractive = False; cy.blur_glossy = 1.0
 r.threads_mode = 'AUTO'
 try:
+    if os.environ.get('PANO'): raise RuntimeError('probe: linear (Standard view), no tone curve')
     sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
 except Exception:
-    try: sc.view_settings.look = 'None'
+    try: sc.view_settings.view_transform = 'Standard'; sc.view_settings.look = 'None'
     except Exception: pass
 sc.view_settings.exposure = expo
 try:
