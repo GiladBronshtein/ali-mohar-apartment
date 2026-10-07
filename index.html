@@ -380,6 +380,7 @@ T.tile = canvasTex(1024, 1024, (g, w, h) => {
   }
   g.fillStyle = '#86888b'; [0, h / 2 - 1].forEach(v => { g.fillRect(0, v, w, 3); g.fillRect(v, 0, 3, h); });
 });
+T.tile.offset.set(-.08 / 2.4, .045 / 2.4);   // grout on the corridor's north wall line, full tiles at the balcony doors; the 8 cm cut is under the storage wall (QA9)
 // oak planks 20x120, texture = 1.2 m
 T.planks = canvasTex(1024, 1024, (g, w, h) => {
   const r = rnd(21), n = 6, pw = w / n;
@@ -612,8 +613,8 @@ function pbrDetail(m, rough, bump, invert = false) {
   }
   rc.getContext('2d').putImageData(rd, 0, 0); bc.getContext('2d').putImageData(bd, 0, 0);
   const tex = cv => { const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.NoColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = m.map.anisotropy; return t; };
-  m.roughnessMap = tex(rc); m.roughness = 1;
-  if (bump > 0) { m.bumpMap = tex(bc); m.bumpScale = bump; }
+  m.roughnessMap = tex(rc); m.roughness = 1; m.roughnessMap.offset.copy(m.map.offset); m.roughnessMap.repeat.copy(m.map.repeat);
+  if (bump > 0) { m.bumpMap = tex(bc); m.bumpScale = bump; m.bumpMap.offset.copy(m.map.offset); m.bumpMap.repeat.copy(m.map.repeat); }
 }
 // materials whose derived maps are replaced at load (ceramic defaults, photo sets) get them only if needed: "cur" picked, or a
 // photo set that fails to load (QA8 load time: about 0.2-0.4 s of main-thread work)
@@ -1102,12 +1103,12 @@ function tileX(z1, z2, xFace, s, y1, y2, m) { B(xFace, xFace + s * .006, z1, z2,
 // FLOORS
 // =====================================================================
 floor(-4.3, FX, -5.4, LZ, mat.tile, 0);                 // base porcelain everywhere
-floor(-3.90, -1.14, -5.035, -1.45, mat.planks);         // room 1
+floor(-3.90, -1.14, -5.035, -1.425, mat.planks);         // room 1
 floor(-3.81, -2.36, -1.45, -0.80, mat.planks);          //   + wardrobe niche
 floor(-0.98, 1.86, -5.01, -1.45, mat.planks);           // room 2
 // mamad (room 3) and its wardrobe niche: porcelain (the spec forbids parquet or any flammable floor there), raised 2 cm above
 // the corridor (d08: higher than the corridor; d06 note 8: up to 3 cm; 2 cm an estimate), the step in the blast door
-floor(-3.83, -0.22, 0.09, 2.78, mat.tile, .02); floor(-3.83, -2.36, -0.50, 0.09, mat.tile, .02); floor(-1.98, -1.19, -.13, .09, mat.tile, .02);
+floor(-3.83, -0.22, 0.09, 2.78, mat.tile, .02); floor(-3.83, -2.36, -0.50, 0.09, mat.tile, .02); floor(-1.98, -1.19, -.145, .09, mat.tile, .02); B(-1.98, -1.19, -.147, -.145, 0, .02, mat.blastDoor, { cast: false });   // steel sill on the 2 cm step
 floor(4.60, 8.92, -3.11, -0.13, mat.planks);            // master
 floor(4.26, 4.60, -1.26, -0.13, mat.planks);            //   + door vestibule
 floor(7.01, 8.92, -5.01, -3.23, mat.planks);            // closet
@@ -1193,8 +1194,8 @@ stripeBox(1.92, 2.65, -1.115, -.575, DROP - .008, DROP - .006, 21, mSlots, false
 // SKIRTING: 7 cm skirting cut from the floor material (spec: 33x7 or 60x7) along every wall that meets the floor in the dry rooms, broken automatically at every doorway
 // and opening (each room edge is sampled every 1 cm; a skirting run is laid wherever a floor-height wall stands behind it)
 const SK = .07, ST = .012;
-[[-.13, .79], [3.49, 4.29], [6.99, 7.75], [8.45, 9.11]].forEach(([a, b]) => wallBoxes.push([FX, FO, a, b]));   // living facade piers
-const noSkirt = [[3.55, 4.30, 5.66, 8.83], [4.17, 7.32, 8.12, 8.83], [-.04, .64, -.04, 2.82], [-3.94, -2.32, -1.44, -.76], [-1.00, .82, -2.09, -1.41],
+[[-.13, .79], [3.49, 4.29], [6.99, 7.75], [7.75, 8.45], [8.45, 9.11]].forEach(([a, b]) => wallBoxes.push([FX, FO, a, b]));   // living facade piers
+const noSkirt = [[3.55, 4.30, 5.66, 8.83], [4.17, 7.32, 8.19, 8.83], [-.04, .64, -.04, 2.82], [-3.94, -2.32, -1.44, -.76], [-1.00, .82, -2.09, -1.41],
   [-3.87, -2.32, -.54, .13], [6.97, 8.96, -5.05, -4.37], [8.28, 8.96, -4.45, -3.19], [-3.87, -3.39, .43, 1.37]];
 // interior doors (spec addendum d10 item 5: Pandor, Aqua Bianco white formica, or equal): [axis, a1, a2, w1, w2, swing, leaf centre]; swing -1 = the
 // leaf opens toward w1. Casing 7 cm on the swing side and 8.5 cm on the other (Pandor PanClassic), so the skirting stops under the casing's edge.
@@ -1202,28 +1203,32 @@ const FRAMES = [['x', -2.06, -1.23, -1.425, -1.245, -1, -1.355], ['x', .93, 1.77
   ['z', -1.16, -.34, 4.15, 4.26, 1, 4.205], ['z', -4.06, -3.36, 6.85, 7.01, -1, 6.945]], FJ = .025, casW = (f, swing) => (f === -1) === (swing === -1) ? .07 : .085;
 FRAMES.forEach(([axis, a1, a2, w1, w2, swing]) => [[w1, -1], [w2, 1]].forEach(([f, s]) => { const W = casW(s, swing), q = s > 0 ? [f - .05, f + .01] : [f - .01, f + .05];
   const a = [a1 + FJ - .004 - W, a2 - FJ + .004 + W - .01]; noSkirt.push(axis === 'x' ? [...a, ...q] : [...q, ...a]); }));
-noSkirt.push([-1.19, -1.14, -1.435, -1.375], [1.81, 1.86, -1.46, -1.40]);   // 3 cm stubs between the casing and the room corner (rooms 1, 2)
+noSkirt.push([-1.19, -1.14, -1.435, -1.375], [1.81, 1.86, -1.46, -1.40], [-2.035, -1.145, -.17, -.14]);   // and at the blast-door frame   // 3 cm stubs between the casing and the room corner (rooms 1, 2)
 const hasWall = (x, z) => wallBoxes.some(([a, b, c, d]) => x > a && x < b && z > c && z < d) && !noSkirt.some(([a, b, c, d]) => x > a && x < b && z > c && z < d);
-function skirtRoom(x1, x2, z1, z2, skirt = mat.tile) {
+function skirtRoom(x1, x2, z1, z2, skirt = mat.tile, y0 = 0) {
   const edges = [['n', x1, x2, z1], ['s', x1, x2, z2], ['w', z1, z2, x1], ['e', z1, z2, x2]];
   edges.forEach(([side, a, b, at]) => {
     let run = null; const out = { n: -.03, s: .03, w: -.03, e: .03 }[side];
-    for (let t = a; t <= b + 1e-6; t += .01) {
+    for (let t = a; t < b + .01 - 1e-6; t += .01) {
       const p = Math.min(t, b), on = (side === 'n' || side === 's') ? hasWall(p, at + out) : hasWall(at + out, p);
       if (on && run === null) run = p;
       if ((!on || p >= b - 1e-6) && run !== null) { const e2 = on ? b : p; if (e2 - run > .05) {
-        if (side === 'n') B(run, e2, at, at + ST, 0, SK, skirt, { cast: false }); else if (side === 's') B(run, e2, at - ST, at, 0, SK, skirt, { cast: false });
-        else if (side === 'w') B(at, at + ST, run, e2, 0, SK, skirt, { cast: false }); else B(at - ST, at, run, e2, 0, SK, skirt, { cast: false }); } run = null; }
+        if (side === 'n') B(run, e2, at, at + ST, y0, y0 + SK, skirt, { cast: false }); else if (side === 's') B(run, e2, at - ST, at, y0, y0 + SK, skirt, { cast: false });
+        else if (side === 'w') B(at, at + ST, run, e2, y0, y0 + SK, skirt, { cast: false }); else B(at - ST, at, run, e2, y0, y0 + SK, skirt, { cast: false }); } run = null; }
     }
   });
 }
 [[0, FX, 0, 2.775], [1.45, FX, 2.775, 5.50], [4.30, FX, 5.50, 8.78], [3.63, 4.30, 5.61, 8.78],  // living, alcove, entry, kitchen
  [-2.12, 4.15, -1.245, -.145],                                                                    // corridor
- [-3.80, -.25, .125, 2.745], [-3.83, -2.36, -.50, .125]]                                        // mamad
+ [-3.80, -.25, .125, 2.745, mat.tile, .02], [-3.83, -2.36, -.50, .125, mat.tile, .02]]          // mamad (raised 2 cm)
   .forEach(r => skirtRoom(...r));
 [[-3.89, -1.15, -5.035, -1.425], [-3.81, -2.36, -1.425, -.80], [-.97, 1.85, -5.01, -1.45],       // rooms 1, 2
  [4.61, 8.91, -3.105, -.145], [4.26, 4.61, -1.245, -.145], [7.01, 8.91, -4.995, -3.245]]          // master, vestibule, closet
-  .forEach(r => skirtRoom(...r, mat.planks));
+  .forEach(r => skirtRoom(...r, mat.planks, .009));
+B(1.45, 1.462, 2.763, 2.785, 0, SK, mat.tile, { cast: false });   // outside corner filler at the entry wall
+B(2.988, 4.15, -.202, -.19, 0, SK, mat.tile, { cast: false }); B(2.988, 3.01, -.19, .012, 0, SK, mat.tile, { cast: false }); B(1.80, 1.812, -.157, .012, 0, SK, mat.tile, { cast: false });   // corridor face of the 19 cm TV-wall stretch, the passage returns
+B(4.26, 4.772, -.252, -.24, .009, .009 + SK, mat.planks, { cast: false }); B(4.76, 4.772, -.24, -.145, .009, .009 + SK, mat.planks, { cast: false });   // TV-wall step by the master door
+B(4.33, 4.342, 5.50, 5.61, 0, SK, mat.tile, { cast: false });   // end of the entry wall stub
 
 // =====================================================================
 // DOORS
@@ -1680,7 +1685,7 @@ rug(7.24, 8.19, -4.3, -3.4, mat.rug);
 
 // MASTER BATH (222 x 172 net; x 4.63..6.85, z -4.98..-3.26): enclosed 100x91 shower in the NW corner (ends 39 cm before the
 // window), 70 cm vanity, wall-hung WC under the window (as drawn in the plan), door from the closet
-tileX(-4.98, -4.10, 4.63, 1, 0, H, mat.sage); tileX(-4.10, -3.26, 4.63, 1, 0, H, mat.bathWall);
+tileX(-4.98, -4.075, 4.63, 1, 0, H, mat.sage); tileX(-4.075, -3.26, 4.63, 1, 0, H, mat.bathWall);
 tileZ(4.63, 4.91, -4.98, 1, 0, H, mat.sage); tileZ(5.41, 5.69, -4.98, 1, 0, H, mat.sage); tileZ(4.91, 5.41, -4.98, 1, 0, 1.03, mat.sage); tileZ(4.91, 5.41, -4.98, 1, 1.42, H, mat.sage); tileZ(5.69, 6.015, -4.98, 1, 0, H, mat.bathWall);
 tileZ(4.91, 5.41, -5.07, 1, 1.05, 1.42, mat.sage); tileX(-5.07, -4.974, 4.91, 1, 1.03, 1.42, mat.sage); tileX(-5.07, -4.974, 5.41, -1, 1.03, 1.42, mat.sage); B(4.91, 5.41, -5.07, -4.974, 1.414, 1.42, mat.sage, { cast: false });
 B(4.91, 5.41, -5.07, -4.96, 1.03, 1.05, mat.nicheStone);   // the niche lined in the shower tile, stone sill
@@ -2788,13 +2793,14 @@ if (!isPhone) [[5.84, -.38], [8.12, -.38]].forEach(([x, z]) => { const p = new T
   const G = n => `step( ${n}.x, gateW.x ) * step( gateW.x, ${n}.z ) * step( ${n}.y, gateW.z ) * step( gateW.z, ${n}.w )`;
   // the living-room daylight also spills through the open 120 cm passage (x 1.80-3.00) into the corridor and fades out, instead of
   // stopping on a hard line in the opening (owner, 2026-10-07); the fade lengths are by eye
+  const SPILL2 = `( 1.0 - smoothstep( 0.0, .25, max( 7.54 - gateW.x, gateW.x - 8.32 ) ) ) * ( 1.0 - smoothstep( 0.0, 1.0, -3.15 - gateW.z ) ) * step( ${closet[0]}, gateW.x ) * step( gateW.x, ${closet[2]} ) * step( ${closet[1]}, gateW.z )`;   // the master's daylight into the open closet opening (by eye)
   const SPILL = `( 1.0 - smoothstep( 0.0, .9, max( 1.80 - gateW.x, gateW.x - 3.00 ) ) ) * ( 1.0 - smoothstep( 0.0, 1.4, -.05 - gateW.z ) ) * step( ${corr[0]}, gateW.x ) * step( gateW.x, ${corr[2]} ) * step( ${corr[1]}, gateW.z )`;
   const c = THREE.ShaderChunk, pa = 'getPointLightInfo( pointLight, geometryPosition, directLight );', ra = 'rectAreaLight = rectAreaLights[ i ];';
   if (rect.length !== windowLights.length || !c.lights_fragment_begin.includes(pa) || !c.lights_fragment_begin.includes(ra)) throw new Error('room gate: lights or chunk changed');
   const pos = warm.map(p => `vec3(${p.position.toArray().map(v => v.toFixed(3)).join(',')})`), dn = warm.map(p => (p.userData.down ?? 0).toFixed(2));
-  c.lights_fragment_begin = `vec3 gateW = transpose( mat3( viewMatrix ) ) * ( - vViewPosition - viewMatrix[ 3 ].xyz );\n${arr('rectBox', rect)}\n${arr('pointBox', pts)}\n${arr('rectBox2', rect2)}\n${arr('pointBox2', pts2)}\nconst float rectSpill[${rect.length}] = float[${rect.length}](${rect.map(b => b === LIV ? '1.0' : '0.0').join(',')});\n` +
+  c.lights_fragment_begin = `vec3 gateW = transpose( mat3( viewMatrix ) ) * ( - vViewPosition - viewMatrix[ 3 ].xyz );\n${arr('rectBox', rect)}\n${arr('pointBox', pts)}\n${arr('rectBox2', rect2)}\n${arr('pointBox2', pts2)}\nconst float rectSpill[${rect.length}] = float[${rect.length}](${rect.map(b => b === LIV ? '1.0' : '0.0').join(',')});\nconst float rectSpill2[${rect.length}] = float[${rect.length}](${rect.map(b => b === master ? '1.0' : '0.0').join(',')});\n` +
     `const vec3 pointPos[${pos.length}] = vec3[${pos.length}](${pos.join(',')});\nconst float pointDown[${dn.length}] = float[${dn.length}](${dn.join(',')});\n` +
-    c.lights_fragment_begin.replace(pa, `${pa}\n\t\tdirectLight.color *= max( ${G('pointBox[ i ]')}, ${G('pointBox2[ i ]')} ) * mix( 1.0, .08 + .92 * smoothstep( .2, .75, -normalize( gateW - pointPos[ i ] ).y ), pointDown[ i ] );`).replace(ra, `${ra}\n\t\trectAreaLight.color *= max( max( ${G('rectBox[ i ]')}, ${G('rectBox2[ i ]')} ), rectSpill[ i ] * ${SPILL} );`);
+    c.lights_fragment_begin.replace(pa, `${pa}\n\t\tdirectLight.color *= max( ${G('pointBox[ i ]')}, ${G('pointBox2[ i ]')} ) * mix( 1.0, .08 + .92 * smoothstep( .2, .75, -normalize( gateW - pointPos[ i ] ).y ), pointDown[ i ] );`).replace(ra, `${ra}\n\t\trectAreaLight.color *= max( max( max( ${G('rectBox[ i ]')}, ${G('rectBox2[ i ]')} ), rectSpill[ i ] * ${SPILL} ), rectSpill2[ i ] * ${SPILL2} );`);
 }
 
 // Light skip (QA7 performance): a light whose colour is zero after the room gate (other rooms, the lamps by day, the sun at night)
@@ -3465,13 +3471,13 @@ function cerTex(cat, it) {
 // metres (floors: x, z; walls: along the wall, height), so a grout line falls on the room edge or the counter.
 const CER_WALL = ['c2575a', 'c2575b', 'c3060a', 'c3060b', 'c3060c', 'c2060'];
 const CER_SPACES = [
-  { id: 'floor', name: 'ריצוף: סלון, מטבח, כניסה, מסדרון וממ״ד', m: mat.tile, cats: ['f80a', 'f80b', 'f80g', 'f60'], def: 'cur', rec: 'f80a|מלרוז אפור|m', view: 'entry', o: [2.555, 5.70],
+  { id: 'floor', name: 'ריצוף: סלון, מטבח, כניסה, מסדרון וממ״ד', m: mat.tile, cats: ['f80a', 'f80b', 'f80g', 'f60'], def: 'cur', rec: 'f80a|מלרוז אפור|m', view: 'entry', o: [1.015, 0.51],
     cur: 'הריצוף שעיצבנו עד היום (120×120 בגוון בטון, לא מהמפרט)' },
-  { id: 'rooms', name: 'ריצוף: חדרי השינה וחדר הארונות', m: mat.planks, cats: ['f80a', 'f80b', 'f80g', 'f60'], def: 'cur', view: 'master', o: [4.60, -3.11],
+  { id: 'rooms', name: 'ריצוף: חדרי השינה וחדר הארונות', m: mat.planks, cats: ['f80a', 'f80b', 'f80g', 'f60'], def: 'cur', view: 'master', o: [1.25, 1.925],
     cur: 'דמוי פרקט אלון, כמו שעיצבנו (לא מהמפרט)' },
-  { id: 'bathF', name: 'ריצוף: חדר הרחצה', m: mat.terrazzo, cats: ['w30', 'w1560'], def: 'cur', rec: 'w30|לוגנו סטון|r', view: 'bath', o: [2.01, -3.775], cur: 'טרצו בהיר (לא מהמפרט)' },
+  { id: 'bathF', name: 'ריצוף: חדר הרחצה', m: mat.terrazzo, cats: ['w30', 'w1560'], def: 'cur', rec: 'w30|לוגנו סטון|r', view: 'bath', o: [2.245, -3.575], cur: 'טרצו בהיר (לא מהמפרט)' },
   { id: 'bathW', name: 'חיפוי: חדר הרחצה', m: mat.bathWall2, cats: CER_WALL, def: 'cur', rec: 'c2575b|סהרה אייבורי|m', view: 'bath', o: [2.01, 0], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
-  { id: 'ensF', name: 'ריצוף: מקלחת ההורים', m: mat.bathFloor, cats: ['w30', 'w1560'], def: 'cur', rec: 'w30|מלרוז אפור|r', view: 'mbath', o: [4.63, -4.98], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
+  { id: 'ensF', name: 'ריצוף: מקלחת ההורים', m: mat.bathFloor, cats: ['w30', 'w1560'], def: 'cur', rec: 'w30|מלרוז אפור|r', view: 'mbath', o: [4.75, -4.78], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
   { id: 'ensW', name: 'חיפוי: מקלחת ההורים', m: mat.bathWall, cats: CER_WALL, def: 'cur', rec: 'c2575b|מיסטרל אייבורי|m', view: 'mbath', o: [4.63, 0], cur: 'אבן בהירה 60×120 (לא מהמפרט)' },
   { id: 'ensA', name: 'חיפוי: שני קירות המקלחון', m: mat.sage, cats: CER_WALL, def: 'cur', rec: 'c2575b|מיסטרל אייבורי דקור|m', view: 'shower', o: [4.63, 0],
     cur: 'זליג׳ ירוק מרווה 7.5×30 (לא מהמפרט)' },
