@@ -2385,13 +2385,18 @@ function facadeAtlas(kind) {
   vec2 fC = floor(vMapUv), fF = clamp(fract(vMapUv), .004, .996);
   float fS = floor(dot(vFW, vFN) * 2. + .5) + dot(vFN, vec3(13., 29., 47.));   // constant on a face: the bay pattern differs per face and block
   vec2 fUv = (vec2(floor(fh(vec2(fC.x, fS)) * 4.), 3. - floor(fh(fC + fS * 1.31) * 4.)) + fF) * .25, fdx = dFdx(vMapUv) * .25, fdy = dFdy(vMapUv) * .25;
-  diffuseColor *= textureGrad(map, fUv, fdx, fdy);
+  vec3 fV = normalize(cameraPosition - vFW), fTg = normalize(cross(vec3(0., 1., 0.), vFN));   // facade depth: the open glass sits 18 cm in (estimate)
+  vec2 fOf = vec2(dot(fV, fTg), fV.y) / max(dot(fV, vFN), .2) * (.18 / 3.2);
+  vec2 fUvP = (vec2(floor(fh(vec2(fC.x, fS)) * 4.), 3. - floor(fh(fC + fS * 1.31) * 4.)) + clamp(fF - fOf, .004, .996)) * .25;
+  vec4 fCol = textureGrad(map, fUv, fdx, fdy);
+  if (textureGrad(uWin, fUv, fdx, fdy).r > .5) fCol = textureGrad(uWin, fUvP, fdx, fdy).r > .5 ? textureGrad(map, fUvP, fdx, fdy) : vec4(.45, .44, .42, 1.);   // glass seen through the opening, or the reveal
+  diffuseColor *= fCol;
   float fWin = textureGrad(uWin, fUv, fdx, fdy).r, fLit = step(fh(fC + fS * 2.71 + 5.3), .32);`)
       .replace(need[1], need[1] + '\n  roughnessFactor = mix(roughnessFactor, .12, fWin);')
       .replace(need[2], `float fT = fh(fC + fS * 3.7);   // about 15% cool white (LED, TV), the rest 2700-3500 K, brightness .5 to 1.2
   totalEmissiveRadiance *= fWin * fLit * (fT < .15 ? vec3(.72, .84, 1.) : mix(vec3(1., .62, .28), vec3(1., .82, .62), fT)) * (.5 + .7 * fh(fC + fS * 4.9));`);
   };
-  m.customProgramCacheKey = () => 'facade2';
+  m.customProgramCacheKey = () => 'facade3';
   return m;
 }
 const blockMats = {};
