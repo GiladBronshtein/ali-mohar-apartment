@@ -575,10 +575,17 @@ function pbrDetail(m, rough, bump, invert = false) {
   m.roughnessMap = tex(rc); m.roughness = 1;
   if (bump > 0) { m.bumpMap = tex(bc); m.bumpScale = bump; }
 }
+// materials whose derived maps are replaced at load (ceramic defaults, photo sets) get them only if needed: "cur" picked, or a
+// photo set that fails to load (QA8 load time: about 0.2-0.4 s of main-thread work)
+const LAZY_DETAIL = new Set([mat.tile, mat.bathFloor, mat.bathWall, mat.bathWall2, mat.splash, mat.sage, mat.terrazzo, mat.deck, mat.planks, mat.oak, mat.quartz]);
+const PH_WHITE = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); PH_WHITE.needsUpdate = true;
 [[mat.tile, [.42, .78], .35], [mat.planks, [.48, .74], .5], [mat.bathFloor, [.28, .6], .3], [mat.bathWall, [.2, .5], .3], [mat.bathWall2, [.2, .5], .3], [mat.splash, [.14, .3], .05], [mat.sage, [.14, .45], .4],
  [mat.terrazzo, [.28, .5], .15], [mat.deck, [.68, .92], .6], [mat.oak, [.45, .7], .4], [mat.walnut, [.42, .66], .4], [mat.quartz, [.14, .3], .05],
  [mat.trav, [.5, .82], .5], [mat.limewash, [.84, 1], .6], [mat.greyStone, [.34, .6], .2], [matSlab, [.12, .28], .05]]
-  .forEach(([m, rgh, b]) => { if (m && m.map && m.map.image) pbrDetail(m, rgh, b); });
+  .forEach(([m, rgh, b]) => { if (!m || !m.map || !m.map.image) return;
+    if (!LAZY_DETAIL.has(m)) return pbrDetail(m, rgh, b);
+    m.roughnessMap = PH_WHITE; m.roughness = (rgh[0] + rgh[1]) / 2; if (b > 0) { m.bumpMap = PH_WHITE; m.bumpScale = b; }   // same maps (same shader) until needed
+    m.userData.lazyDetail = () => { delete m.userData.lazyDetail; pbrDetail(m, rgh, b); m.needsUpdate = true; }; });
 // Photo PBR sets (assets/tex, Poly Haven CC0) replace the derived maps when present. Full-colour sets are tinted to the mean of the
 // procedural texture they replace, so the palette stays as designed; detail-only sets keep the material's own colour and add the
 // photo's normal and roughness. World UVs are written at merge time in metres / userData.uv, so repeat = userData.uv / coverage.
@@ -591,7 +598,7 @@ function meanLin(img, srgb = true) {
 // rough: rescale the map so its mean lands on this value (glossy sets: steel, quartz, leather)
 async function photoPBR(mats, id, metres, { color = false, normal = 1, rough: target = 0 } = {}) {
   const [diff, nor, rough] = await Promise.all([color ? assetTex(`tex/${id}/diff.webp`) : null, assetTex(`tex/${id}/nor.webp`, false), assetTex(`tex/${id}/rough.webp`, false)]);
-  if (!nor || !rough || (color && !diff)) return;
+  if (!nor || !rough || (color && !diff)) { mats.forEach(m => m.userData.lazyDetail && m.userData.lazyDetail()); return; }
   const k = target ? target / meanLin(rough.image, false)[0] : 1;
   for (const m of mats) {
     const r = (m.userData.uv || 1) / metres, fit = t => { t = t.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(r, r); t.needsUpdate = true; return t; };
@@ -1947,7 +1954,7 @@ plant(8.15, 6.10, { potR: .24, potH: .45, h: 1.0, seed: 82, spread: .35, base: B
     res(o); }, undefined, () => res(null)));
   Promise.all([load('potted_plant_01.glb', 8.10, 8.25, 1.5, .4), load('potted_plant_02.glb', 8.15, 6.10, .95, 2.1)]).then(os => {
     if (os.some(o => !o)) return;
-    propGroup.add(...os); procPlants.visible = false; dirty = 1; renderer.shadowMap.needsUpdate = true; captureContact(); });
+    propGroup.add(...os); procPlants.visible = false; dirty = 1; renderer.shadowMap.needsUpdate = true; if (contactTimer) { clearTimeout(contactTimer); contactTimer = 0; } captureContact(); });
   // Kitchen props, desktop only, after the materials are in (CC0 Poly Haven, real size, origin on the base; assets/models):
   // fruit in the island bowl, a bottle on the island, an end-grain board leaning on the splash at the window landing.
   // glTF glass uses transmission, which costs a full extra scene pass in three.js: drawn as plain transparent glass instead.
@@ -2530,26 +2537,28 @@ sky.renderOrder = 10; scene.add(sky);   // drawn after the opaque scene: only th
 const extEnv = { day: null, eve: null }, extMats = new Set();   // exterior-only materials reflect the photo sky; the interior keeps the room environment
 const skies = { day: { map: skyDay, rot: 0, k: 1 }, eve: { map: skyEve, rot: 0, k: 1 } };
 const setSky = eve => { const s = eve ? skies.eve : skies.day; sky.material.map = s.map; sky.rotation.y = s.rot; sky.material.color.setScalar(s.k); sky.material.needsUpdate = true; dirty = 1; };
-Promise.all([assetTex('sky/day.webp', true, true), assetTex('sky/eve.webp', true, true)]).then(([d, e]) => {
-  if (!d || !e) return;
-  [d, e].forEach(t => { t.repeat.set(1, 2048 / 1152); t.offset.set(0, 1 - 2048 / 1152); });
-  skies.day = { map: d, rot: -1.11, k: 1.8 }; skies.eve = { map: e, rot: -3.53, k: .35 }; setSky(isEve);   // day k 1.8: the view through the glass is brighter than the room, as in an interior photo
-  // haze colour = the sky just above the horizon (rows 990-1020 of 1152), in linear light times the sky's own scale
-  const horizon = (img, k) => { const c = document.createElement('canvas'); c.width = 64; c.height = 4; c.getContext('2d').drawImage(img, 0, 990, img.width, 30, 0, 0, 64, 4);
-    const px = c.getContext('2d').getImageData(0, 0, 64, 4).data, lin = v => v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4), m = [0, 0, 0];
-    for (let i = 0; i < px.length; i += 4) for (let j = 0; j < 3; j++) m[j] += lin(px[i + j] / 255) / 256;
-    return new THREE.Color().setRGB(m[0] * k, m[1] * k, m[2] * k, THREE.LinearSRGBColorSpace); };
-  fogCol.day.copy(horizon(d.image, skies.day.k)); fogCol.eve.copy(horizon(e.image, skies.eve.k)); scene.fog.color.copy(isEve ? fogCol.eve : fogCol.day);
-  // equirect copy for PMREM: three's equirect u is mirrored against the sphere's, and the sphere is turned by rot
-  const equi = (img, rot, gnd) => { const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const g = c.getContext('2d'), sh = 512 * 1152 / 2048;   // same cube size as the room environment: no shader rebuild on the swap
-    g.fillStyle = gnd; g.fillRect(0, 0, c.width, c.height);
-    for (let i = 0; i < c.width; i++) { const u = (((1 - (i + .5) / c.width - rot / (2 * Math.PI)) % 1) + 1) % 1; g.drawImage(img, Math.floor(u * img.width), 0, 1, img.height, i, 0, 1, sh); }
-    const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; const r = pmrem.fromEquirectangular(t).texture; t.dispose(); return r; };
-  extEnv.day = equi(d.image, skies.day.rot, '#8a877f'); extEnv.eve = equi(e.image, skies.eve.rot, '#26262a');
+// photo skies: the day sky now (start views are by day), the evening sky on the first switch to eve or in idle time later
+// haze colour = the sky just above the horizon (rows 990-1020 of 1152), in linear light times the sky's own scale
+const horizon = (img, k) => { const c = document.createElement('canvas'); c.width = 64; c.height = 4; c.getContext('2d').drawImage(img, 0, 990, img.width, 30, 0, 0, 64, 4);
+  const px = c.getContext('2d').getImageData(0, 0, 64, 4).data, lin = v => v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4), m = [0, 0, 0];
+  for (let i = 0; i < px.length; i += 4) for (let j = 0; j < 3; j++) m[j] += lin(px[i + j] / 255) / 256;
+  return new THREE.Color().setRGB(m[0] * k, m[1] * k, m[2] * k, THREE.LinearSRGBColorSpace); };
+// equirect copy for PMREM: three's equirect u is mirrored against the sphere's, and the sphere is turned by rot
+const equi = (img, rot, gnd) => { const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const g = c.getContext('2d'), sh = 512 * 1152 / 2048;   // same cube size as the room environment: no shader rebuild on the swap
+  g.fillStyle = gnd; g.fillRect(0, 0, c.width, c.height);
+  for (let i = 0; i < c.width; i++) { const u = (((1 - (i + .5) / c.width - rot / (2 * Math.PI)) % 1) + 1) % 1; g.drawImage(img, Math.floor(u * img.width), 0, 1, img.height, i, 0, 1, sh); }
+  const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; const r = pmrem.fromEquirectangular(t).texture; t.dispose(); return r; };
+const applyExtEnv = () => { const e = (isEve ? extEnv.eve : extEnv.day) || extEnv.day; if (e) extMats.forEach(m => { if (m.envMap !== e) { m.envMap = e; m.needsUpdate = true; } }); dirty = 1; };
+const skyPhoto = (key, f, rot, k, gnd) => assetTex(f, true, true).then(t => { if (!t) return;
+  t.repeat.set(1, 2048 / 1152); t.offset.set(0, 1 - 2048 / 1152);
+  skies[key] = { map: t, rot, k }; fogCol[key].copy(horizon(t.image, k)); extEnv[key] = equi(t.image, rot, gnd);
+  if ((key === 'eve') === isEve) { setSky(isEve); scene.fog.color.copy(fogCol[key]); } applyExtEnv(); });
+let eveSkyP = null; const loadEveSky = () => eveSkyP ||= skyPhoto('eve', 'sky/eve.webp', -3.53, .35, '#26262a');
+skyPhoto('day', 'sky/day.webp', -1.11, 1.8, '#8a877f').then(() => {   // day k 1.8: the view through the glass is brighter than the room, as in an interior photo
   const inside = new Set(); [root, ceilGroup, curtGroup].forEach(g => g.traverse(o => { if (o.isMesh) inside.add(o.material); }));
   inside.delete(mStuccoOut);   // outside plaster, also on our own balcony
   [outside, upperG].forEach(g => g.traverse(o => { if (o.isMesh && !inside.has(o.material) && o.material.isMeshStandardMaterial) extMats.add(o.material); }));
-  extMats.forEach(m => { m.envMap = isEve ? extEnv.eve : extEnv.day; m.needsUpdate = true; }); dirty = 1;
+  applyExtEnv(); setTimeout(loadEveSky, 8000);
 });
 
 // =====================================================================
@@ -2645,7 +2654,7 @@ function captureContact() {
   scene.overrideMaterial = null; scene.children.forEach((o, i) => o.visible = vis[i]);
   renderer.setRenderTarget(null); renderer.setClearColor(cc, ca); renderer.shadowMap.needsUpdate = su; dirty = 1;
 }
-captureContact();
+let contactTimer = setTimeout(() => { contactTimer = 0; captureContact(); }, 2500);   // one capture: when the balcony plants arrive, or after 2.5 s without them
 
 // =====================================================================
 // LIGHTING
@@ -2954,7 +2963,7 @@ function setMode(eve) { dirty = 1;
   hemi.intensity = eve ? .1 : HEMI; hemi.color.set(eve ? 0x6a7aa8 : 0xdfe9f6);
   windowLights.forEach(l => l.intensity = eve ? .12 : l.userData.k);
   warm.forEach(p => p.intensity = eve ? p.userData.k : 0);
-  setSky(eve); if (extEnv.day) extMats.forEach(m => m.envMap = eve ? extEnv.eve : extEnv.day);
+  setSky(eve); applyExtEnv(); if (eve) loadEveSky();
   scene.fog.color.copy(eve ? fogCol.eve : fogCol.day);
   sheer.emissiveIntensity = eve ? 0 : .12; mat.spot.emissiveIntensity = eve ? 1.8 : 0; mat.lamp.emissiveIntensity = eve ? 1.5 : 0; mat.led.emissiveIntensity = eve ? 2.0 : 0; mat.ledWall.emissiveIntensity = eve ? 1.9 : .55;   // wider seams, softer: thin bright lines pulsed with bloom
   renderer.toneMappingExposure = eve ? EXPO.eve : EXPO.day;
@@ -3385,7 +3394,8 @@ function cerApply(sp, key) {
   if (!u.cerOrig) u.cerOrig = { map: m.map, roughnessMap: m.roughnessMap, bumpMap: m.bumpMap, normalMap: m.normalMap, bumpScale: m.bumpScale, roughness: m.roughness, color: m.color.clone() };
   if (u.cerTex) { u.cerTex.forEach(t => t.dispose()); u.cerTex = null; }
   const it = key !== 'cur' && cerItem(key);
-  if (!it) { const { color, ...rest } = u.cerOrig; Object.assign(m, rest); m.color.copy(color); key = 'cur'; }
+  if (!it) { const { color, ...rest } = u.cerOrig; Object.assign(m, rest); m.color.copy(color); key = 'cur';
+    if (u.lazyDetail) { u.lazyDetail(); Object.assign(u.cerOrig, { roughnessMap: m.roughnessMap, bumpMap: m.bumpMap, bumpScale: m.bumpScale, roughness: m.roughness }); } }
   else {
     const t = cerTex(key.split('|')[0], it), s = u.uv || 1, [u0, v0] = sp.o || [0, 0], fr = a => a - Math.floor(a);
     for (const x of [t.map, t.rough, t.bump]) { x.repeat.set(s / t.cu, s / t.cv); x.offset.set(fr(-u0 / t.cu), fr(-v0 / t.cv)); }
