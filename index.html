@@ -2626,7 +2626,7 @@ captureContact();
 // =====================================================================
 // LIGHTING
 // =====================================================================
-const HEMI = .22, ENV = .3;
+const HEMI = .08, ENV = .3;   // less uniform fill (was .22), more from the windows
 const hemi = new THREE.HemisphereLight(0xdfe9f6, 0xcdc4b2, HEMI); scene.add(hemi);
 const SUN = 3.0, sun = new THREE.DirectionalLight(0xfff1dc, SUN);
 sun.target.position.set(2.4, 0, 1.5); sun.position.set(2.4 + SUN_OFF[0], SUN_OFF[1], 1.5 + SUN_OFF[2]);   // ~10:00 in autumn: east-south-east, ~40 deg up
@@ -2636,8 +2636,8 @@ sun.shadow.bias = -.0004; sun.shadow.normalBias = .02;
 scene.add(sun, sun.target);
 const windowLights = [];
 function winLight(x, z, w, h, y, lookX, lookZ, k) {
-  k *= .91;
-  const l = new THREE.RectAreaLight(0xeaf1fb, k, w, h); l.position.set(x, y, z); l.lookAt(lookX, y, lookZ); l.userData.k = k; scene.add(l); windowLights.push(l);
+  k *= .91 * 1.6;   // stronger and tilted 15 deg down: the floor by the glass brighter than the ceiling, light falling off into the room
+  const l = new THREE.RectAreaLight(0xeaf1fb, k, w, h); l.position.set(x, y, z); l.lookAt(lookX, y - .27 * Math.hypot(lookX - x, lookZ - z), lookZ); l.userData.k = k; scene.add(l); windowLights.push(l);
 }
 winLight(FX - .02, 2.14, 2.70, HEAD, HEAD / 2, 0, 2.14, 5);
 winLight(FX - .02, 5.64, 2.70, HEAD, HEAD / 2, 0, 5.64, 5);

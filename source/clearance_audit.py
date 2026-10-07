@@ -11,7 +11,7 @@ R = {  # name: (x1,x2,z1,z2)  -- updated to the PDF-measured layout
  'm bed':(6.18,7.78,-2.34,-.17),'m ns L':(5.58,6.10,-.62,-.17),'m ns R':(7.86,8.38,-.62,-.17),'m plant':(8.38,8.72,-2.92,-2.58),
  'closet N':(7.01,8.32,-5.01,-4.41),'closet E':(8.32,8.92,-5.01,-3.23),
  'mb shower':(4.63,5.69,-4.98,-4.06),'mb vanity':(4.60,5.10,-3.99,-3.29),'mb wc':(6.07,6.43,-4.79,-4.24),'mb ledge':(5.95,6.88,-5.01,-4.83),'mb ladder':(5.40,5.90,-3.29,-3.23),
- 'fb vanity':(1.98,2.45,-2.67,-1.65),'fb wc':(2.16,2.71,-3.56,-3.20),'fb tub':(3.76,4.49,-2.98,-1.37),'fb washer':(3.87,4.47,-3.76,-3.15),'fb ladder':(2.42,2.76,-1.43,-1.37),
+ 'fb vanity':(1.98,2.45,-2.67,-1.65),'fb wc':(2.19,2.77,-3.515,-3.155),'fb tub':(3.76,4.49,-2.98,-1.37),'fb washer':(3.87,4.47,-3.76,-3.15),'fb ladder':(2.42,2.76,-1.43,-1.37),
  'ac condenser':(2.30,3.19,-5.25,-4.91),'water heater':(3.77,4.31,-5.07,-4.53),
 }
 def quarter(cx,cz,r,sx,sz):  # quarter-disc swing as (centre, radius, quadrant signs)
@@ -49,7 +49,7 @@ W = [ # walkways that must stay >= limit (NKBA: work aisle 1.07, walkway 0.91, p
  ('master bed foot <-> TV wall', -2.34-(-3.11), .6), ('master bed L <-> west wall', 6.18-4.60, .75), ('master bed R <-> east wall', 8.92-7.78, .6),
  ('room2 bed <-> bookcase', 1.50-(-.05), .75), ('room2 wardrobe doors <-> bed foot', -2.05-.57-(-2.98), .3),
  ('mbath WC centre <-> side wall', 6.88-6.39, .40), ('mbath WC centre <-> shower glass', 6.39-5.60, .40), ('mbath WC front clearance', -3.23-(-4.27), .6),
- ('family WC centre <-> window wall', -3.38-(-3.80), .40), ('family WC front <-> tub', 3.76-2.71, .6), ('corridor with blast door open flat', -.215-(-1.26), .9), ('corridor at the panel (TV wall 19 cm)', -.19-(-1.245), .9),
+ ('family WC centre <-> window wall', -3.335-(-3.775), .40), ('family WC front <-> tub (deepest spec WC: front at 2.77)', 3.76-2.77, .6), ('corridor with blast door open flat', -.215-(-1.26), .9), ('corridor at the panel (TV wall 19 cm)', -.19-(-1.245), .9),
  ('room1 door leaf end <-> low unit', -2.165-(-2.20), .0), 
 ]
 for n,v,lim in W:

@@ -148,8 +148,17 @@ interior dimensions, e.g. חדר הורים 430×296.
   and swipe navigation; opening it pauses the 3D loop.
 - Panel hides with the H / ח key; on phones it is a 48% bottom sheet and the view shifts up with `setViewOffset`.
 - "קרמיקה מהמפרט" `<details id="cer">`: per space a select with one optgroup per catalog page, prev/next, a button to
-  the space's view, the name/size/finish/page line, copy-to-clipboard and reset. Choices persist in localStorage
-  `ali-cer`.
+  the space's view, the name/size/finish/page line, copy-to-clipboard and reset. Below it the fixtures (`FIX` catalog:
+  WC, flush plate, tub, taps, shower, kitchen sink and tap, vanities from studio spec pages 20-30). Nothing is saved:
+  every visit starts from the defaults (owner, 2026-10-06), and the old `ali-cer` key is removed.
+- Fixture slots: `fixSlot(deps, build)` creates a group under `fixRoot` (kept out of the load-time merge); `fixDraw`
+  points the module-level `root` at that group while the builder runs (so `B`, `C`, `place`, `withShift` work as
+  everywhere), then merges the slot (`mergeGroup`, world UVs) and keeps back-face basins (`BACKM`) out of shadows and AO.
+  `fixRefresh` applies the current day/eve reflection strength, the shadow map, contact shadows and the path tracer after
+  a pick. Builders: `fixWC`, `fixFlush`, `fixMixer`, `fixWallMixer`, `fixHead`, `fixRail`, `fixTub`, `fixKSink`, `fixKTap`,
+  `fixVanity`. Test hooks: `__app.FIX`, `fixSet(id, key)`, `fixState`, `fixRoot`.
+- Light skip: a patch after the room gate skips lights with zero colour after the gate or facing away (the main frame
+  cost; measured 2.5-3x faster). Eve ceiling lights carry a downward lobe (`WARM_DOWN`, `pointDown` in the gate patch).
 - A `<details>` notes block in the panel states the estimates and stale renders in Hebrew.
 
 ## Test hooks
