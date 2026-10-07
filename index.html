@@ -1195,15 +1195,15 @@ stripeBox(1.92, 2.65, -1.115, -.575, DROP - .008, DROP - .006, 21, mSlots, false
 // and opening (each room edge is sampled every 1 cm; a skirting run is laid wherever a floor-height wall stands behind it)
 const SK = .07, ST = .012;
 [[-.13, .79], [3.49, 4.29], [6.99, 7.75], [7.75, 8.45], [8.45, 9.11]].forEach(([a, b]) => wallBoxes.push([FX, FO, a, b]));   // living facade piers
-const noSkirt = [[3.55, 4.30, 5.66, 8.83], [4.17, 7.32, 8.19, 8.83], [-.04, .64, -.04, 2.82], [-3.94, -2.32, -1.44, -.76], [-1.00, .82, -2.09, -1.41],
-  [-3.87, -2.32, -.54, .13], [6.97, 8.96, -5.05, -4.37], [8.28, 8.96, -4.45, -3.19], [-3.87, -3.39, .43, 1.37]];
+const noSkirt = [[3.55, 4.30, 5.66, 8.83], [4.17, 7.32, 8.19, 8.83], [-.04, .64, -.04, 2.82], [-3.81, -2.36, -1.44, -.76], [-1.00, .82, -2.09, -1.41],
+  [-3.80, -2.36, -.54, .13], [6.97, 8.96, -5.05, -4.37], [8.28, 8.96, -4.45, -3.19], [-3.87, -3.39, .62, 1.37]];
 // interior doors (spec addendum d10 item 5: Pandor, Aqua Bianco white formica, or equal): [axis, a1, a2, w1, w2, swing, leaf centre]; swing -1 = the
 // leaf opens toward w1. Casing 7 cm on the swing side and 8.5 cm on the other (Pandor PanClassic), so the skirting stops under the casing's edge.
 const FRAMES = [['x', -2.06, -1.23, -1.425, -1.245, -1, -1.355], ['x', .93, 1.77, -1.45, -1.245, -1, -1.355], ['x', 2.86, 3.69, -1.395, -1.245, -1, -1.315],
   ['z', -1.16, -.34, 4.15, 4.26, 1, 4.205], ['z', -4.06, -3.36, 6.85, 7.01, -1, 6.945]], FJ = .025, casW = (f, swing) => (f === -1) === (swing === -1) ? .07 : .085;
 FRAMES.forEach(([axis, a1, a2, w1, w2, swing]) => [[w1, -1], [w2, 1]].forEach(([f, s]) => { const W = casW(s, swing), q = s > 0 ? [f - .05, f + .01] : [f - .01, f + .05];
   const a = [a1 + FJ - .004 - W, a2 - FJ + .004 + W - .01]; noSkirt.push(axis === 'x' ? [...a, ...q] : [...q, ...a]); }));
-noSkirt.push([-1.19, -1.14, -1.435, -1.375], [1.81, 1.86, -1.46, -1.40], [-2.035, -1.145, -.17, -.14]);   // and at the blast-door frame   // 3 cm stubs between the casing and the room corner (rooms 1, 2)
+noSkirt.push([-2.035, -1.145, -.17, -.14]);   // the skirting butts the blast-door frame   // 3 cm stubs between the casing and the room corner (rooms 1, 2)
 const hasWall = (x, z) => wallBoxes.some(([a, b, c, d]) => x > a && x < b && z > c && z < d) && !noSkirt.some(([a, b, c, d]) => x > a && x < b && z > c && z < d);
 function skirtRoom(x1, x2, z1, z2, skirt = mat.tile, y0 = 0) {
   const edges = [['n', x1, x2, z1], ['s', x1, x2, z2], ['w', z1, z2, x1], ['e', z1, z2, x2]];
@@ -1212,7 +1212,7 @@ function skirtRoom(x1, x2, z1, z2, skirt = mat.tile, y0 = 0) {
     for (let t = a; t < b + .01 - 1e-6; t += .01) {
       const p = Math.min(t, b), on = (side === 'n' || side === 's') ? hasWall(p, at + out) : hasWall(at + out, p);
       if (on && run === null) run = p;
-      if ((!on || p >= b - 1e-6) && run !== null) { const e2 = on ? b : p; if (e2 - run > .05) {
+      if ((!on || p >= b - 1e-6) && run !== null) { const e2 = on ? b : p; if (e2 - run > .015) {
         if (side === 'n') B(run, e2, at, at + ST, y0, y0 + SK, skirt, { cast: false }); else if (side === 's') B(run, e2, at - ST, at, y0, y0 + SK, skirt, { cast: false });
         else if (side === 'w') B(at, at + ST, run, e2, y0, y0 + SK, skirt, { cast: false }); else B(at - ST, at, run, e2, y0, y0 + SK, skirt, { cast: false }); } run = null; }
     }
@@ -1229,6 +1229,7 @@ B(1.45, 1.462, 2.763, 2.785, 0, SK, mat.tile, { cast: false });   // outside cor
 B(2.988, 4.15, -.202, -.19, 0, SK, mat.tile, { cast: false }); B(2.988, 3.01, -.19, .012, 0, SK, mat.tile, { cast: false }); B(1.80, 1.812, -.157, .012, 0, SK, mat.tile, { cast: false });   // corridor face of the 19 cm TV-wall stretch, the passage returns
 B(4.26, 4.772, -.252, -.24, .009, .009 + SK, mat.planks, { cast: false }); B(4.76, 4.772, -.24, -.145, .009, .009 + SK, mat.planks, { cast: false });   // TV-wall step by the master door
 B(4.33, 4.342, 5.50, 5.61, 0, SK, mat.tile, { cast: false });   // end of the entry wall stub
+B(3.69, 4.448, -3.775, -3.763, .009, .009 + SK, mat.terrazzo, { cast: false }); B(3.69, 4.448, -3.102, -3.09, .009, .009 + SK, mat.terrazzo, { cast: false }); B(4.448, 4.46, -3.775, -3.09, .009, .009 + SK, mat.terrazzo, { cast: false });   // painted washer niche: skirting in the bath floor material
 
 // =====================================================================
 // DOORS
