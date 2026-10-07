@@ -2773,16 +2773,16 @@ winLight(-3.81, .955, .97, 1.0, 1.5, 0, .955, 3.5);         // mamad
 winLight(9.05, -1.79, .96, 2.15, 1.10, 0, -1.79, 5.5);       // master
 winLight(6.285, -4.99, .59, .7, 1.85, 6.285, 0, 2.5);       // master bath
 winLight(2.975, -3.78, 1.2, 1.0, 1.6, 2.975, 0, 2.5);       // family bath (onto the laundry recess, so dimmer; estimate)
-const warm = [], WARM_DOWN = [.5, 1, .7, 1, 1, 1, 1, 1, 1, 1, 1, 1];   // per light: 1 = ceiling downlight (lobe down), 0 = omni; pendants in between
-[[1.2, 1.79, 2.5, 1.95], [4.7, 2.2, 5, H - .25], [5.99, 6.31, 2.8, 2.3], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 2.8], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 1.2, BC - .55], [7.63, -4.1, 1.5]]   // closet last; kids' bath: well under its lowered ceiling, so the ceiling does not blow out
-  .forEach(([x, z, k, y = H - .3], i) => { const d = WARM_DOWN[i], p = new THREE.PointLight(0xffd3a1, 0, 6, 2); p.position.set(x, d === 1 && y === H - .3 ? (i === 4 ? DROP : H) - .08 : y, z); p.userData.k = d === 1 ? k * 1.15 : k; p.userData.down = d; scene.add(p); warm.push(p); });
+const warm = [], WARM_DOWN = [.8, 1, .7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];   // per light: 1 = ceiling downlight (lobe down), 0 = omni; pendants in between
+[[1.2, 1.79, 1.8, 1.95], [4.7, 2.2, 5, H - .25], [5.99, 6.31, 2.8, 2.3], [2.4, 4.4, 4], [1.0, -.7, 3.5], [6.8, -1.5, 2.8], [-2.5, -3.1, 4], [.45, -3.1, 4], [-2.0, 1.4, 4], [5.6, -4.2, 3], [3.2, -2.6, 1.2, BC - .55], [7.63, -4.1, 1.5], [4.70, 8.42, .45, 1.56], [6.25, 8.42, .45, 1.56]]   // closet last; kids' bath: well under its lowered ceiling, so the ceiling does not blow out
+  .forEach(([x, z, k, y = H - .3], i) => { const d = WARM_DOWN[i], p = new THREE.PointLight(0xffd3a1, 0, 6, 2); p.position.set(x, d === 1 && y === H - .3 ? (i === 4 ? DROP : H) - .20 : y, z); p.userData.k = d === 1 ? k * 1.15 : k; p.userData.down = d; scene.add(p); warm.push(p); });
 if (!isPhone) [[5.84, -.38], [8.12, -.38]].forEach(([x, z]) => { const p = new THREE.PointLight(0xffc98a, 0, 2.2, 2); p.position.set(x, 1.05, z); p.userData.k = 1.2; p.userData.down = 0; scene.add(p); warm.push(p); });   // bedside globes light the bed and wall (desktop)
 // Room gate (int4): area and point lights cast no shadows, so a window or a lamp leaked through the walls into the rooms
 // behind it (lit corridor, hall and closet with no source). Each light now lights only its own room's floor-plan box
 // (x1, z1, x2, z2 from roomdims.py, +5 cm for the wall faces); the living-room lights also reach the balcony.
 { const LIV = [-.05, -.05, 10.5, 8.84], r1 = [-3.94, -5.08, -1.10, -1.33], r2 = [-1.02, -5.06, 1.90, -1.33], mamad = [-3.85, .08, -.20, 2.80],
     master = [4.56, -3.15, 8.96, -.09], mbath = [4.58, -5.03, 6.94, -3.21], fbath = [1.96, -3.82, 4.51, -1.30], corr = [-2.17, -1.46, 4.62, .0], closet = [6.96, -5.06, 8.97, -3.18];
-  const rect = [LIV, LIV, LIV, r1, r2, mamad, master, mbath, fbath], pts = [LIV, LIV, LIV, LIV, corr, master, r1, r2, mamad, mbath, fbath, closet, master, master].slice(0, warm.length);
+  const rect = [LIV, LIV, LIV, r1, r2, mamad, master, mbath, fbath], pts = [LIV, LIV, LIV, LIV, corr, master, r1, r2, mamad, mbath, fbath, closet, LIV, LIV, master, master].slice(0, warm.length);
   const VEST = [4.17, -1.26, 4.62, -.09], FAR = [9e3, 9e3, 9e3, 9e3], rect2 = rect.map(b => b === master ? VEST : FAR), pts2 = pts.map(b => b === master ? VEST : FAR);   // the closed leaves sit in the doorways: boxes reach them, the master also lights its door vestibule
   const arr = (n, l) => `const vec4 ${n}[${l.length}] = vec4[${l.length}](${l.map(b => `vec4(${b.map(v => v.toFixed(3)).join(',')})`).join(',')});`;
   const G = n => `step( ${n}.x, gateW.x ) * step( gateW.x, ${n}.z ) * step( ${n}.y, gateW.z ) * step( gateW.z, ${n}.w )`;
