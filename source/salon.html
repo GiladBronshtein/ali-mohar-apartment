@@ -2071,17 +2071,34 @@ B(-4.28, 9.25, -5.39, 9.11, GY, GY + 3.15, mStuccoOut, { cast: false, parent: ou
 B(-4.28, 9.30, -5.39, -.13, GY + 3.15, GY + 6.59, mStuccoOut, { cast: false, parent: outside }); B(-4.28, FO, -.13, 5.77, GY + 3.15, GY + 6.59, mStuccoOut, { cast: false, parent: outside });
 B(1.19, FO, 5.77, 9.11, GY + 3.15, GY + 6.59, mStuccoOut, { cast: false, parent: outside });
 sunBoxes.push([-4.28, 9.30, -5.39, 9.11, 6.59], [FO, BX2, BZN, BZ2, 6.6, .85, 2.9]);
+const mLitWin = new THREE.MeshStandardMaterial({ color: '#56636c', roughness: .05, metalness: 0, emissive: '#ffd6a0', emissiveIntensity: 0, userData: { envDay: 1.4 } });   // some upper windows lit at night
 { const mDark = new THREE.MeshStandardMaterial({ color: '#56636c', roughness: .05, metalness: 0, userData: { envDay: 1.4 } }), o = { cast: false, parent: outside };
   const west = [['z', -2.81, -1.91, -4.28, -1, .15, 2.35], ['z', .48, 1.48, -4.28, -1, 1.10, 2.10]];
-  for (const [dy, list] of [[-3.3, [...west, ['x', 6.015, 6.615, -5.39, -1, 1.25, 2.35], ['x', .365, 1.265, -5.39, -1, .15, 2.35], ['x', 2.15, 3.65, -5.39, -1, .15, 2.35], ['z', -2.17, -1.27, 9.30, 1, .15, 2.35],
-      ['z', .79, 3.49, FO, 1, 0, HEAD], ['z', 4.29, 6.99, FO, 1, 0, HEAD], ['z', 7.75, 8.45, FO, 1, 1.20, HEAD]]],
+  const ours = [...west, ['x', 6.015, 6.615, -5.39, -1, 1.25, 2.35], ['x', .365, 1.265, -5.39, -1, .15, 2.35], ['x', 2.15, 3.65, -5.39, -1, .15, 2.35], ['z', -2.17, -1.27, 9.30, 1, .15, 2.35],
+      ['z', .79, 3.49, FO, 1, 0, HEAD], ['z', 4.29, 6.99, FO, 1, 0, HEAD], ['z', 7.75, 8.45, FO, 1, 1.20, HEAD]];
+  for (const [dy, list] of [[-3.3, ours], [3.3, ours], [6.6, ours], [9.9, ours], [13.2, ours],
     [-6.6, [...west, ['x', .29, 1.35, -5.39, -1, .15, 2.35], ['x', 2.15, 3.69, -5.39, -1, .15, 2.35], ['x', 4.96, 8.63, -5.39, -1, 0, 2.35],
       ['z', -2.33, -1.26, 9.25, 1, 0, 2.35], ['z', 1.54, 3.10, 9.25, 1, 0, 2.35], ['z', 4.66, 6.23, 9.25, 1, 0, 2.35], ['z', 7.97, 8.73, 9.25, 1, 0, 2.35]]]]) list.forEach(([ax, a1, a2, f, s, sill, head]) => {
-    const P = (b1, b2, d, y1, y2, m) => ax === 'x' ? B(b1, b2, f, f + s * d, y1 + dy, y2 + dy, m, o) : B(f, f + s * d, b1, b2, y1 + dy, y2 + dy, m, o);
-    P(a1 + .004, a2 - .004, .008, sill + .004, head - .004, mDark);
+    const oo = dy > 0 ? { cast: false, parent: upperG } : o, P = (b1, b2, d, y1, y2, m) => ax === 'x' ? B(b1, b2, f, f + s * d, y1 + dy, y2 + dy, m, oo) : B(f, f + s * d, b1, b2, y1 + dy, y2 + dy, m, oo);
+    P(a1 + .004, a2 - .004, .008, sill + .004, head - .004, dy > 0 && Math.abs(Math.sin(a1 * 12.9898 + dy * 78.233) * 43758.5) % 1 < .35 ? mLitWin : mDark);
     P(a1, a2, .04, head - .05, head, mat.frame); P(a1, a2, .04, sill, sill + .05, mat.frame); P(a1, a1 + .05, .04, sill, head, mat.frame); P(a2 - .05, a2, .04, sill, head, mat.frame);
     if (sill > .1) P(a1 - .03, a2 + .03, .05, sill - .03, sill, mat.sill);
   }); }
+// floor 2's own outer faces in exterior plaster (our walls are interior material, lighter by day and bright at dusk): a 1 cm skin
+// around the openings, so floor 2 matches the floors above and below
+{ const o = { cast: false, parent: outside };
+  const skin = (ax, p, s, a1, a2, holes) => { const P = (b1, b2, y1, y2) => b2 - b1 > .005 && y2 - y1 > .005 && (ax === 'x' ? B(b1, b2, Math.min(p, p + s * .01), Math.max(p, p + s * .01), y1, y2, mStuccoOut, o) : B(Math.min(p, p + s * .01), Math.max(p, p + s * .01), b1, b2, y1, y2, mStuccoOut, o));
+    let c = a1; holes.slice().sort((h, k) => h[0] - k[0]).forEach(([h1, h2, sl, hd]) => { P(c, h1, 0, 2.71); P(h1, h2, 0, sl); P(h1, h2, hd, 2.71); c = h2; }); P(c, a2, 0, 2.71); };
+  skin('z', -4.28, -1, -5.40, 5.77, [[-2.81, -1.91, .15, 2.35], [.48, 1.48, 1.10, 2.10]]);
+  skin('x', -5.39, -1, -4.29, 9.31, [[.365, 1.265, .15, 2.35], [2.15, 3.65, .15, 2.35], [6.015, 6.615, 1.25, 2.35]]);
+  skin('z', 9.30, 1, -5.40, -.13, [[-2.17, -1.27, .15, 2.35]]);
+  skin('z', FO, 1, -.13, 9.11, [[.79, 3.49, 0, HEAD], [4.29, 6.99, 0, HEAD], [7.75, 8.45, 1.20, HEAD]]); }
+// floors 3-6 over our wing: the typical-floor sheet gives floors 1-4 our plan; floors 5-6 are on no sheet and are assumed the same.
+// In upperG, so the top and bird views (the dollhouse) still open the apartment; the street views show the whole building.
+{ const o = { cast: false, parent: upperG };
+  B(-4.28, 9.30, -5.39, -.13, 2.71, 16.4, mStuccoOut, o); B(-4.28, FO, -.13, 5.77, 2.71, 16.4, mStuccoOut, o); B(1.19, FO, 5.77, 9.11, 2.71, 16.4, mStuccoOut, o);
+  B(-4.30, 9.32, -5.41, 9.11, 16.4, 16.55, mat.concrete, o);                                                            // roof slab
+  [[-4.30, 9.32, -5.41, -5.26], [-4.30, -4.15, -5.41, 9.11], [9.17, 9.32, -5.41, -.13]].forEach(([a, b, c, d]) => B(a, b, c, d, 16.55, 17.15, mStuccoOut, o)); }   // parapet (estimate)
 // --- STREETSCAPE, laid out from the user's photos taken on the balcony (positions estimated from the photos, +-several metres) ---
 // Ali Mohar street runs north-south below the balcony. Directly below: floor 1's balcony, then the garden of the lot (ground sheet:
 // common garden to a low wall at x 12.7, more garden to the lot fence at 14.2), the sidewalk and parallel parking on pavers (ground
@@ -2107,10 +2124,11 @@ photoPBR([mPaver, mPaverRed, mPaverWalk, mPaverBay], 'interlocking_concrete_pave
 const mWin = M('#39434b', .25, { metalness: .3 }), mWinFrame = M('#4b5258', .5), mBlue = M('#3d6fa8', .8), mWhiteLine = M('#f2f2ee', .8), mBlueFence = TM(canvasTex(64, 8, (g, w, h) => { for (let x = 0; x < w; x++) { const v = 128 + Math.round(22 * Math.sin(x / w * Math.PI * 8)); g.fillStyle = `rgb(${v},${v + 12},${v + 16})`; g.fillRect(x, 0, 1, h); } }), .6, 1.2);   // grey-blue corrugated hoarding
 const mGlassRail = new THREE.MeshStandardMaterial({ color: '#cfe0e4', roughness: .05, metalness: .1, transparent: true, opacity: .25, depthWrite: false });
 const mSail = M('#e7cf98', .9, { side: THREE.DoubleSide }), mShadeNet = M('#4f8f6a', .95, { side: THREE.DoubleSide }), mAlu = M('#c3c6c8', .35, { metalness: .8 });
-// floor 1's balcony, one storey below ours (same plan): tiled slab, side walls up to our slab, upstand and black pickets
-{ const y = -3.3;
+// the same balcony on floor 1 and on floors 3-6 (same plan): tiled slab, side walls up to the next slab, upstand and black pickets
+for (const y of [-3.3, 3.3, 6.6, 9.9, 13.2]) { const OUT = { cast: false, parent: y > 0 ? upperG : outside };
   B(BX1, BX2, BZN, BZ2, BY + y - .36, BY + y - .012, mStuccoOut, OUT); B(BX1, BX2, BZN, BZ2, BY + y - .012, BY + y, mTerr, OUT);
-  B(BX1, BN - .002, BZN - .015, BZ1, BY + y, -.40, mStuccoOut, OUT); B(BX1, BS, BZ2, 9.20, BY + y, -.40, mStuccoOut, OUT);
+  B(BX1, BN - .002, BZN - .015, BZ1, BY + y, y + 2.90, mStuccoOut, OUT); B(BX1, BS, BZ2, 9.20, BY + y, y + 2.90, mStuccoOut, OUT);
+  if (y === 13.2) B(BX1, BX2, BZN, 9.20, y + 2.90, 16.55, mStuccoOut, OUT);                                         // roof over the top balcony
   B(BX2 - .15, BX2, BZN, BZ2, BY + y, .45 + y, mStuccoOut, OUT); B(BN, BX2 - .15, BZN, BZN + .15, BY + y, .45 + y, mStuccoOut, OUT);
   for (let x = BN + .07; x < BX2 - .12; x += .12) B(x - .01, x + .01, BZN + .08, BZN + .10, .47 + y, 1.05 + y, mat.blackMetal, OUT);
   B(BN, BX2 - .06, BZN + .06, BZN + .12, 1.05 + y, 1.09 + y, mat.blackMetal, OUT); B(BN, BX2 - .07, BZN + .07, BZN + .11, .45 + y, .49 + y, mat.blackMetal, OUT);
@@ -2214,7 +2232,7 @@ B(33.2, 33.7, 9.6, 11.4, GY + .4, GY + .45, mat.walnut, OUT); [9.75, 11.25].forE
 // the tall white building at the south-east end of the lot (photos 01, 06, 11, 26; placed by bearing and distance, about +-10 m):
 // two stepped wings, 9 storeys plus a roof storey, white large-format panels, small square windows, two dark-brown louvre strips
 // on the face toward us, recessed loggias, a red-tile roof element. All dimensions are estimates.
-const litMats = [];   // lit-window emissive maps, on in the evening
+const litMats = [mLitWin];   // lit-window emissive maps, on in the evening
 { const U = 12, wins = [];   // one texture = 12 m x 12 m: 10 panel columns, 4 floors
   { const r = rnd(301); for (let f = 0; f < 4; f++) for (let k = 0; k < 3; k++) wins.push([(k * 4 + Math.floor(r() * 3)) * 51.2 + 7, f * 128 + 40, 38]); }
   const face = canvasTex(512, 512, (g, w, h) => { const r = rnd(302); g.fillStyle = '#f0f0ec'; g.fillRect(0, 0, w, h);
@@ -2379,6 +2397,11 @@ for (let f = 0; f < 6; f++) [[9.20, 12.91], [26.82, 30.6]].forEach(([a, b]) => {
   B(7.70, 10.2, a, b, y - .25, y, mStuccoOut, OUT); B(10.05, 10.2, a, b, y, y + .45, mStuccoOut, OUT);
   B(7.70, 10.2, a, a + .15, y, y + .45, mStuccoOut, OUT); B(7.70, 10.2, b - .15, b, y, y + .45, mStuccoOut, OUT);
   B(10.1, 10.14, a, b, y + .45, y + 1.05, mGlassRailN, OUT); });
+// roof over the north end of A (roof sheet): a hipped tile roof, x -3.54..7.66, z -4.77..3.93 (simplified to a pyramid; ridge
+// height not written, 2.4 m an estimate), and solar collectors on the flat roof south of it
+{ const g = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1); g.rotateY(Math.PI / 4); const r = mesh(g, mRoofTile, upperG, false);
+  r.scale.set(11.2, 2.4, 8.7); r.position.set(2.06, 16.55 + 1.2, -.42);
+  for (let i = 0; i < 6; i++) { const p = B(-.7, .7, -.95, .95, 0, .05, mat.pv, { cast: false, parent: upperG }); p.position.set(2.2 + (i % 3) * 1.6, 16.9, 5.0 + Math.floor(i / 3) * 2.1); p.rotation.x = -.35; } }
 // courtyard trees between the blocks
 for (let i = 0, n = 0; i < 400 && n < 80; i++) {
   const x = 50 + treeR() * 160, z = -140 + treeR() * 250, r = 1.6 + treeR() * 1.2;
@@ -2793,6 +2816,8 @@ const views = {
   bedtv:   { g: 'C', name: 'הורים: קיר הרפפות', pos: [6.95, 1.5, -2.95], tgt: [6.95, 1.0, 0], fov: 75 },
   desk:    { g: 'C', name: 'ממ״ד: עמדת העבודה', pos: [-2.7, 1.5, .72], tgt: [-2.6, 1.0, 2.7], fov: 70 },
   corr2:   { g: 'C', name: 'מסדרון אל הסלון', pos: [-1.7, 1.62, -.7], tgt: [4.0, 1.35, -.7], fov: 68 },
+  street:  { g: 'C', name: 'מהרחוב: עלי מוהר', pos: [17.6, -4.95, 15.5], tgt: [6.5, 2.2, 2.5], fov: 62 },
+  streetN: { g: 'C', name: 'מהרחוב: הפינה הצפונית', pos: [19.6, -4.95, -10.6], tgt: [4.5, 2.6, -1.5], fov: 62 },
   bird1:   { g: 'C', name: 'מבט ציפור: סלון ומטבח', pos: [14.5, 8.0, 2.5], tgt: [3.8, 0, 4.2], fov: 50, top: true, nodims: true },
   bird2:   { g: 'C', name: 'מבט ציפור: חדרי השינה', pos: [6.5, 8.5, -10.5], tgt: [1.0, 0, -2.6], fov: 50, top: true, nodims: true },
   top:     { g: 'B', name: 'כל הדירה מלמעלה', pos: [2.4, 22, 4.6], tgt: [2.4, 0, 1.6], fov: 50, top: true },
