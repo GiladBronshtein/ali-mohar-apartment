@@ -100,12 +100,12 @@ interior dimensions, e.g. חדר הורים 430×296.
 
 ## Lighting and rendering
 
-- Renderer: PCF soft shadows, ACES Filmic (AgX tested, too desaturated), `EXPO` 0.85 day / 1.2 eve,
+- Renderer: PCF soft shadows, ACES Filmic (AgX tested, too desaturated), `EXPO` 0.85 day / 1.35 eve,
   `preserveDrawingBuffer`.
 - Environment: PMREM `RoomEnvironment` at `ENV` .3, fog 90 to 460, sky sphere r 650. The sky sphere uses the CC0
   photo skies `assets/sky/day.webp` / `eve.webp` (upper part of a Poly Haven equirect) when present, else the canvas
   sky; `skies` holds map, rotation and strength per mode.
-- Lights: hemisphere `HEMI` .22; sun (DirectionalLight `SUN` 3.0, about 10:00 in autumn, ESE, 45° up, shadow map 4096 / 2048 on
+- Lights: hemisphere `HEMI` .14; sun (DirectionalLight `SUN` 3.0, about 10:00 in autumn, ESE, 45° up, shadow map 4096 / 2048 on
   phones); 8 RectAreaLight window lights (`winLight`, strength x .91); 11 warm point lights (0 by day), 0.30 m below the
   ceiling except the kids' bath one, which hangs under its lowered ceiling (`BC - .3`).
 - `setMode('day'|'eve')` switches lights, sky, fog, emissives, exposure, bloom and env intensity. Cycles adds a third
@@ -120,12 +120,23 @@ interior dimensions, e.g. חדר הורים 430×296.
   `lm/export.mjs` and `exportglb.mjs` drop them (Cycles has its own mirror material). `__app.mirrors` lists them.
 - Path tracer (three-gpu-pathtracer, lazy import, 5 bounces, denoised): reachable only via `__app.setPT(true)`;
   the `#btnPT` button is hidden.
-- Baked lightmaps: `?baked=1` loads `lm/manifest.json` and the atlases in the published `lm/` folder (256 spp GPU
-  bake, 1 atlas at 2048, 154 targets, about 1.3 MB). Off by default: even at 30x gain the interior reads darker and
-  blotchier than the real-time light (low indirect light, about 4 cm per texel on the ceilings). `LM.ready`,
+- Baked lightmaps (`lm/`, 256 spp GPU bake of the current model with fixtures as occluders, 159 targets): by default
+  hybrid. `LM.loadAo` puts the baked AO map on the shared materials as `aoMap` (uv1, `aoMapIntensity` .7), so the
+  real-time light stays and only the indirect part darkens in corners, under furniture and along the ceiling line,
+  phones included (they have no GTAO). Meshes on those materials without a bake UV get a white texel (`lmWhiteUv`,
+  also on fixture slots via `fixDraw`, `lmAo`). The full bake as the light source stays behind `?baked=1`: it still
+  reads darker than the real-time light. `LM.ready`,
   `LM.gain` and `LM.apply()` allow tuning from the console. Baked materials are clones, so `LM.load` waits for
   `photoReady`. Matching is by vertex count plus bbox, so any
   geometry change silently falls back to real-time light until a re-bake.
+
+- Reflection probes: `assets/env/{liv,mbath,fbath}-{day,eve}.webp`, equirect Cycles renders at eye height in the
+  living room and the two baths (`PANO=1 POS=x,y,z cycles_render.py`, Standard view transform, normalized to a mean
+  linear luminance of .22, about 25 KB each). `loadProbes(mode)` PMREMs them (day after the sky, eve with the eve sky);
+  `applyProbes()` sets `envMap` only on glossy and metal finishes (`PROBE_GLOSSY`: quartz, steel, chrome, ceramics,
+  fronts, frames...), each bath's own finishes on its bath's probe (`PROBE_ZONE`), the rest on the living probe, at the
+  usual env strength x `PROBE_K` (day 2.0, eve 1.6, tuned by eye). Walls and fabrics are shared by every room and keep
+  the neutral `RoomEnvironment` (a per-room probe on them darkened and warmed whole rooms). Not box-projected.
 
 ## Camera, navigation, views
 
@@ -189,14 +200,23 @@ regenerates PNG icons from `favicon.svg`. Theme colour `#2d5f7c`.
 ```text
 salon.html --exportglb.mjs (Chrome on :8765)--> apartment.glb + views.json
            --cycles_render.py <view> <day|eve|lit> <spp> <W> <H> <out.png> [exposure]--> out/*.png
-           --render_all.sh (PNG to JPG q90)--> source/renders/*.jpg
-           --manual copy--> ../renders/ + renders/status.json + RENDERS in salon.html
+           --render_gallery.sh (17 gallery views, PNG to JPG q90)--> ../renders/*.jpg
 ```
 
-- `exportglb.mjs` writes `local.html` with CDN URLs pointed at `/node_modules/`, loads it headless with SwiftShader,
-  exports via GLTFExporter (textures capped at 1024), names meshes `m_`, `ceil_`, `out_`, `fan_`, `warm_N`.
-- `cycles_render.py`: CPU, adaptive sampling, OIDN, AgX Medium High Contrast, Nishita sky, 8 window portals, white
-  balance 6900 K day / 5600 K lit / 4800 K eve. About 8 minutes per image on 2 cores at 48 spp, 1440×900.
+- `exportglb.mjs` writes `local.html` with CDN URLs pointed at `/node_modules/`, loads it headless with SwiftShader
+  at 1280×800 (under 640 px the page builds the phone model: no CC0 props, smaller canvas textures), waits for the CC0
+  props, exports via GLTFExporter (textures capped at 1024), names meshes `m_`, `ceil_`, `out_`, `fan_`, `prop_`,
+  `warm_N`. The visible prop group goes in (`propGroup` or the procedural stand-ins, `onlyVisible` is off). Needs a
+  server on :8765 serving `source/` and the `source/assets` symlink to `../assets` (in `.git/info/exclude`) for the
+  photo textures. `apartment.glb` (about 110 MB) is tracked but must not be committed: `git checkout -- apartment.glb`
+  after a render run.
+- `cycles_render.py`: adaptive sampling, OIDN, AgX Medium High Contrast, Nishita sky, 8 window portals, white
+  balance 6900 K day / 5600 K lit / 4800 K eve. `GPU=1` renders on Metal (about 2 minutes per image at 128 spp,
+  1440×900, on this Mac); `PANO=1 POS=x,y,z` renders an equirect probe from that point (three.js coordinates, image
+  centre = +x, Standard view transform).
+- `render_gallery.sh`: the 17 gallery views with their mode and exposure, `SPP` 128 by default, resumable (skips views
+  listed in `logs/gallery_progress.txt`, appends `ALLDONE` at the end), writes `../renders/<view>-<mode>.jpg`.
+  `render_all.sh` is the old sandbox script (wrong output paths) and is not used.
 - Lightmaps: `lm/export.mjs` → `lm/bake.py` (unwrap, pack, bake natural/lamps/ao) → `lm/publish.py` (WebP + manifest).
   On this Mac: `bpy` installed, `--device GPU` (Metal), `--hdri` (the day sky photo as world light, `SKY_STRENGTH`
   .35), sun strength from the export. `bake_proxies()` joins each atlas's targets into one object before baking,
