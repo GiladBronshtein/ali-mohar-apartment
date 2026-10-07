@@ -94,13 +94,6 @@ details[open] summary::after { content: " ▴"; }
   position: fixed; left: 16px; top: calc(env(safe-area-inset-top, 0px) + 16px); direction: rtl;
   font: 700 18px/1 var(--font-display); color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.55); pointer-events: none;
 }
-#gal { position: fixed; inset: 0; background: #0d0f10; z-index: 20; display: grid; grid-template-rows: 1fr auto; direction: rtl; }
-#galImg { width: 100%; height: 100%; object-fit: contain; min-height: 0; touch-action: pan-y; }
-.galbar { display: flex; align-items: center; gap: 8px; padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 12px); background: #15181a; color: #eceae5; }
-.galbar button { background: #23272a; color: #eceae5; border-color: #33383c; font-size: 18px; padding: 8px 14px; }
-.galcap { flex: 1; min-width: 0; display: grid; gap: 2px; text-align: center; }
-.galcap b { font: 700 17px/1.2 var(--font-display); }
-.galcap span { font-size: 12px; color: #a6abaf; }
 #loading { position: fixed; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 15px; pointer-events: none; direction: rtl; }
 @media (max-width: 640px) {
   .panel {
@@ -159,12 +152,11 @@ details[open] summary::after { content: " ▴"; }
       <button id="btnCurt" aria-pressed="false">וילונות סגורים</button>
     </div>
   </div>
-  <div>
+  <div hidden>
     <div class="label">הדמיה פוטו-ריאליסטית</div>
     <div class="chips">
-      <button id="btnGal">תמונות באיכות מלאה</button>
       <button id="btnPT" aria-pressed="false" hidden>רינדור ריאליסטי חי</button>
-      <span class="ptinfo" id="ptInfo">תמונות מרונדרות עם תאורה אמיתית, נטענות מיד גם בטלפון. התצוגה החיה מתחדדת לבד כשעוצרים לרגע.</span>
+      <span class="ptinfo" id="ptInfo">התצוגה החיה מתחדדת לבד כשעוצרים לרגע.</span>
     </div>
   </div>
   <details>
@@ -193,7 +185,7 @@ details[open] summary::after { content: " ▴"; }
       <li><b>חלון המטבח למרפסת:</b> תריס יום/לילה (זברה) לבן, כמו בתמונה. מותקן בתוך פתח החלון ולא על הקיר, כי ארון המטבח העליון נגמר 3 ס״מ מהקיר וקופסה על הקיר הייתה נתקעת בו. פתוח: הפסים השקופים מיושרים ורואים החוצה. סגור: הפסים מוסטים והתריס אטום.</li>
       <li><b>ממ״ד:</b> חדר 3 הוא הממ״ד. כך כתוב בתוכנית הדירה 1:75 (שם הוא ״חדר מס׳ 4 ממ״ד״), ובמפרט חלון הממ״ד 100/100 ודלת ההדף נפתחת החוצה.</li>
       <li><b>כיוונים וסביבה:</b> מול המרפסת, בעלי מוהר 5, מבנה ציבור נמוך בן 2 קומות עם גני ילדים וחצר מוצלת. בנווה זמר אין מגדלים: הבניינים עד 8 קומות סביב חצרות ירוקות, עם הרבה עצים ופארקים. לפי המצפן בתוכנית המכר (וכך גם הרחובות במפה): המרפסת והסלון פונים למזרח, לרחוב עלי מוהר. חדרים 1 ו-3 למערב, חדר 2, מקלחת ההורים וחדר הארונות לצפון. רחוב תרצה אתר מדרום לבניין. הדירה בקומה 2, כ-6.6 מ׳ מעל הרחוב. השמש במצב יום היא של 10 בבוקר בסתיו, ממזרח-דרום-מזרח. הנוף נבנה לפי התמונות שצילמת מהמרפסת: בית הספר ממול נמשך צפונה מאמצע המרפסת, מדרום לו שביל ומגרש ריק, הבניין הלבן הגבוה בדרום-מזרח, ומתחתינו המרפסת של קומה 1 (אותה תוכנית כמו שלנו), ובקומת הקרקע דירת גן. המגרש, הגינות, הגדר, החניה והחזית הקרובה של הרחובות לפי תוכנית קומת הקרקע ותוכנית הקומה הטיפוסית (בדיוק של כ-15 ס״מ). מעבר לגבול המגרש בצפון יש מגרש עם גדר בנייה כחולה. הצד הרחוק של הרחוב והבניינים מסביב משוערים מהתמונות, בדיוק של כמה מטרים.</li>
-      <li><b>מידות:</b> המידה הפנימית של כל חדר בדגם שווה בדיוק למידה הרשומה בשרטוט המכר (בדיקה אוטומטית, סטייה של עד חצי ס״מ): ממ״ד 355×262, חדר 1 274×361, חדר 2 282×356, הורים 430×296, רחצה 245×238, מקלחת הורים 222×172, חדר ארונות 190×175, מטבח 365, מסדרון 110. רהיטים, ארונות ונקודות חשמל זזו יחד עם הקירות. לפי ההערה בשרטוט המכר, המידות הן מקיר לקיר לפני טיח וחיפוי (במרפסת: מהקיר החיצוני), ולכן החדרים בפועל יהיו קטנים בכ-2 עד 6 ס״מ (הערכה). שטח הדירה במפרט המכר ובנספח פרטי הדירה כ-130 מ״ר; בכותרת 132, המספר שמסר הקבלן. כדאי למדוד בשטח לפני הזמנת ארונות. גובה התקרה 2.70 מ׳: במפרט המכר כתוב ״לא פחות מ-2.70״, ובמסדרון מתחת להנמכה לא פחות מ-2.30 (בדגם 2.35). לפי תוכנית המיזוג: הנמכה של 35 ס״מ במסדרון ובפס לאורך קיר הטלוויזיה, עם שני תריסי אספקה 90x15 ותריס חוזר 80x60. בדיקה שנייה ונפרדת מול כל מספר בתוכניות (מכר, אינסטלציה, מיזוג) תיקנה: מרפסת 275×884 כמו בשרטוט, והקיר הצפוני שלה נעצר בחזית חדר ההורים; מקלחון בחדר הרחצה של ההורים 106×92 עם אסלה במרחק 60 ס״מ מהקיר; תריסי אספקה 90×15; ציר דלת הממ״ד בצד המערבי, נפתחת 90° למסדרון כמו בשרטוט. נוספו קופסת הצנרת בפינת האמבטיה, הבליטה בקיר ליד דלת ההורים, ולוח החשמל במקום המסומן. גובה לוח החשמל וסוג דלת המקלחון לא כתובים בתוכניות. התמונות שבכפתור "תמונות באיכות מלאה" רונדרו לפני התיקונים האלה, ולכן במקלחת ההורים ובמרפסת הן מראות את המצב הקודם. בדיקה שלישית מול צילומים מלאים של תוכניות החשמל, האינסטלציה והמיזוג תיקנה: פתח דלת הכניסה 97 ס״מ עם ציר בצד המערבי, פתח דלת חדר 2 83 ס״מ, קיר הטלוויזיה בעובי 19 ס״מ בקטע המסדרון, אמבטיה ברוחב 70 עם הברזים על קיר המסדרון, מרכז הכיור 72 ס״מ מהקיר (ובמקלחת ההורים 44), ניקוז נקודתי במקלחון, תריס משולב 80×20 בחדרים 1 ו-2, מיקום תריסי הסלון ושרוולי הממ״ד, שרוול 4 אינץ׳ לאיזון לחץ, ומיקום מנורות, מאווררים, מפסקים ושקעים לפי תוכנית החשמל. מיקום שנמדד מהצילום ולא נכתב כמספר מדויק בכמה ס״מ בלבד. בדיקה רביעית מול קבצי התוכניות המקוריים (כולל תוכנית הביצוע מ-5/5/26) תיקנה: מיקום, אדן וראש של כל החלונות כפי שהם כתובים בתוכנית הביצוע (חדרים 1 ו-2 וחדר ההורים: כנף אחת, אדן 15 ס״מ, ראש 2.35; מקלחת ההורים: אדן 1.25; ממ״ד: 1.10 עד 2.10; דלתות המרפסת 270 ס״מ כל אחת וחלון המטבח 70 עם אדן 1.20), מעבר של 120 ס״מ מהמסדרון לסלון, קופסת הצנרת בפינה הצפון-מערבית של חדר הרחצה, המזגן של חדר ההורים מעל הדלת, ראש המקלחת על זרוע מהקיר בגובה 2.10, המעבה בגודל 100×45 עם המאוורר לכיוון הרפפות, ותריס חוזר, ניקוזים, שקעים ומפסקים.</li>
+      <li><b>מידות:</b> המידה הפנימית של כל חדר בדגם שווה בדיוק למידה הרשומה בשרטוט המכר (בדיקה אוטומטית, סטייה של עד חצי ס״מ): ממ״ד 355×262, חדר 1 274×361, חדר 2 282×356, הורים 430×296, רחצה 245×238, מקלחת הורים 222×172, חדר ארונות 190×175, מטבח 365, מסדרון 110. רהיטים, ארונות ונקודות חשמל זזו יחד עם הקירות. לפי ההערה בשרטוט המכר, המידות הן מקיר לקיר לפני טיח וחיפוי (במרפסת: מהקיר החיצוני), ולכן החדרים בפועל יהיו קטנים בכ-2 עד 6 ס״מ (הערכה). שטח הדירה במפרט המכר ובנספח פרטי הדירה כ-130 מ״ר; בכותרת 132, המספר שמסר הקבלן. כדאי למדוד בשטח לפני הזמנת ארונות. גובה התקרה 2.70 מ׳: במפרט המכר כתוב ״לא פחות מ-2.70״, ובמסדרון מתחת להנמכה לא פחות מ-2.30 (בדגם 2.35). לפי תוכנית המיזוג: הנמכה של 35 ס״מ במסדרון ובפס לאורך קיר הטלוויזיה, עם שני תריסי אספקה 90x15 ותריס חוזר 80x60. בדיקה שנייה ונפרדת מול כל מספר בתוכניות (מכר, אינסטלציה, מיזוג) תיקנה: מרפסת 275×884 כמו בשרטוט, והקיר הצפוני שלה נעצר בחזית חדר ההורים; מקלחון בחדר הרחצה של ההורים 106×92 עם אסלה במרחק 60 ס״מ מהקיר; תריסי אספקה 90×15; ציר דלת הממ״ד בצד המערבי, נפתחת 90° למסדרון כמו בשרטוט. נוספו קופסת הצנרת בפינת האמבטיה, הבליטה בקיר ליד דלת ההורים, ולוח החשמל במקום המסומן. גובה לוח החשמל וסוג דלת המקלחון לא כתובים בתוכניות. בדיקה שלישית מול צילומים מלאים של תוכניות החשמל, האינסטלציה והמיזוג תיקנה: פתח דלת הכניסה 97 ס״מ עם ציר בצד המערבי, פתח דלת חדר 2 83 ס״מ, קיר הטלוויזיה בעובי 19 ס״מ בקטע המסדרון, אמבטיה ברוחב 70 עם הברזים על קיר המסדרון, מרכז הכיור 72 ס״מ מהקיר (ובמקלחת ההורים 44), ניקוז נקודתי במקלחון, תריס משולב 80×20 בחדרים 1 ו-2, מיקום תריסי הסלון ושרוולי הממ״ד, שרוול 4 אינץ׳ לאיזון לחץ, ומיקום מנורות, מאווררים, מפסקים ושקעים לפי תוכנית החשמל. מיקום שנמדד מהצילום ולא נכתב כמספר מדויק בכמה ס״מ בלבד. בדיקה רביעית מול קבצי התוכניות המקוריים (כולל תוכנית הביצוע מ-5/5/26) תיקנה: מיקום, אדן וראש של כל החלונות כפי שהם כתובים בתוכנית הביצוע (חדרים 1 ו-2 וחדר ההורים: כנף אחת, אדן 15 ס״מ, ראש 2.35; מקלחת ההורים: אדן 1.25; ממ״ד: 1.10 עד 2.10; דלתות המרפסת 270 ס״מ כל אחת וחלון המטבח 70 עם אדן 1.20), מעבר של 120 ס״מ מהמסדרון לסלון, קופסת הצנרת בפינה הצפון-מערבית של חדר הרחצה, המזגן של חדר ההורים מעל הדלת, ראש המקלחת על זרוע מהקיר בגובה 2.10, המעבה בגודל 100×45 עם המאוורר לכיוון הרפפות, ותריס חוזר, ניקוזים, שקעים ומפסקים.</li>
       <li><b>חדר הורים:</b> בלי שידה, ומתחת לטלוויזיה אין כלום. הטלוויזיה תלויה קרוב יותר לפינה של הדלת, 52 ס״מ מהקיר. החלון בכנף אחת, אדן 15 ס״מ וראש ב-2.35 כמו בתוכנית הביצוע, עם שורגים בחוץ. וילון וואל חצי שקוף מהתקרה עד הרצפה, כמו בסלון, כך שגם כשהוא סגור רואים החוצה. רק על אזור החלון: מסילה שעוברת 20 ס״מ מכל צד של החלון, שתי כנפיים שנאספות לקצוות כשהוא פתוח ונפגשות באמצע כשהוא סגור.</li>
       <li><b>חומרים:</b> לריצוף, לעץ ולאבן יש מברק ומרקם שמשתנים לאורך המשטח, ולא משטח אחיד.</li>
       <li><b>צמחייה:</b> אין עציצים בתוך הבית. נשארו רק במרפסת.</li>
@@ -211,15 +203,6 @@ details[open] summary::after { content: " ▴"; }
   <div class="hint" id="hint">בתוך חדר: גרירה מסובבת את המבט. חץ למעלה/למטה הולך קדימה/אחורה, חץ ימינה/שמאלה מסתובב (Shift מהר יותר). גלגלת מתקדמת. בטלפון: אצבע אחת מסתכלת מסביב, שתי אצבעות בפישוק הולכות קדימה, וגרירה בשתי אצבעות מזיזה. במבט על: גרירה מסובבת, גלגלת מזיזה זום. מקש H מסתיר את הבקרים.</div>
 </aside>
 <button id="show" hidden aria-label="הצגת הבקרים">☰ בקרים</button>
-<div id="gal" hidden role="dialog" aria-label="תמונות מרונדרות">
-  <img id="galImg" alt="">
-  <div class="galbar">
-    <button id="galPrev" aria-label="הקודמת">›</button>
-    <div class="galcap"><b id="galName"></b><span id="galCount"></span></div>
-    <button id="galNext" aria-label="הבאה">‹</button>
-    <button id="galClose" aria-label="סגירה">✕</button>
-  </div>
-</div>
 
 <script type="importmap">
 { "imports": {
@@ -2956,7 +2939,7 @@ function turn(a) {
 }
 const WALK_KEYS = { ArrowUp: 'f', KeyW: 'f', ArrowDown: 'b', KeyS: 'b', ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r' };
 window.addEventListener('keydown', e => {
-  if (mode !== 'inside' || !gal.hidden || !WALK_KEYS[e.code] || (e.target.closest && e.target.closest('input,textarea,select'))) return;
+  if (mode !== 'inside' || !WALK_KEYS[e.code] || (e.target.closest && e.target.closest('input,textarea,select'))) return;
   e.preventDefault(); fast = e.shiftKey; anim = null; if (!held.has(WALK_KEYS[e.code])) held.set(WALK_KEYS[e.code], performance.now());
 });
 window.addEventListener('keyup', e => { const k = WALK_KEYS[e.code]; if (k && held.has(k)) { walkTick(performance.now()); held.delete(k); } fast = e.shiftKey; });
@@ -3087,55 +3070,18 @@ async function setPT(on) {
       await new Promise(r => setTimeout(r, 30));
       mirrors.forEach(r => r.visible = false); pt.setScene(scene, camera); ptOn = true;
     } catch (e) { console.error(e); ptInfo.textContent = 'הדפדפן הזה לא תומך ברינדור הריאליסטי.'; ptScene(false); ptOn = false; btnPT.setAttribute('aria-pressed', false); }
-  } else { ptOn = false; ptScene(false); roomName.textContent = views[current] && !views[current].top ? views[current].name : ''; ptInfo.textContent = '"תמונות באיכות מלאה" נטענות מיד גם בטלפון. "רינדור חי" מחשב תאורה אמיתית בדפדפן ומתחדד עם הזמן, ומתאים בעיקר למחשב.'; if (lastSt) galStatus(lastSt); }
+  } else { ptOn = false; ptScene(false); roomName.textContent = views[current] && !views[current].top ? views[current].name : ''; ptInfo.textContent = '"רינדור חי" מחשב תאורה אמיתית בדפדפן ומתחדד עם הזמן, ומתאים בעיקר למחשב.'; }
 }
 btnPT.onclick = () => setPT(!ptOn);
 controls.addEventListener('change', () => { if (ptOn && pt) pt.updateCamera(); });
 let fansOn = false, lastT = performance.now();
 document.getElementById('btnFan').onclick = () => { dirty = 1; fansOn = !fansOn; document.getElementById('btnFan').setAttribute('aria-pressed', fansOn); };
-// gallery of offline path-traced renders (Blender Cycles + denoiser), published next to the page
-const RENDERS = [
-  ['kitchen-day', 'מטבח ואי'], ['kitchen2-day', 'מקרר, תנור, מיקרוגל ובר קפה'], ['kitchen3-day', 'כיור וכיריים בקו אחד'], ['island-day', 'האי: 2 + 2 מקומות'], ['storage-day', 'קיר האחסון'], ['hall-day', 'כניסה וקומודה'], ['master-day', 'חדר הורים'],
-  ['entry-day', 'סלון וקיר הטלוויזיה'], ['tvwall-eve', 'קיר הטלוויזיה בערב'], ['shower-day', 'מקלחת הורים'], ['bath2-day', 'אמבטיית ילדים: כביסה וחלון'],
-  ['room2-day', 'חדר 2'], ['room3-day', 'חדר 3 (ממ״ד)'], ['balcony-day', 'מרפסת: פינת ישיבה'], ['balcony2-day', 'מרפסת: כורסה תלויה'], ['view-day', 'הנוף מהמרפסת'], ['entry-eve', 'סלון בערב'],
-];
-let gi = 0, GAL = []; const gal = document.getElementById('gal'), galImg = document.getElementById('galImg'), btnGal = document.getElementById('btnGal');
-function showGal(i) { dirty = 1; if (!GAL.length) return; gi = (i + GAL.length) % GAL.length; galImg.src = `renders/${GAL[gi][0]}.jpg`; galImg.alt = GAL[gi][1];
-  document.getElementById('galName').textContent = GAL[gi][1]; document.getElementById('galCount').textContent = `${gi + 1} מתוך ${GAL.length} · רינדור מלא עם תאורה אמיתית`; }
-// which full-quality images are ready: renders/status.json is republished as the offline renders finish
-let lastSt = null;
-function galStatus(st) {
-  if (st) lastSt = st;
-  const done = new Set((st && st.done) || []); GAL = RENDERS.filter(r => done.has(r[0]));
-  const total = RENDERS.length, n = GAL.length, pct = st && st.overall_pct != null ? st.overall_pct : Math.round(100 * n / total);
-  const curName = st && st.current ? ((RENDERS.find(r => r[0] === st.current) || [0, st.current])[1]) : null;
-  btnGal.disabled = n === 0;
-  btnGal.textContent = n >= total ? `תמונות באיכות מלאה (${total})` : `תמונות באיכות מלאה · ${n} מתוך ${total} מוכנות (${pct}%)`;
-  if (n < total) {
-    let t = `התמונות באיכות מלאה מתרנדרות: ${n} מתוך ${total} מוכנות, ${pct}% מהעבודה.`;
-    if (curName) t += ` עכשיו בעבודה: "${curName}" (כ-${st.current_pct}%${st.current_start ? `, התחילה ב-${st.current_start}` : ''}).`;
-    else if (st) t += ' כרגע אין תמונה בעבודה, אני בודק את זה.';
-    if (st && st.eta) t += ` הכול צפוי להיות מוכן בסביבות ${st.eta}.`;
-    if (st && st.updated) t += ` הסטטוס עודכן ב-${st.updated} ומתעדכן כל 10 דקות.`;
-    if (n) t += ' התמונות שמוכנות כבר פתוחות לצפייה.';
-    ptInfo.textContent = t;
-  } else if (!ptOn) ptInfo.textContent = `${total} תמונות שרונדרו ב-Blender Cycles עם תאורה אמיתית. נפתחות מיד, גם בטלפון.`;
-}
-galStatus(null);
-fetch('renders/status.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).then(galStatus).catch(() => galStatus(null));
-btnGal.onclick = () => { if (!GAL.length) return; gal.hidden = false; window.__pause = true; showGal(gi); };
 // doors and curtains: open or closed
 function setDoors(closed) { renderer.shadowMap.needsUpdate = true; doors.forEach(d => d.g.rotation.y = closed ? d.closed : d.open); captureContact(); document.getElementById('btnDoors').setAttribute('aria-pressed', closed); dirty = 1; if (ptOn && pt) pt.setScene(scene, camera); }
 function setCurtains(closed) { renderer.shadowMap.needsUpdate = true; curtOpen.forEach(c => c.visible = !closed); curtClosed.forEach(c => c.visible = closed); captureContact(); document.getElementById('btnCurt').setAttribute('aria-pressed', closed); dirty = 1; if (ptOn && pt) pt.setScene(scene, camera); }
 let doorsClosed = false, curtClosedOn = false;
 document.getElementById('btnDoors').onclick = () => setDoors(doorsClosed = !doorsClosed);
 document.getElementById('btnCurt').onclick = () => setCurtains(curtClosedOn = !curtClosedOn);
-document.getElementById('galClose').onclick = () => { gal.hidden = true; window.__pause = false; };
-document.getElementById('galNext').onclick = () => showGal(gi + 1); document.getElementById('galPrev').onclick = () => showGal(gi - 1);
-galImg.onerror = () => { document.getElementById('galCount').textContent = 'התמונה עדיין לא זמינה'; };
-{ let sx = null; galImg.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
-  galImg.addEventListener('touchend', e => { if (sx === null) return; const d = e.changedTouches[0].clientX - sx; if (Math.abs(d) > 40) showGal(gi + (d > 0 ? 1 : -1)); sx = null; }); }
-window.addEventListener('keydown', e => { if (gal.hidden) return; if (e.key === 'Escape') document.getElementById('galClose').click(); if (e.key === 'ArrowLeft') showGal(gi + 1); if (e.key === 'ArrowRight') showGal(gi - 1); });
 const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 const lastCam = new Float32Array(20); let stillSince = 0;
 function camMoved() {

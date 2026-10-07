@@ -18,20 +18,12 @@ for (const [name, vp, mobile] of [['desktop', { width: 1440, height: 900 }, fals
   await p.evaluate(() => { window.__pause = true; window.__app.renderOnce(); window.__app.renderOnce(); });
   await p.screenshot({ path: `${out}${name}.png`, timeout: 120000 });
   const info = await p.evaluate(async () => {
-    const st = await (await fetch('renders/status.json')).json();
     const chk = async u => (await fetch(u)).status;
-    return { title: document.title, gal: document.getElementById('btnGal').textContent, galDisabled: document.getElementById('btnGal').disabled,
+    return { title: document.title,
       viewsC: document.querySelectorAll('#viewsC button').length, views: document.querySelectorAll('[data-k]').length,
-      icons: { svg: await chk('favicon.svg'), png: await chk('favicon-32.png'), apple: await chk('apple-touch-icon.png'), manifest: await chk('site.webmanifest'), og: await chk('og.jpg'), i512: await chk('icon-512.png') },
-      done: st.done.length };
+      icons: { svg: await chk('favicon.svg'), png: await chk('favicon-32.png'), apple: await chk('apple-touch-icon.png'), manifest: await chk('site.webmanifest'), og: await chk('og.jpg'), i512: await chk('icon-512.png') } };
   });
   console.log(name, 'ready in', ready, 'ms', JSON.stringify(info));
-  // gallery: open, check the image loads, step through all
-  await p.click('#btnGal'); await p.waitForTimeout(800);
-  const imgs = await p.evaluate(async () => { const res = []; const n = document.querySelectorAll('#galName').length; for (let i = 0; i < 17; i++) { const im = document.getElementById('galImg'); await new Promise(r => { if (im.complete && im.naturalWidth) r(); else { im.onload = r; im.onerror = r; setTimeout(r, 4000); } }); res.push(im.naturalWidth > 0 ? 1 : 0); document.getElementById('galNext').click(); await new Promise(r => setTimeout(r, 150)); } return res; });
-  console.log(name, 'gallery images loaded:', imgs.reduce((a, b) => a + b, 0), 'of', imgs.length);
-  await p.screenshot({ path: `${out}${name}_gal.png`, timeout: 120000 });
-  await p.click('#galClose');
   // one of the new views
   await p.evaluate(() => { window.__pause = true; window.__app.setView('bird2', true); window.__app.renderOnce(); }); await p.screenshot({ path: `${out}${name}_bird.png`, timeout: 120000 });
   await ctx.close();

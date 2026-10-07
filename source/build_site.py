@@ -53,11 +53,11 @@ json.dump({"name": title, "short_name": "הדירה", "description": desc, "lang
 open(SITE + '/404.html', 'w').write(f'<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title><link rel="icon" href="/{repo}/favicon.svg"><meta http-equiv="refresh" content="2;url=/{repo}/"><style>body{{margin:0;min-height:100vh;display:grid;place-items:center;font-family:Arial,sans-serif;background:#e9ecef;color:#22272b}}a{{color:#2d5f7c}}</style></head><body><p>העמוד לא נמצא. <a href="/{repo}/">חזרה להדמיה</a></p></body></html>\n')
 open(SITE + '/robots.txt', 'w').write('User-agent: *\nAllow: /\n'); open(SITE + '/.nojekyll', 'w').write('')
 # service worker: cache-first for every static file, keyed by the hash of its bytes, so a return visit after a push downloads
-# only what changed (GitHub Pages sends max-age=600 and resets every ETag on each push). index.html and renders/status.json
-# stay on the network.
+# only what changed (GitHub Pages sends max-age=600 and resets every ETag on each push). index.html stays on the
+# network.
 import hashlib
 files = {}
-for d in ['vendor', 'assets', 'lm', 'renders']:
+for d in ['vendor', 'assets', 'lm']:
     for r, _, fs in os.walk(os.path.join(SITE, d)):
         for f in fs:
             fp = os.path.join(r, f); rel = os.path.relpath(fp, SITE).replace(os.sep, '/')
