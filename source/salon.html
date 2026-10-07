@@ -510,7 +510,7 @@ const mat = {
   sill: M('#ece9e2', 0.35),
   front: M('#d2cbbf', 0.68), greigeFront: M('#bdb4a6', 0.7), whiteFront: M('#f1efea', 0.55),
   steel: M('#a9adb0', 0.28, { metalness: 0.9 }), screen: M('#0b0c0d', 0.24, { metalness: 0.3 }),
-  door: M('#f2f0eb', 0.55), entryDoor: M('#55595d', 0.55, { metalness: 0.3 }), blastDoor: M('#8c9195', 0.5, { metalness: 0.5 }),
+  door: M('#f3f2ee', 0.42), entryDoor: M('#55595d', 0.55, { metalness: 0.3 }), blastDoor: M('#8c9195', 0.5, { metalness: 0.5 }),
   ceramic: M('#fbfbf9', 0.12), ceramicIn: M('#e9eae8', 0.15),
   oat: fab('#d8cfc1', 3), sofaGrey: fab('#66686b', 18),  oatDark: fab('#b7ab99', 4), linen: fab('#f1eee8', 5), linenGrey: fab('#cfccc6', 6),
   olive: fab('#6f7352', 7), rust: fab('#a9643f', 8), dusty: fab('#8ea3b4', 9), mustard: fab('#c7a046', 10), sageFab: fab('#9bab93', 11), charcoal: fab('#4b4d50', 12), clay: fab('#c69f86', 13),
@@ -1129,6 +1129,12 @@ const SK = .07, ST = .012;
 [[-.13, .79], [3.49, 4.29], [6.99, 7.75], [8.45, 9.11]].forEach(([a, b]) => wallBoxes.push([FX, FO, a, b]));   // living facade piers
 const noSkirt = [[3.55, 4.30, 5.66, 8.83], [4.17, 7.32, 8.12, 8.83], [-.04, .64, -.04, 2.82], [-3.94, -2.32, -1.44, -.76], [-1.00, .82, -2.09, -1.41],
   [-3.87, -2.32, -.54, .13], [6.97, 8.96, -5.05, -4.37], [8.28, 8.96, -4.45, -3.19], [-3.87, -3.39, .43, 1.37]];
+// interior doors (spec addendum d10 item 5: Pandor, Aqua Bianco white formica, or equal): [axis, a1, a2, w1, w2, swing, leaf centre]; swing -1 = the
+// leaf opens toward w1. Casing 7 cm on the swing side and 8.5 cm on the other (Pandor PanClassic), so the skirting stops under the casing's edge.
+const FRAMES = [['x', -2.06, -1.23, -1.425, -1.245, -1, -1.355], ['x', .93, 1.77, -1.45, -1.245, -1, -1.355], ['x', 2.86, 3.69, -1.395, -1.245, -1, -1.315],
+  ['z', -1.16, -.34, 4.15, 4.26, 1, 4.205], ['z', -4.06, -3.36, 6.85, 7.01, -1, 6.945]], FJ = .025, casW = (f, swing) => (f === -1) === (swing === -1) ? .07 : .085;
+FRAMES.forEach(([axis, a1, a2, w1, w2, swing]) => [[w1, -1], [w2, 1]].forEach(([f, s]) => { const W = casW(s, swing), q = s > 0 ? [f - .05, f + .01] : [f - .01, f + .05];
+  const a = [a1 + FJ - .004 - W, a2 - FJ + .004 + W - .01]; noSkirt.push(axis === 'x' ? [...a, ...q] : [...q, ...a]); }));
 const hasWall = (x, z) => wallBoxes.some(([a, b, c, d]) => x > a && x < b && z > c && z < d) && !noSkirt.some(([a, b, c, d]) => x > a && x < b && z > c && z < d);
 function skirtRoom(x1, x2, z1, z2, skirt = mat.tile) {
   const edges = [['n', x1, x2, z1], ['s', x1, x2, z2], ['w', z1, z2, x1], ['e', z1, z2, x2]];
@@ -1171,23 +1177,22 @@ doorLeaf(4.205, -.35, 1, 0, .80, mat.door, DOORH - .02, .04, 0, -1);            
 doorLeaf(-2.0, -.195, 0, -1, .86, mat.blastDoor, 2.04, .08, 1, 0);                  // mamad blast door: hinge at the west end, open 90 deg into the corridor (as drawn in the plan)
 doorLeaf(6.945, -3.365, -1, 0, .69, mat.door, DOORH - .02, .04, 0, -1, (P, w, t) => {   // master bath door from the closet, full-length mirror on the closet side
   B(.08, w - .08, t / 2, t / 2 + .006, .25, 1.95, mat.mirror, { parent: P.g, cast: false }); reflector(new THREE.PlaneGeometry(w - .16, 1.7), P.g, w / 2, 1.1, t / 2 + .007, 0); B(.06, w - .06, t / 2, t / 2 + .003, .23, 1.97, mat.blackMetal, { parent: P.g, cast: false }); });
-// DOOR FRAMES (Israeli "bondor" style): a 2.5 cm jamb lining the whole reveal plus a 6 cm casing on both faces of the wall.
-// The leaves are 1-1.5 cm wider than the clear opening on each side and 5 mm taller than the head, so a closed leaf seats
-// into the frame: no slit to see through and no coplanar faces (the casing stands 16 mm proud, the head casing 17 mm, the
-// skirting 12 mm), which is what made the edges flicker before.
-function doorFrame(axis, a1, a2, w1, w2, head, m = mat.door) {
-  const J = .025;
-  const box = (p1, p2, q1, q2, y1, y2) => axis === 'x' ? B(p1, p2, q1, q2, y1, y2, m, { cast: false }) : B(q1, q2, p1, p2, y1, y2, m, { cast: false });
-  box(a1, a1 + J, w1, w2, 0, head); box(a2 - J, a2, w1, w2, 0, head); box(a1, a2, w1, w2, head - J, head);   // jambs + head
-  [[w1, -1], [w2, 1]].forEach(([f, s]) => { const o = (d) => [Math.min(f, f + s * d), Math.max(f, f + s * d)];
-    box(a1 - .045, a1 + .015, ...o(.016), 0, head + .045); box(a2 - .015, a2 + .045, ...o(.016), 0, head + .045);
-    box(a1 - .045, a2 + .045, ...o(.017), head - .015, head + .045); });
+// DOOR FRAMES (polymer, Pandor PanClassic profile; FRAMES above): a 2.5 cm jamb lining the whole reveal, a 3 x 1.2 cm stop on the
+// side the leaf closes against, and on both wall faces a casing (7 cm on the swing side, 8.5 on the other), 18 mm proud on the
+// opening side and 15 mm on its outer 12 mm, so it reads as a profile and covers the end of the 12 mm skirting. The leaves are
+// 1-1.5 cm wider than the clear opening and seat into the frame; vertical and head casings butt, no coplanar overlaps.
+function doorFrame(axis, a1, a2, w1, w2, swing, lc, head = DOORH, m = mat.door) {
+  const J = FJ, box = (p1, p2, q1, q2, y1, y2) => axis === 'x' ? B(p1, p2, q1, q2, y1, y2, m, { cast: false }) : B(q1, q2, p1, p2, y1, y2, m, { cast: false });
+  box(a1, a1 + J, w1, w2, 0, head); box(a2 - J, a2, w1, w2, 0, head); box(a1 + J, a2 - J, w1, w2, head - J, head);   // jambs + head
+  const sf = lc - swing * .02, st = [Math.min(sf, sf - swing * .03), Math.max(sf, sf - swing * .03)];                 // stop, beside the closed leaf's face
+  box(a1 + J, a1 + J + .012, ...st, 0, head - J - .012); box(a2 - J - .012, a2 - J, ...st, 0, head - J - .012); box(a1 + J, a2 - J, ...st, head - J - .012, head - J);
+  [[w1, -1], [w2, 1]].forEach(([f, s]) => { const W = casW(s, swing), o = d => [Math.min(f, f + s * d), Math.max(f, f + s * d)], L = .012;
+    const e1 = a1 + J - .004, e2 = a2 - J + .004, top = head - J + .004;                                                   // casing inner edges: a 4 mm reveal on the jamb
+    box(e1 - W + L, e1, ...o(.018), 0, top); box(e1 - W, e1 - W + L, ...o(.015), 0, top);                                 // left casing + its outer step
+    box(e2, e2 + W - L, ...o(.018), 0, top); box(e2 + W - L, e2 + W, ...o(.015), 0, top);                                 // right
+    box(e1 - W, e2 + W, ...o(.018), top, top + W - L); box(e1 - W, e2 + W, ...o(.015), top + W - L, top + W); });       // head casing
 }
-doorFrame('x', -2.06, -1.23, -1.425, -1.245, DOORH);      // room 1
-doorFrame('x', 0.93, 1.77, -1.45, -1.245, DOORH);         // room 2
-doorFrame('x', 2.86, 3.69, -1.395, -1.245, DOORH);        // family bath
-doorFrame('z', -1.16, -0.34, 4.15, 4.26, DOORH);          // master
-doorFrame('z', -4.06, -3.36, 6.85, 7.01, DOORH);          // master bath (from the closet)
+FRAMES.forEach(f => doorFrame(...f));   // rooms 1 and 2, family bath, master, master bath (from the closet)
 // mamad: steel blast-door frame on the corridor face (the leaf, surface mounted, closes over it)
 [[-2.03, -1.98], [-1.19, -1.14]].forEach(([a, b]) => B(a, b, -.152, -.145, 0, 2.05, mat.blastDoor, { cast: false })); B(-2.03, -1.14, -.152, -.145, 2.0, 2.05, mat.blastDoor, { cast: false });
 [[-1.98, -1.955], [-1.215, -1.19]].forEach(([a, b]) => B(a, b, -.145, .125, 0, 2.0, mat.blastDoor, { cast: false })); B(-1.98, -1.19, -.145, .125, 1.975, 2.0, mat.blastDoor, { cast: false });
@@ -2761,7 +2766,7 @@ LM.apply = () => {
 function lmWhiteUv(o) { if (!o.geometry.attributes.uv1) o.geometry.setAttribute('uv1', new THREE.BufferAttribute(new Float32Array(o.geometry.attributes.position.count * 2).fill(.0002), 2)); }
 LM.load = async () => {
   if (window.__nobake) return;
-  if (!/[?&]baked=1/.test(location.search)) return LM.loadAo();   // default: real-time light plus the baked ambient occlusion; ?baked=1: the full bake (still darker and blotchier)
+  if (!/[?&]baked=1/.test(location.search)) return /[?&]ao=1/.test(location.search) ? LM.loadAo() : undefined;   // default: real-time light only (the baked AO drew lines where wall, ceiling and frame pieces meet, owner 2026-10-07); ?ao=1: plus the baked AO; ?baked=1: the full bake
   let man;
   try { const r = await fetch('lm/manifest.json'); if (!r.ok) return; man = await r.json(); } catch (e) { return; }
   const loader = new THREE.TextureLoader();
@@ -2790,7 +2795,7 @@ LM.load = async () => {
   LM.on = LM.count > 0; LM.apply();
   console.log('lightmaps', LM.count, 'matched,', LM.missed, 'missed');
 };
-// Hybrid (default): the Cycles bake's ambient occlusion (corners, under and behind furniture, the ceiling line) darkens the
+// Hybrid (?ao=1, off by default since 2026-10-07: seams between meshes): the Cycles bake's ambient occlusion (corners, under and behind furniture, the ceiling line) darkens the
 // indirect light of the real-time materials. Shared materials take the AO map directly (one atlas), so the ceramic picker keeps
 // working; meshes on those materials that are not in the bake read a white texel at the atlas corner.
 LM.loadAo = async () => {
