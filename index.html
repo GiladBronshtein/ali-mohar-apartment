@@ -3584,7 +3584,7 @@ document.getElementById('loading').hidden = true;
 requestAnimationFrame(tick);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { });   // cache for return visits (sw.js is written by build_site.py)
 LM.ready = LM.load();
-window.__app = { FIX, fixSet, fixState, fixRoot, LM, contacts, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls, mirrors, CER, CER_SPACES, cerSet, cerReset, cerText, cerState };
+window.__app = { FIX, fixSet, fixState, fixRoot, propGroup, procPlants, procFruit, LM, contacts, fanGroup, root, ceilGroup, outside, doorGroup, curtGroup, setDoors, setCurtains, mat, warm, sun, THREE, setPT, getPT: () => pt, ptOn: () => ptOn, setEve: v => { isEve = v; }, renderOnce: frame, setView, setMode, setDims, setCeil, setHQ, setPanel, views, renderer, scene, camera, controls, mirrors, CER, CER_SPACES, cerSet, cerReset, cerText, cerState };
 </script>
 
 </body>
