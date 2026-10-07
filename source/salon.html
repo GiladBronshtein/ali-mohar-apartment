@@ -877,6 +877,7 @@ function wardrobe(P, { h = 2.4, front = mat.oak, doors, handles = true } = {}) {
   lb(P, -hx, hx, hz - .02, hz, .08, h, front);
   for (let i = 1; i < n; i++) { const x = -hx + i * P.w / n; lb(P, x - .003, x + .003, hz, hz + .002, .1, h - .02, mGap, { cast: false }); }
   if (handles) for (let i = 0; i < n; i += 2) { const x = -hx + (i + 1) * P.w / n; [-.025, .025].forEach(dx => { if (i + 1 < n || n % 2 === 0) lb(P, x + dx - .006, x + dx + .006, hz, hz + .02, 0.85, 1.35, mat.blackMetal); }); }
+  if (handles && n % 2) { const x = -hx + (n - 1) * P.w / n + .025; lb(P, x - .006, x + .006, hz, hz + .02, 0.85, 1.35, mat.blackMetal); }   // the odd door's bar at its inner edge
   if (h < H - .05) lb(P, -hx, hx, -hz, hz, h, H, mat.wall, { cast: false });
 }
 function desk(P, { top = mat.oak, legs = mat.blackMetal, items = true, seed = 1 } = {}) {
@@ -1002,13 +1003,16 @@ function plate(face, wall, c, y, w = .08, h = .08) { // switch / socket plate
 const doorGroup = new THREE.Group(), doors = [];
 function doorLeaf(hx, hz, dx, dz, w, m = mat.door, hgt = DOORH - .02, t = .04, cx = null, cz = null, extra = null) {
   const g = new THREE.Group(); doorGroup.add(g); g.position.set(hx, 0, hz); const P = { g };
-  const open = Math.atan2(-dz, dx), closed = cx === null ? open : Math.atan2(-cz, cx); g.rotation.y = open; doors.push({ g, open, closed });
+  const open = Math.atan2(-dz, dx), closed = cx === null ? open : Math.atan2(-cz, cx); g.rotation.y = open;
+  const po = cx === null || t > .05 ? null : [hx + cx * (t / 2 + .017), hz + cz * (t / 2 + .017)];   // open: the leaf face on the jamb line, clear of lining and casing
+  if (po) g.position.set(po[0], 0, po[1]); doors.push({ g, open, closed, hx, hz, po });
   if (extra) extra(P, w, t);
   lb(P, 0, w, -t / 2, t / 2, .01, hgt, m);
   [-1, 1].forEach(s => { lb(P, w - .09, w - .07, s * (t / 2), s * (t / 2 + .05), 1.0, 1.02, mat.blackMetal); lb(P, w - .2, w - .07, s * (t / 2 + .04), s * (t / 2 + .055), 1.0, 1.02, mat.blackMetal);
     lb(P, w - .105, w - .055, s * (t / 2), s * (t / 2 + .008), .985, 1.035, mat.blackMetal);                     // square rose 5 x 5
     lb(P, w - .092, w - .068, s * (t / 2), s * (t / 2 + .006), .91, .94, mat.blackMetal); });                    // key escutcheon 85 mm below
-  [.25, 1.05, 1.85].forEach(y => lb(P, -.012, .004, -.008, .008, y, y + .10, mat.blackMetal));                  // three hinge knuckles on the hinge edge
+  const ks = Math.sign((cx ?? dx) * dz - (cz ?? dz) * dx) || 1;   // three hinge knuckles on the swing face, past the lining
+  [.25, 1.05, 1.85].forEach(y => lb(P, .016, .026, ks > 0 ? t / 2 : -t / 2 - .012, ks > 0 ? t / 2 + .012 : -t / 2, y, y + .10, mat.blackMetal));
 }
 // window: frame + glass + stone sill + roller-shutter box. axis 'x' => spans x1..x2 in a wall between zIn and zOut
 function windowX(x1, x2, zIn, zOut, sill, head, panes = 2, slide = false, kip = false) {
@@ -1186,7 +1190,7 @@ doorLeaf(3.68, -1.315, -.087, -.996, .81, mat.door, DOORH - .02, .04, -1, 0, (P,
     // family bath (opening 2.86..3.69), leaf rests beside the tub
   lb(P, w - .086, w - .074, t / 2 + .006, t / 2 + .024, .905, .945, mat.blackMetal); lb(P, w - .09, w - .07, -t / 2 - .004, -t / 2, .915, .935, M('#c8312b', .4)); });   // turn lock inside, free/occupied indicator outside (annex B 15 ה)
 doorLeaf(4.205, -.35, 1, 0, .80, mat.door, DOORH - .02, .04, 0, -1);               // master (opening -1.16..-0.34), hinge on the TV-wall side as in the plan
-doorLeaf(-2.0, -.195, 0, -1, .86, mat.blastDoor, 2.04, .08, 1, 0);                  // mamad blast door: hinge at the west end, open 90 deg into the corridor (as drawn in the plan)
+doorLeaf(-2.0, -.195, 0, -1, .86, mat.blastDoor, 2.04, .08, 1, 0, (P, w, t) => [.55, 1.55].forEach(y => { lb(P, w - .20, w - .06, t / 2, t / 2 + .012, y - .02, y + .02, mat.steel); lb(P, w - .09, w - .07, t / 2 + .012, t / 2 + .05, y - .015, y + .015, mat.steel); }));   // locking bars on the mamad face (estimate)                  // mamad blast door: hinge at the west end, open 90 deg into the corridor (as drawn in the plan)
 doorLeaf(6.945, -3.365, -1, 0, .69, mat.door, DOORH - .02, .04, 0, -1, (P, w, t) => {   // master bath door from the closet, full-length mirror on the closet side
   B(.08, w - .16, t / 2, t / 2 + .006, .25, 1.95, mat.mirror, { parent: P.g, cast: false }); reflector(new THREE.PlaneGeometry(w - .24, 1.7), P.g, (w - .08) / 2, 1.1, t / 2 + .007, 0); B(.06, w - .14, t / 2, t / 2 + .003, .23, 1.97, mat.blackMetal, { parent: P.g, cast: false });   lb(P, w - .086, w - .074, -t / 2 - .024, -t / 2 - .006, .905, .945, mat.blackMetal); lb(P, w - .09, w - .07, t / 2, t / 2 + .004, .915, .935, M('#c8312b', .4)); });   // a solid stile carries the lever; turn lock on the bath side
 // DOOR FRAMES (polymer, Pandor PanClassic profile; FRAMES above): a 2.5 cm jamb lining the whole reveal, a 3 x 1.2 cm stop on the
@@ -1208,17 +1212,21 @@ FRAMES.forEach(f => doorFrame(...f));   // rooms 1 and 2, family bath, master, m
 // mamad: steel blast-door frame on the corridor face (the leaf, surface mounted, closes over it)
 [[-2.03, -1.98], [-1.19, -1.14]].forEach(([a, b]) => B(a, b, -.152, -.145, 0, 2.05, mat.blastDoor, { cast: false })); B(-2.03, -1.14, -.152, -.145, 2.0, 2.05, mat.blastDoor, { cast: false });
 [[-1.98, -1.955], [-1.215, -1.19]].forEach(([a, b]) => B(a, b, -.145, .125, 0, 2.0, mat.blastDoor, { cast: false })); B(-1.98, -1.19, -.145, .125, 1.975, 2.0, mat.blastDoor, { cast: false });
+[.30, 1.00, 1.70].forEach(y => C(-2.035, -.172, y, y + .16, .02, mat.blastDoor, { seg: 16 }));   // blast-door hinge barrels (estimate)
 // entrance: dark steel frame on the inside face
 [[1.535, 1.585], [2.555, 2.605]].forEach(([a, b]) => B(a, b, 5.475, 5.50, 0, DOORH + .05, mat.entryDoor, { cast: false })); B(1.535, 2.605, 5.474, 5.50, DOORH, DOORH + .05, mat.entryDoor, { cast: false });
 // switches by the doors
 [['n', -.145, 0.18], ['n', -.19, 3.18], ['n', 5.50, 2.68], ['s', .125, -1.10], ['s', -3.105, 8.40], ['e', 1.45, 3.0], ['n', 5.50, 4.17]].forEach(([f, w, c]) => outlets(f, w, c, 1.1, 'k'));
-[['n', -1.425, -2.18], ['n', -1.45, 0.80], ['s', -1.245, 4.42]].forEach(([f, w, c]) => outlets(f, w, c, 1.1, 'k'));
+[['n', -1.425, -2.18], ['n', -1.45, 0.83], ['s', -1.245, 4.42]].forEach(([f, w, c]) => outlets(f, w, c, 1.1, 'k'));
 
 // =====================================================================
 // CEILING + downlights
 // =====================================================================
 { const g = new THREE.PlaneGeometry(FO + 4.3, 9.11 + 5.4); g.rotateX(Math.PI / 2); g.translate((FO - 4.3) / 2, H, (9.11 - 5.4) / 2); mesh(g, mat.ceil, ceilGroup, true); }
 { const g = new THREE.PlaneGeometry(9.30 - FO, 5.4 - .13); g.rotateX(Math.PI / 2); g.translate((FO + 9.30) / 2, H, (-5.4 - .13) / 2); mesh(g, mat.ceil, ceilGroup, true); }  // master wing only (not over the balcony)
+{ const m = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }); m.shadowSide = THREE.FrontSide;   // shadow-only slab over the ceiling: with the plane alone the sun lit the top 2 cm of every wall (shadow bias)
+  [[-4.3, FO, -5.4, 9.11], [FO, 9.30, -5.4, -.13]].forEach(([x1, x2, z1, z2]) => { const sl = new THREE.Mesh(new THREE.BoxGeometry(x2 - x1, .25, z2 - z1), m);
+    sl.position.set((x1 + x2) / 2, H + .137, (z1 + z2) / 2); sl.castShadow = true; sl.receiveShadow = false; ceilGroup.add(sl); }); }
 B(7.06, FX, -.145, 7.66, H - .01, H, mat.slot, { parent: ceilGroup, cast: false });      // curtain pocket along the whole balcony wall
 [[3.8, 0.9], [5.9, 0.9], [3.8, 2.6], [5.9, 2.6], [4.6, 4.2], [6.4, 4.2], [4.6, 6.2], [4.6, 7.6], [6.6, 7.9], [3.1, 1.6],
  [-2.5, -4.25], [-2.5, -2.2], [0.45, -4.25], [0.45, -2.2], [-2.7, 1.4], [-1.1, 1.4], [5.7, -1.9], [7.8, -1.9], [5.7, -0.8], [7.8, -0.8],
@@ -1579,7 +1587,7 @@ art('n', -.145, .95, 1.5, 1.0, .65, 303, ['#e9e3d6', '#c6b49a', '#7a8470', '#3b4
 // MASTER BEDROOM (430 x 296) – bed head on the TV wall (see notes about acoustics)
 // =====================================================================
 withShift(.20, .10, () => {
-B(5.26, 8.29, -.26, -.255, 0, H, mat.walnut, { cast: false });
+B(5.24, 8.34, -.26, -.255, 0, H, mat.walnut, { cast: false });
 for (let i = 0; i < 34; i++) { const x = 5.25 + i * .0915; if (x + .062 > 8.35) break; B(x, x + .062, -.29, -.26, 0, H, mat.slatOak, { cast: false }); }
 { const P = place(5.98, 7.58, -2.435, -.285, 'n'); bed(P, { frame: mat.oatDark, duvet: mat.linen, pillow: mat.linenGrey, accent: mat.olive, deco: [mat.olive, mat.clay], headH: 1.15 }); }
 { const P = place(5.38, 5.90, -.735, -.285, 'n'); nightstand(P, { m: mat.oak, lampOn: false }); }
@@ -1609,7 +1617,7 @@ B(8.79, 8.81, -2.395, -1.04, H - .02, H, mat.frame, { cast: false });   // curta
 { const P = place(7.01, 8.31, -4.995, -4.395, 's'); wardrobe(P, { h: H, front: mat.greyFront, doors: 3 }); }
 { const P = place(8.31, 8.91, -4.395, -3.245, 'w'); wardrobe(P, { h: H, front: mat.greyFront, doors: 3 }); }
 B(8.32, 8.91, -4.995, -4.395, 0, H, mat.greyFront);                                   // blind corner, part of the east wardrobe
-B(7.46, 7.88, -4.395, -4.37, .10, .52, mat.oatDark, { round: .01 }); B(7.62, 7.72, -4.37, -4.355, .44, .46, mat.blackMetal);   // built-in pull-out laundry hamper
+B(7.455, 7.865, -4.395, -4.37, .10, .52, mat.oatDark, { round: .01 }); B(7.443, 7.877, -4.395, -4.393, .525, .531, mGap, { cast: false }); B(7.62, 7.72, -4.37, -4.355, .44, .46, mat.blackMetal);   // built-in pull-out laundry hamper
 B(7.02, 8.3, -4.375, -4.345, H - .006, H, mat.led, { parent: ceilGroup, cast: false });   // LED cove over the wardrobe doors
 rug(7.24, 8.19, -4.3, -3.4, mat.rug);
 
@@ -1877,11 +1885,11 @@ C(-1.98, 2.565, WD, WD + .10, .04, mat.ceramicVase);
   [-.27, .27].forEach(x => { lb(P, x - .02, x + .02, -.10, -.06, .50, .68, base); lb(P, x - .04, x + .04, -.18, .06, .68, .71, mat.black, { round: .01 }); }); }
 // window seat with drawers (reading nook) under the blast window, next to the desk return
 withShift(-.11, -.33, () => {
-B(-3.69, -3.29, .835, 1.695, 0, .45, mat.whiteFront, { round: .005 }); B(-3.29, -3.288, .835, 1.695, .22, .224, mat.black, { cast: false });
-B(-3.69, -3.3, .855, 1.675, .45, .55, mat.dusty, { round: .03 });
-[[1.035, mat.linen], [1.435, mat.linenGrey]].forEach(([z, m]) => { const p = B(-.06, .06, -.18, .18, -.18, .18, m, { round: .06 }); p.position.set(-3.59, .72, z); p.rotation.z = -.25; });
+B(-3.69, -3.29, .955, 1.695, 0, .45, mat.whiteFront, { round: .005 }); B(-3.29, -3.288, .955, 1.695, .22, .224, mat.black, { cast: false });   // starts clear of the wardrobe door's sweep
+B(-3.69, -3.3, .975, 1.675, .45, .55, mat.dusty, { round: .03 });
+[[1.15, mat.linen], [1.435, mat.linenGrey]].forEach(([z, m]) => { const p = B(-.06, .06, -.18, .18, -.18, .18, m, { round: .06 }); p.position.set(-3.59, .72, z); p.rotation.z = -.25; });
 });
-B(-3.79, -3.74, .505, 1.475, 1.72, 2.0, mat.linenGrey, { round: .01 });
+B(-3.79, -3.74, .505, 1.475, 1.80, 2.095, mat.linenGrey, { round: .01 });
 { const P = place(-3.8, -2.36, -.465, .125, 's'); wardrobe(P, { h: H, front: mat.whiteFront, doors: 3 }); }
 windowZ(.48, 1.48, -3.80, -4.28, 1.10, 2.10, 1);
 [[.42, .48], [1.48, 1.54]].forEach(([a, b]) => B(-3.805, -3.78, a, b, 1.06, 2.14, mat.blastDoor, { cast: false })); B(-3.805, -3.78, .42, 1.54, 2.10, 2.14, mat.blastDoor, { cast: false }); // steel blast-window frame
@@ -2702,10 +2710,10 @@ function winLight(x, z, w, h, y, lookX, lookZ, k) {
 winLight(FX - .02, 2.14, 2.70, HEAD, HEAD / 2, 0, 2.14, 5);
 winLight(FX - .02, 5.64, 2.70, HEAD, HEAD / 2, 0, 5.64, 5);
 winLight(FX - .02, 8.10, .70, 1.15, 1.775, 0, 8.10, 2.5);
-winLight(-3.88, -2.36, .90, 2.20, 1.25, 0, -2.36, 4);     // room 1
-winLight(.815, -4.99, .90, 2.20, 1.25, .815, 0, 4);           // room 2
+winLight(-4.03, -2.36, .90, 2.20, 1.25, 0, -2.36, 4);     // room 1
+winLight(.815, -5.14, .90, 2.20, 1.25, .815, 0, 4);           // room 2
 winLight(-3.81, .955, .97, 1.0, 1.5, 0, .955, 3.5);         // mamad
-winLight(8.90, -1.79, .96, 2.15, 1.10, 0, -1.79, 5.5);       // master
+winLight(9.05, -1.79, .96, 2.15, 1.10, 0, -1.79, 5.5);       // master
 winLight(6.285, -4.99, .59, .7, 1.85, 6.285, 0, 2.5);       // master bath
 winLight(2.975, -3.78, 1.2, 1.0, 1.6, 2.975, 0, 2.5);       // family bath (onto the laundry recess, so dimmer; estimate)
 const warm = [], WARM_DOWN = [.5, 1, .7, 1, 1, 1, 1, 1, 1, 1, 1, 1];   // per light: 1 = ceiling downlight (lobe down), 0 = omni; pendants in between
@@ -3105,7 +3113,7 @@ controls.addEventListener('change', () => { if (ptOn && pt) pt.updateCamera(); }
 let fansOn = false, lastT = performance.now();
 document.getElementById('btnFan').onclick = () => { dirty = 1; fansOn = !fansOn; document.getElementById('btnFan').setAttribute('aria-pressed', fansOn); };
 // doors and curtains: open or closed
-function setDoors(closed) { renderer.shadowMap.needsUpdate = true; doors.forEach(d => d.g.rotation.y = closed ? d.closed : d.open); captureContact(); document.getElementById('btnDoors').setAttribute('aria-pressed', closed); dirty = 1; if (ptOn && pt) pt.setScene(scene, camera); }
+function setDoors(closed) { renderer.shadowMap.needsUpdate = true; doors.forEach(d => { d.g.rotation.y = closed ? d.closed : d.open; if (d.po) d.g.position.set(closed ? d.hx : d.po[0], 0, closed ? d.hz : d.po[1]); }); captureContact(); document.getElementById('btnDoors').setAttribute('aria-pressed', closed); dirty = 1; if (ptOn && pt) pt.setScene(scene, camera); }
 function setCurtains(closed) { renderer.shadowMap.needsUpdate = true; curtOpen.forEach(c => c.visible = !closed); curtClosed.forEach(c => c.visible = closed); captureContact(); document.getElementById('btnCurt').setAttribute('aria-pressed', closed); dirty = 1; if (ptOn && pt) pt.setScene(scene, camera); }
 let doorsClosed = false, curtClosedOn = false;
 document.getElementById('btnDoors').onclick = () => setDoors(doorsClosed = !doorsClosed);
