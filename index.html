@@ -8,6 +8,15 @@
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three/build/three.module.min.js",
+  "three/addons/": "./vendor/three/examples/jsm/",
+  "three/examples/jsm/": "./vendor/three/examples/jsm/",
+  "three-mesh-bvh": "./vendor/three-mesh-bvh/build/index.module.js",
+  "three-gpu-pathtracer": "./vendor/three-gpu-pathtracer/build/index.module.js"
+} }
+</script>
 <link rel="modulepreload" href="vendor/three/build/three.module.min.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/controls/OrbitControls.js">
 <link rel="modulepreload" href="vendor/three/examples/jsm/environments/RoomEnvironment.js">
@@ -278,15 +287,6 @@ details[open] summary::after { content: " ▴"; }
   </div>
 </div>
 
-<script type="importmap">
-{ "imports": {
-  "three": "./vendor/three/build/three.module.min.js",
-  "three/addons/": "./vendor/three/examples/jsm/",
-  "three/examples/jsm/": "./vendor/three/examples/jsm/",
-  "three-mesh-bvh": "./vendor/three-mesh-bvh/build/index.module.js",
-  "three-gpu-pathtracer": "./vendor/three-gpu-pathtracer/build/index.module.js"
-} }
-</script>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';

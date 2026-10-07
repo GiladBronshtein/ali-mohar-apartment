@@ -40,7 +40,9 @@ sets = {'laminate_floor_02': 'nr', 'oak_veneer_01': 'dnr', 'white_stucco': 'nr',
 texs = [f'assets/tex/{k}/{dict(d="diff", n="nor", r="rough")[c]}.webp' for k, v in sets.items() for c in v]
 preloads = ''.join(f'<link rel="modulepreload" href="{m}">\n' for m in mods if os.path.exists(os.path.join(SITE, m))) + \
            ''.join(f'<link rel="preload" href="{t}" as="fetch" crossorigin>\n' for t in texs if os.path.exists(os.path.join(SITE, t)))
-meta = meta.replace('{preloads}', preloads)
+im = re.search(r'<script type="importmap">.*?</script>\n?', body, re.S)   # the import map must come before any module preload, or a preload can race it
+assert im, 'import map not found'; body = body.replace(im.group(0), '')
+meta = meta.replace('{preloads}', im.group(0).strip() + '\n' + preloads)
 doc = f'<!doctype html>\n<html lang="he">\n<head>\n{meta}{head}\n</head>\n<body>\n{body}\n</body>\n</html>\n'
 open(SITE + '/index.html', 'w').write(doc)
 json.dump({"name": title, "short_name": "הדירה", "description": desc, "lang": "he", "dir": "rtl", "start_url": "./", "scope": "./", "display": "fullscreen",
